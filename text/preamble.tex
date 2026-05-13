@@ -1,0 +1,48 @@
+% Preamble — pacotes e configurações comuns
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{indentfirst}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue!50!black,
+}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning,calc}
+
+\usepackage[
+    backend=biber,
+    style=apa,
+    language=brazilian,
+    natbib=true,
+    sorting=nyt,
+]{biblatex}
+
+\addbibresource{refs.bib}
+
+% Comandos auxiliares
+\newcommand{\janelaUm}{2013--2017}
+\newcommand{\janelaDois}{2018--2022}
+\newcommand{\janelaTres}{2022--2025}
