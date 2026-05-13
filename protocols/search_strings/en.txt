@@ -1,0 +1,21 @@
+# English search string (TS= / TITLE-ABS-KEY)
+# Version 1.0 — registered before search execution
+
+(
+  "artificial intelligence" OR "machine learning" OR "deep learning"
+  OR "neural network*" OR "natural language processing" OR "NLP"
+  OR "large language model*" OR "LLM" OR "generative AI"
+  OR "ChatGPT" OR "GPT" OR "foundation model*" OR "automation"
+)
+AND
+(
+  "employment" OR "labor market*" OR "labour market*"
+  OR "jobs" OR "workforce" OR "occupation*" OR "wages"
+  OR "labor demand" OR "task displacement" OR "job creation"
+  OR "job destruction"
+)
+AND
+(
+  "impact*" OR "effect*" OR "exposure" OR "displacement"
+  OR "automation risk" OR "substitution" OR "complementarity"
+)

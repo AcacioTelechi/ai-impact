@@ -1,0 +1,18 @@
+# Cadena de búsqueda en español
+# Versión 1.0
+
+(
+  "inteligencia artificial" OR "aprendizaje automático" OR "aprendizaje profundo"
+  OR "redes neuronales" OR "automatización" OR "IA generativa"
+  OR "modelos de lenguaje" OR "LLM" OR "ChatGPT"
+)
+AND
+(
+  "empleo" OR "mercado laboral" OR "mercado de trabajo" OR "ocupaciones"
+  OR "salarios" OR "demanda laboral" OR "puestos de trabajo"
+)
+AND
+(
+  "impacto*" OR "efecto*" OR "desplazamiento" OR "sustitución"
+  OR "complementariedad" OR "exposición" OR "riesgo de automatización"
+)
