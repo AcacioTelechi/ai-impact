@@ -40,9 +40,11 @@ Definidos em `inclusion_criteria.md`.
 
 ## 6. Estratégia de busca
 
-Bases: Web of Science, Scopus, RePEc/IDEAS, SciELO + busca direta em periódicos-chave de economia.
+Bases: Web of Science, Scopus, SciELO + busca direta em periódicos-chave de economia.
 Strings de busca em `search_strings/` (en, pt, es, fr).
 Período: 2013-01-01 a 2025-12-31.
+
+**Nota sobre OpenAlex:** inicialmente previsto como base complementar (via API), foi descartado em 2026-05-13 após teste empírico. A query original retornava 4,4 milhões de registros porque o parâmetro `search` da OpenAlex não suporta operadores booleanos AND/OR no server-side — apenas full-text fuzzy. Mesmo com filtros de conceito (e.g., `concepts.id:C162324750` Economics + `C154945302` AI) o volume ficava acima de 870k, inviável de pós-filtrar. WoS e Scopus oferecem booleano nativo e curadoria temática, suficientes para o escopo da revisão. Decisão documentada no commit fazendo parte do registro pré-execução.
 
 ## 7. Processo de seleção
 
