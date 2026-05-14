@@ -20,12 +20,64 @@ TAB_DIR := text/tables
 BUILD := build
 
 EMAIL ?= acacio@example.com  # override: make fetch EMAIL=foo@bar.com
+TODAY := $(shell date +%Y-%m-%d)
+
+# ============ Plano 2 — Busca ============
+
+.PHONY: search-openalex
+search-openalex:
+	@for LANG in en pt es fr; do \
+	    echo "→ OpenAlex $$LANG"; \
+	    $(PYTHON) -m scripts.search.openalex_search \
+	        --query-file protocols/search_strings/$$LANG.txt \
+	        --lang $$LANG \
+	        --output $(DATA_RAW)/openalex_$${LANG}_$(TODAY).csv \
+	        --meta-output $(DATA_RAW)/openalex_$${LANG}_$(TODAY).meta.json \
+	        --email $(EMAIL); \
+	done
+
+.PHONY: import-wos
+import-wos:
+	$(PYTHON) -m scripts.search.import_bibtex \
+	    --source wos \
+	    --files $(DATA_RAW)/manual/wos/*.bib \
+	    --output $(DATA_RAW)/wos_$(TODAY).csv \
+	    --meta-output $(DATA_RAW)/wos_$(TODAY).meta.json \
+	    --query-string "$$(cat protocols/search_strings/en.txt)"
+
+.PHONY: import-scopus
+import-scopus:
+	$(PYTHON) -m scripts.search.import_bibtex \
+	    --source scopus \
+	    --files $(DATA_RAW)/manual/scopus/*.bib \
+	    --output $(DATA_RAW)/scopus_$(TODAY).csv \
+	    --meta-output $(DATA_RAW)/scopus_$(TODAY).meta.json \
+	    --query-string "$$(cat protocols/search_strings/en.txt)"
+
+.PHONY: import-scielo
+import-scielo:
+	$(PYTHON) -m scripts.search.import_bibtex \
+	    --source scielo \
+	    --files $(DATA_RAW)/manual/scielo/*.bib \
+	    --output $(DATA_RAW)/scielo_$(TODAY).csv \
+	    --meta-output $(DATA_RAW)/scielo_$(TODAY).meta.json \
+	    --query-string "$$(cat protocols/search_strings/pt.txt)"
+
+.PHONY: search-summary
+search-summary:
+	$(PYTHON) -m scripts.search.summary \
+	    --searches-dir $(DATA_RAW) \
+	    --output-table $(TAB_DIR)/searches_summary.tex
+
+.PHONY: search-all
+search-all: search-openalex import-wos import-scopus import-scielo search-summary
+	@echo "✓ Busca completa. Próximo: make consolidate && make dedup"
+
+# Manter o target antigo `search` como alias do novo workflow completo.
+.PHONY: search
+search: search-all
 
 # ============ Pipeline ============
-
-.PHONY: search
-search:
-	@echo "F3 — buscas: implementadas no Plano 2. Por enquanto, popular manualmente $(DATA_RAW)/"
 
 .PHONY: consolidate
 consolidate:
