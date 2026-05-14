@@ -10,11 +10,20 @@ CLI:
 """
 from __future__ import annotations
 
+import argparse
+import datetime as dt
+import json
+import sys
 from pathlib import Path
 
 import bibtexparser
+import pandas as pd
+from langdetect import detect, DetectorFactory, LangDetectException
 
-from scripts.utils.normalization import normalize_doi
+from scripts.utils.io import sha256_file, write_corpus_csv
+from scripts.utils.normalization import normalize_doi, dedup_key
+
+DetectorFactory.seed = 42  # deterministic langdetect
 
 
 LANG_MAP = {
@@ -82,3 +91,108 @@ def map_wos(entry: dict) -> dict:
         "venue": _strip_braces(entry.get("journal", "") or entry.get("booktitle", "")),
         "language": _normalize_language(_strip_braces(entry.get("language", ""))),
     }
+
+
+def _detect_lang(title: str, abstract: str) -> str:
+    text = f"{title} {abstract}".strip()
+    if not text:
+        return "en"
+    try:
+        code = detect(text)
+    except LangDetectException:
+        return "en"
+    return LANG_MAP.get(code, "en")
+
+
+def map_scopus(entry: dict) -> dict:
+    row = map_wos(entry)
+    row["source"] = "scopus"
+    if not entry.get("language"):
+        row["language"] = _detect_lang(row["title"], row["abstract"])
+    return row
+
+
+def map_scielo(entry: dict) -> dict:
+    row = map_wos(entry)
+    row["source"] = "scielo"
+    if not entry.get("language"):
+        row["language"] = _detect_lang(row["title"], row["abstract"])
+    return row
+
+
+_MAPPERS = {"wos": map_wos, "scopus": map_scopus, "scielo": map_scielo}
+
+
+def _intra_source_dedup(rows: list[dict]) -> list[dict]:
+    seen: set[str] = set()
+    out: list[dict] = []
+    for r in rows:
+        if r["doi"]:
+            key = r["doi"]
+        else:
+            key = dedup_key(authors=r["authors"], year=r["year"], title=r["title"])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(r)
+    return out
+
+
+def run(
+    bibtex_files: list[Path],
+    source: str,
+    output: Path,
+    meta_output: Path,
+    query_string: str | None = None,
+) -> None:
+    if source not in _MAPPERS:
+        raise ValueError(f"Unknown source: {source}. Expected one of {list(_MAPPERS)}")
+    mapper = _MAPPERS[source]
+    entries = parse_bib_files(bibtex_files)
+    rows = [mapper(e) for e in entries]
+    n_raw = len(rows)
+    rows = _intra_source_dedup(rows)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    write_corpus_csv(pd.DataFrame(rows), output)
+
+    meta = {
+        "base": source,
+        "lang": None,
+        "query_used": query_string or "",
+        "query_string_version": "1.0",
+        "date_from": "",
+        "date_to": "",
+        "executed_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "n_files": len(bibtex_files),
+        "n_entries_raw": n_raw,
+        "n_after_intra_dedup": len(rows),
+        "n_hits_raw": n_raw,
+        "n_after_filters": len(rows),
+        "csv_sha256": sha256_file(output),
+        "tool_version": "ai-impact 0.2.0",
+        "notes": "",
+    }
+    meta_output.parent.mkdir(parents=True, exist_ok=True)
+    meta_output.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"BibTeX {source}: {n_raw} entries → {len(rows)} after intra-dedup → {output}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser()
+    p.add_argument("--source", required=True, choices=["wos", "scopus", "scielo"])
+    p.add_argument("--files", type=Path, nargs="+", required=True)
+    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--meta-output", type=Path, required=True)
+    p.add_argument("--query-string", default="")
+    a = p.parse_args(argv)
+    run(
+        bibtex_files=a.files, source=a.source,
+        output=a.output, meta_output=a.meta_output,
+        query_string=a.query_string,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))

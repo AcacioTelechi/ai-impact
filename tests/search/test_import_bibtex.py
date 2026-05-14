@@ -1,8 +1,9 @@
+import json
 from pathlib import Path
 
 import pandas as pd
 
-from scripts.search.import_bibtex import map_wos, parse_bib_files
+from scripts.search.import_bibtex import map_wos, parse_bib_files, map_scopus, map_scielo, run
 
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
@@ -49,3 +50,76 @@ def test_parse_bib_files_preserves_diacritics() -> None:
     entries = parse_bib_files([FIXTURES / "wos_sample.bib"])
     authors_all = " | ".join(e.get("author", "") for e in entries)
     assert "Müller" in authors_all
+
+
+def test_map_scopus_preserves_spanish() -> None:
+    entry = {
+        "author": "García, Luis",
+        "title": "Inteligencia artificial",
+        "journal": "Trimestre Económico",
+        "year": "2023",
+        "abstract": "Estudio descriptivo.",
+        "language": "Spanish",
+    }
+    row = map_scopus(entry)
+    assert row["source"] == "scopus"
+    assert row["language"] == "es"
+    assert "García" in row["authors"]
+
+
+def test_map_scielo_detects_language_when_missing() -> None:
+    entry = {
+        "author": "Silva, R. and Costa, M.",
+        "title": "IA generativa e o mercado de trabalho brasileiro",
+        "journal": "RBE",
+        "year": "2024",
+        "doi": "10.5678/rbe.2024.100",
+        "abstract": "Análise dos efeitos da IA generativa sobre o emprego.",
+        # No 'language' field
+    }
+    row = map_scielo(entry)
+    assert row["source"] == "scielo"
+    assert row["language"] == "pt"  # detected via langdetect
+
+
+def test_run_end_to_end_with_wos_fixture(tmp_path: Path) -> None:
+    out = tmp_path / "wos.csv"
+    meta = tmp_path / "wos.meta.json"
+    run(
+        bibtex_files=[FIXTURES / "wos_sample.bib"],
+        source="wos",
+        output=out,
+        meta_output=meta,
+        query_string="test query",
+    )
+    df = pd.read_csv(out)
+    assert len(df) == 2
+    m = json.loads(meta.read_text())
+    assert m["base"] == "wos"
+    assert m["n_entries_raw"] == 2
+    assert "csv_sha256" in m
+
+
+def test_run_dedups_intra_source(tmp_path: Path) -> None:
+    """Two .bib files with overlapping DOI should dedup to 2 unique."""
+    f1 = tmp_path / "lote1.bib"
+    f2 = tmp_path / "lote2.bib"
+    f1.write_text(
+        '@article{A,doi={10.1/A},title={T},author={X, Y},year={2020}}\n',
+        encoding="utf-8",
+    )
+    f2.write_text(
+        '@article{A2,doi={10.1/A},title={T},author={X, Y},year={2020}}\n'
+        '@article{B,doi={10.1/B},title={U},author={Z, W},year={2021}}\n',
+        encoding="utf-8",
+    )
+    out = tmp_path / "out.csv"
+    run(
+        bibtex_files=[f1, f2],
+        source="wos",
+        output=out,
+        meta_output=tmp_path / "out.meta.json",
+        query_string="q",
+    )
+    df = pd.read_csv(out)
+    assert len(df) == 2  # the two doi=10.1/A duplicate is removed
