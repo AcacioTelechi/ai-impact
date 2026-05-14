@@ -7,16 +7,19 @@ To be executed AFTER the initial screening produces a list of central seed DOIs
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 import pandas as pd
 import requests
+from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from scripts.search.openalex_search import flatten_record
 from scripts.utils.io import write_corpus_csv
 
+load_dotenv()
 
 OPENALEX_BASE = "https://api.openalex.org/works"
 
@@ -24,6 +27,9 @@ OPENALEX_BASE = "https://api.openalex.org/works"
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
 def _get(url: str, email: str, params: dict | None = None) -> dict:
     headers = {"User-Agent": f"ai-impact/0.2.0 (mailto:{email})"}
+    api_key = os.environ.get("OPENALEX_API_KEY")
+    if api_key:
+        params = {**(params or {}), "api_key": api_key}
     r = requests.get(url, headers=headers, params=params, timeout=30)
     r.raise_for_status()
     return r.json()

@@ -16,17 +16,20 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import sys
 from pathlib import Path
 
 import pandas as pd
 import requests
+from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from scripts.search.openalex_utils import parse_query_blocks, reconstruct_abstract
 from scripts.utils.io import sha256_file, write_corpus_csv
 from scripts.utils.normalization import normalize_doi
 
+load_dotenv()
 
 OPENALEX_BASE = "https://api.openalex.org/works"
 
@@ -57,6 +60,9 @@ def flatten_record(rec: dict, default_lang: str) -> dict:
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
 def _fetch_page(params: dict, email: str) -> dict:
     headers = {"User-Agent": f"ai-impact/0.2.0 (mailto:{email})"}
+    api_key = os.environ.get("OPENALEX_API_KEY")
+    if api_key:
+        params = {**params, "api_key": api_key}
     r = requests.get(OPENALEX_BASE, params=params, headers=headers, timeout=30)
     if r.status_code == 429:
         r.raise_for_status()  # triggers retry
