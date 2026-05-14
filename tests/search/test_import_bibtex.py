@@ -52,6 +52,30 @@ def test_parse_bib_files_preserves_diacritics() -> None:
     assert "Müller" in authors_all
 
 
+def test_parse_bib_files_normalizes_titlecase_keys() -> None:
+    """Real WoS exports use Title Case field keys (Author, Title, ...).
+
+    Regression test: ensure keys are lowercased so map_wos finds them.
+    """
+    entries = parse_bib_files([FIXTURES / "wos_titlecase_sample.bib"])
+    assert len(entries) == 2
+    for e in entries:
+        # No Title Case keys should leak through
+        assert "Author" not in e
+        assert "Title" not in e
+        assert "DOI" not in e
+        # All canonical lowercase keys should be present
+        assert e["author"]
+        assert e["title"]
+        assert e["doi"]
+        assert e["year"]
+    # And map_wos must produce non-empty rows
+    rows = [map_wos(e) for e in entries]
+    assert all(r["doi"] for r in rows)
+    assert all(r["title"] for r in rows)
+    assert all(r["year"] for r in rows)
+
+
 def test_map_scopus_preserves_spanish() -> None:
     entry = {
         "author": "García, Luis",

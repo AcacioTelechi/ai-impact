@@ -63,15 +63,20 @@ def _normalize_authors(authors_field: str | None) -> str:
 
 
 def parse_bib_files(files: list[Path]) -> list[dict]:
-    """Parse one or more .bib files, returning a flat list of entry dicts."""
+    """Parse one or more .bib files, returning a flat list of entry dicts.
+
+    Field keys are lowercased so callers can rely on canonical names (`author`,
+    `title`, ...) regardless of how the source database capitalizes them.
+    WoS exports use Title Case (`Author`, `Title`); Scopus uses lowercase.
+    """
     all_entries: list[dict] = []
     for f in files:
         library = bibtexparser.parse_file(str(f))
         for entry in library.entries:
             d = {}
             for field_key, field in entry.fields_dict.items():
-                # bibtexparser v2: Field objects have .value
-                d[field_key] = field.value if hasattr(field, "value") else field
+                value = field.value if hasattr(field, "value") else field
+                d[field_key.lower()] = value
             d["entry_type"] = entry.entry_type
             d["key"] = entry.key
             all_entries.append(d)
