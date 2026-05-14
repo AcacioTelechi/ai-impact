@@ -236,3 +236,6 @@ text/tables/*.tex
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+
+# Plan 2: manual export staging area
+data/raw/searches/manual/
