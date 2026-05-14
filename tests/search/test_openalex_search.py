@@ -110,3 +110,64 @@ def test_fetch_all_paginates() -> None:
         )
     assert total == 5
     assert len(rows) == 5
+
+
+import json
+from pathlib import Path
+
+from scripts.search.openalex_search import filter_by_keywords, run
+
+
+def test_filter_by_keywords_keeps_matches() -> None:
+    rows = [
+        {"title": "AI and labor markets", "abstract": ""},
+        {"title": "Cooking with AI", "abstract": ""},
+        {"title": "Random topic with AI", "abstract": "discusses employment"},
+        {"title": "Just random", "abstract": "no keywords"},
+    ]
+    blocks = [["AI"], ["labor", "employment"]]
+    kept = filter_by_keywords(rows, blocks)
+    titles = {r["title"] for r in kept}
+    assert "AI and labor markets" in titles
+    assert "Random topic with AI" in titles
+    assert "Cooking with AI" not in titles
+    assert "Just random" not in titles
+
+
+def test_run_end_to_end_with_mock(tmp_path: Path) -> None:
+    """Mock the network call, verify CSV + .meta.json produced."""
+    query_file = tmp_path / "q.txt"
+    query_file.write_text('("ai") AND ("jobs")', encoding="utf-8")
+
+    fake_response = {
+        "results": [
+            {"doi": "10.1/a", "title": "AI and jobs", "publication_year": 2020,
+             "authorships": [], "primary_location": None,
+             "abstract_inverted_index": None, "language": "en"}
+        ],
+        "meta": {"next_cursor": None, "count": 1},
+    }
+
+    with patch("scripts.search.openalex_search.requests.get",
+               return_value=_mock_response(200, fake_response)):
+        run(
+            query_file=query_file,
+            lang="en",
+            date_from="2013-01-01",
+            date_to="2025-12-31",
+            output=tmp_path / "out.csv",
+            meta_output=tmp_path / "out.meta.json",
+            email="x@y.com",
+        )
+
+    import pandas as pd
+    df = pd.read_csv(tmp_path / "out.csv")
+    assert len(df) >= 1
+    assert "AI and jobs" in df["title"].tolist()
+
+    meta = json.loads((tmp_path / "out.meta.json").read_text())
+    assert meta["base"] == "openalex"
+    assert meta["lang"] == "en"
+    assert meta["n_after_filters"] >= 1
+    assert "csv_sha256" in meta
+    assert len(meta["csv_sha256"]) == 64  # SHA-256 hex

@@ -13,10 +13,18 @@ CLI:
 """
 from __future__ import annotations
 
+import argparse
+import datetime as dt
+import json
+import sys
+from pathlib import Path
+
+import pandas as pd
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from scripts.search.openalex_utils import reconstruct_abstract
+from scripts.search.openalex_utils import parse_query_blocks, reconstruct_abstract
+from scripts.utils.io import sha256_file, write_corpus_csv
 from scripts.utils.normalization import normalize_doi
 
 
@@ -89,3 +97,96 @@ def fetch_all(
             rows.append(flatten_record(rec, default_lang=lang))
         cursor = meta.get("next_cursor")
     return rows, total
+
+
+def filter_by_keywords(rows: list[dict], blocks: list[list[str]]) -> list[dict]:
+    """Keep rows that match at least one keyword from EACH block.
+
+    Each block is a list of synonyms (OR). All blocks must match (AND).
+    Matching is case-insensitive against title + abstract.
+    """
+    kept: list[dict] = []
+    for row in rows:
+        text = f"{row.get('title', '')} {row.get('abstract', '')}".lower()
+        if all(any(tok.lower() in text for tok in block) for block in blocks):
+            kept.append(row)
+    return kept
+
+
+def run(
+    query_file: Path,
+    lang: str,
+    date_from: str,
+    date_to: str,
+    output: Path,
+    meta_output: Path,
+    email: str,
+) -> None:
+    """Execute an OpenAlex search end-to-end and write CSV + .meta.json."""
+    query_text = Path(query_file).read_text(encoding="utf-8")
+    blocks = parse_query_blocks(query_text)
+
+    # Build a single 'search' string from the first block (IA terms)
+    search_string = " OR ".join(blocks[0]) if blocks else ""
+
+    all_rows, n_raw = fetch_all(
+        search=search_string,
+        date_from=date_from,
+        date_to=date_to,
+        lang=lang,
+        email=email,
+    )
+    # Dedup by OpenAlex DOI within this batch
+    seen = set()
+    deduped = []
+    for r in all_rows:
+        key = r["doi"] or f"{r['title']}-{r['year']}"
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(r)
+
+    filtered = filter_by_keywords(deduped, blocks) if blocks else deduped
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    write_corpus_csv(pd.DataFrame(filtered), output)
+
+    meta = {
+        "base": "openalex",
+        "lang": lang,
+        "query_used": query_text,
+        "query_string_version": "1.0",
+        "date_from": date_from,
+        "date_to": date_to,
+        "executed_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "n_hits_raw": int(n_raw),
+        "n_after_filters": int(len(filtered)),
+        "csv_sha256": sha256_file(output),
+        "tool_version": "ai-impact 0.2.0",
+        "notes": "",
+    }
+    meta_output.parent.mkdir(parents=True, exist_ok=True)
+    meta_output.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"OpenAlex {lang}: {n_raw} hits → {len(filtered)} after filter → {output}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser()
+    p.add_argument("--query-file", type=Path, required=True)
+    p.add_argument("--lang", required=True, choices=["en", "pt", "es", "fr"])
+    p.add_argument("--date-from", default="2013-01-01")
+    p.add_argument("--date-to", default="2025-12-31")
+    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--meta-output", type=Path, required=True)
+    p.add_argument("--email", required=True)
+    a = p.parse_args(argv)
+    run(
+        query_file=a.query_file, lang=a.lang,
+        date_from=a.date_from, date_to=a.date_to,
+        output=a.output, meta_output=a.meta_output, email=a.email,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))
