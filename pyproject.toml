@@ -17,6 +17,8 @@ dependencies = [
     "python-dotenv>=1.0",
     "pyyaml>=6.0",
     "scikit-learn>=1.4",
+    "bibtexparser>=2.0.0b9",
+    "langdetect>=1.0.9",
 ]
 
 [dependency-groups]
