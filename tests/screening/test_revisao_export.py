@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json as _json
 import numpy as np
 import pandas as pd
 import pytest
+from pathlib import Path
 
+from scripts.screening import revisao_export
 from scripts.screening.llm.batch_client import cache_key, custom_id
 from scripts.screening.revisao_export import SHEET_COLS, build_sheet, soft_includes
 
@@ -136,11 +139,6 @@ def test_merge_preserve_nan_decisions_treated_as_blank():
     assert merged.loc["b", "decisao_humana"] == ""   # NaN → ""
 
 
-from pathlib import Path
-
-from scripts.screening import revisao_export
-
-
 def _screening_csv(tmp_path: Path) -> Path:
     p = tmp_path / "03_screening_ta.csv"
     pd.DataFrame([
@@ -176,9 +174,6 @@ def test_run_reexport_is_non_destructive(tmp_path: Path):
     row = s2[s2["doi"] == "10.1/s1"].iloc[0]
     assert row["decisao_humana"] == "e"
     assert row["nota_humana"] == "fora do escopo"
-
-
-import json as _json
 
 
 def test_run_first_export_writes_state_no_backup(tmp_path: Path):
@@ -254,3 +249,30 @@ def test_run_no_false_positive_on_corpus_growth(tmp_path: Path, capsys):
     revisao_export.run(screening_csv=src, sheet_csv=sheet)
     out = capsys.readouterr().out
     assert "ATENÇÃO" not in out   # crescimento NÃO é perda → sem alarme falso
+
+
+def test_run_handles_corrupt_state_file_gracefully(tmp_path: Path, capsys):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)          # cria sheet + state
+    s = pd.read_csv(sheet, keep_default_na=False)
+    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "i"
+    s.to_csv(sheet, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)          # state válido com s1
+    # corrompe o arquivo de estado
+    state = sheet.with_suffix(".state.json")
+    state.write_text("{ this is not valid json", encoding="utf-8")
+    capsys.readouterr()
+    # não deve levantar; deve avisar estado inválido; sheet deve ser reescrito;
+    # decisão preexistente preservada; sem ATENÇÃO de perda (prior vazio)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    out = capsys.readouterr().out
+    assert "estado anterior inválido" in out
+    assert "ATENÇÃO" not in out
+    s2 = pd.read_csv(sheet, keep_default_na=False)
+    assert (s2["decisao_humana"] == "i").sum() == 1                 # decisão preservada
+    # estado regravado válido
+    import json as _json2
+    assert "s1" not in ""  # noop guard
+    reloaded = _json2.loads(state.read_text(encoding="utf-8"))
+    assert "decided_review_ids" in reloaded

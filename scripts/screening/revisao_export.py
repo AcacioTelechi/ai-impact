@@ -93,7 +93,7 @@ def _state_path(sheet_csv: Path) -> Path:
 
 
 def run(screening_csv: Path, sheet_csv: Path) -> None:
-    ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
 
     # 1. Read screening, build fresh.
     df = pd.read_csv(screening_csv, encoding="utf-8", keep_default_na=False)
@@ -111,10 +111,14 @@ def run(screening_csv: Path, sheet_csv: Path) -> None:
         backup = sheet_csv.with_suffix(f".bak-{ts}.csv")
         backup.write_bytes(sheet_csv.read_bytes())
         if _state_path(sheet_csv).exists():
-            prior_decided = set(
-                json.loads(_state_path(sheet_csv).read_text(encoding="utf-8"))
-                .get("decided_review_ids", [])
-            )
+            try:
+                prior_decided = set(
+                    json.loads(_state_path(sheet_csv).read_text(encoding="utf-8"))
+                    .get("decided_review_ids", [])
+                )
+            except (json.JSONDecodeError, OSError) as e:
+                print(f"  ⚠ Aviso: estado anterior inválido ({e}); "
+                      f"detecção de perda ignorada nesta execução.")
         cur_decided = set(
             existing.loc[
                 existing["decisao_humana"].astype(str).str.strip() != "",
