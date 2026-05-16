@@ -23,7 +23,7 @@ def normalize_decisao(raw) -> str:
 
     Valor não reconhecido levanta ValueError.
     """
-    if raw is None or (isinstance(raw, float) and pd.isna(raw)):
+    if pd.isna(raw):
         return "pendente"
     s = str(raw).strip().lower()
     if s == "":
