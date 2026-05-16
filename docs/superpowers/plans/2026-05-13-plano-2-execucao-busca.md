@@ -2193,3 +2193,47 @@ git tag -l
 - **Busca em periódicos individuais** (AER, JoLE, etc.) — só se OpenAlex não cobrir, decidir após inspeção qualitativa na Task 15 Step 4.
 - **Calibração do LLM-as-judge** — Plano 3.
 - **Atualização do capítulo de metodologia em LaTeX** com o texto narrativo da estratégia de busca — fica para o Plano 6 (redação) que escreve narrativa a partir dos artefatos.
+
+---
+
+## Resultados da execução (2026-05-16) — marco `v0.2.0-busca`
+
+**Status: CONCLUÍDO.** Tags `v0.1.0-infra` e `v0.2.0-busca`. 63 testes passando.
+
+### Bases efetivamente usadas
+
+| Base | Decisão | Justificativa |
+|------|---------|---------------|
+| Web of Science | ✅ usada | Export BibTeX (2 lotes, 874 registros) |
+| Scopus | ✅ usada | Export BibTeX (2.244 após recuperação de chaves duplicadas) |
+| SciELO | ❌ descartada como base autônoma | Scopus indexa o *SciELO Citation Index* — base separada só duplicaria. Decisão 2026-05-16, protocolo §6. |
+| OpenAlex | ❌ descartada | `search` da API não suporta booleano AND/OR server-side; query retornava 4,4M registros. Decisão anterior, protocolo §6. |
+
+### Corpus
+
+| Etapa | N |
+|-------|---|
+| WoS | 874 |
+| Scopus | 2.244 |
+| Bruto consolidado (`01_corpus_bruto.csv`) | 3.118 |
+| **Após dedup (`02_corpus_dedup.csv`)** | **2.605** |
+
+Remoções no dedup: 492 por DOI (overlap WoS↔Scopus ≈16%), 17 por chave título+autor+ano, 4 por embedding. Qualidade: 155 sem DOI, 7 sem abstract — plausível. Distribuição temporal coerente (7 em 2015 → 908 em 2025 → 349 em 2026).
+
+> Nota: a estimativa original do plano (~80–150 papers após dedup) subestimou em ~20×. O corpus de 2.605 reflete strings de busca amplas; o afunilamento real ocorre no screening (Plano 3) — comportamento esperado de SLR, não anomalia.
+
+### Bugs reais encontrados e corrigidos (TDD, com regression tests)
+
+1. **WoS Title Case** (commit `8786ea8`): bibtexparser preserva capitalização (`Author`, `Title`); `map_wos` buscava lowercase → 874 colapsavam para 1. Fix: lowercase das keys em `parse_bib_files`. Fixture `wos_titlecase_sample.bib`.
+2. **Scopus dup-key data loss** (commit `e6bed7e`): cite-keys BibTeX reutilizados → 65 papers distintos em `DuplicateBlockKeyBlock`, fora de `library.entries`, perdidos silenciosamente. Fix: `parse_bib_files` recupera `block.ignore_error_block` dos `failed_blocks`. Fixture `scopus_dupkey_sample.bib`.
+3. **Dedup NaN crash** (commit `e6bed7e`): campos vazios viram `float NaN`; `dedup_key` esperava str. Fix: coerção `fillna("").astype(str)`.
+
+### Decisão metodológica
+
+Janela estendida de 2025-12-31 → **2026-06-30** (commit `8c340f8`): 349 registros 2026 são early-access/online-first, evidência pós-ChatGPT mais recente e central à pergunta de pesquisa. Protocolo §1, §2, §6 atualizados.
+
+### Desvios em relação ao plano
+
+- Snowballing: código entregue, execução adiada para pós-screening (conforme previsto).
+- Busca em periódicos individuais: não necessária — WoS+Scopus cobriram o escopo.
+- OpenAlex/SciELO removidos do `search-all`; targets/código mantidos (inertes, testados) para reprodutibilidade.
