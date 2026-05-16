@@ -80,7 +80,60 @@ def test_build_requests_one_per_row_with_cached_system():
 
 
 def test_build_requests_skips_cached_keys():
-    done = {cache_key(_df().iloc[0]): {"decisao": "incluir"}}
+    done = {custom_id(cache_key(_df().iloc[0])): {"decisao": "incluir"}}
     reqs = build_requests(_df(), model="claude-haiku-4-5-20251001", cached=done)
     assert len(reqs) == 1
     assert "AI Wages" in reqs[0]["params"]["messages"][0]["content"]
+
+
+import json as _json
+from pathlib import Path
+
+from scripts.screening.llm.batch_client import screen_with_model
+
+
+def test_screen_with_model_mock_labels_every_row():
+    df = _df()
+    res = screen_with_model(df, model="claude-haiku-4-5-20251001", mock=True)
+    assert len(res) == len(df)
+    assert all(r["decisao"] in {"incluir", "excluir", "duvida"} for r in res)
+
+
+def test_screen_with_model_uses_submit_fn_and_caches(tmp_path: Path):
+    df = _df()
+    calls = {"n": 0}
+
+    def fake_submit(requests):
+        calls["n"] += 1
+        return {
+            r["custom_id"]:
+            '{"decisao":"incluir","justificativa":"ok","confianca":0.9,"criterio":null}'
+            for r in requests
+        }
+
+    cache_path = tmp_path / "cache.json"
+    res1 = screen_with_model(df, model="claude-sonnet-4-6",
+                             cache_path=cache_path, submit_fn=fake_submit)
+    assert len(res1) == 2 and all(r["decisao"] == "incluir" for r in res1)
+    assert calls["n"] == 1
+    assert cache_path.exists()
+
+    res2 = screen_with_model(df, model="claude-sonnet-4-6",
+                             cache_path=cache_path, submit_fn=fake_submit)
+    assert calls["n"] == 1  # cache cheio → não chamou de novo
+    assert [r["decisao"] for r in res2] == ["incluir", "incluir"]
+
+
+def test_screen_with_model_preserves_row_order():
+    df = _df()
+
+    def fake_submit(requests):
+        out = {}
+        for i, r in enumerate(reversed(requests)):
+            d = "excluir" if i == 0 else "incluir"
+            out[r["custom_id"]] = f'{{"decisao":"{d}","justificativa":"x","confianca":0.7,"criterio":null}}'
+        return out
+
+    res = screen_with_model(df, model="m", submit_fn=fake_submit)
+    assert len(res) == 2
+    assert res[0]["decisao"] in {"incluir", "excluir"}
