@@ -10,6 +10,8 @@ import hashlib
 import json
 import re
 
+import pandas as pd
+
 _VALID = {"incluir", "excluir", "duvida"}
 
 _FALLBACK = {
@@ -55,3 +57,18 @@ def parse_response(text: str) -> dict:
         "confianca": max(0.0, min(1.0, conf)),
         "criterio": obj.get("criterio") or None,
     }
+
+
+def cache_key(row: pd.Series) -> str:
+    """Chave de cache estável e idempotente. DOI normalizado → fallback título+ano."""
+    doi = str(row.get("doi") or "").strip().lower()
+    if doi and doi != "nan":
+        return f"doi:{doi}"
+    title = str(row.get("title") or "").strip().lower()
+    year = str(row.get("year") or "").strip()
+    return f"ty:{title}|{year}"
+
+
+def custom_id(key: str) -> str:
+    """custom_id seguro para a Batch API (≤64 chars, [A-Za-z0-9_-])."""
+    return "r" + hashlib.sha1(key.encode("utf-8")).hexdigest()[:32]
