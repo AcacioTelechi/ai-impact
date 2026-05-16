@@ -56,6 +56,9 @@ def _embedding_pass(df: pd.DataFrame, threshold: float = 0.95) -> tuple[pd.DataF
 def run(input: Path, output: Path, log: Path, use_embeddings: bool = True) -> None:
     df = pd.read_csv(input, encoding="utf-8")
     df["doi_norm"] = df["doi"].fillna("").apply(normalize_doi)
+    # Empty BibTeX fields arrive as NaN floats; dedup_key needs strings.
+    for col in ("authors", "year", "title"):
+        df[col] = df[col].fillna("").astype(str)
     df["dkey"] = df.apply(
         lambda r: dedup_key(authors=r["authors"], year=r["year"], title=r["title"]),
         axis=1,

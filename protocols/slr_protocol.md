@@ -40,7 +40,10 @@ Definidos em `inclusion_criteria.md`.
 
 ## 6. Estratégia de busca
 
-Bases: Web of Science, Scopus, SciELO + busca direta em periódicos-chave de economia.
+Bases: Web of Science e Scopus + busca direta em periódicos-chave de economia.
+A produção SciELO é coberta via Scopus, que indexa a *SciELO Citation Index*; por
+isso o SciELO não é consultado como base autônoma, evitando duplicação e
+mantendo um único pipeline de exportação BibTeX. Decisão tomada em 2026-05-16.
 Strings de busca em `search_strings/` (en, pt, es, fr).
 Período: 2013-01-01 a 2025-12-31.
 

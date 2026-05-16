@@ -70,9 +70,9 @@ search-summary:
 	    --output-table $(TAB_DIR)/searches_summary.tex
 
 .PHONY: search-all
-search-all: import-wos import-scopus import-scielo search-summary
+search-all: import-wos import-scopus search-summary
 	@echo "✓ Busca completa. Próximo: make consolidate && make dedup"
-	@echo "  Nota: OpenAlex descartado (ver protocols/slr_protocol.md §6)"
+	@echo "  Nota: OpenAlex e SciELO descartados (ver protocols/slr_protocol.md §6)"
 
 # Manter o target antigo `search` como alias do novo workflow completo.
 .PHONY: search

@@ -40,6 +40,27 @@ def test_dedup_log_records_decisions(tmp_path: Path, bruto: Path) -> None:
     assert (log_df["rule"] == "dedup_key").sum() == 1
 
 
+def test_dedup_handles_missing_authors(tmp_path: Path) -> None:
+    """Scopus rows can have empty authors; pandas reads them as NaN floats.
+
+    Regression: dedup_key must not crash on float NaN in authors/year/title.
+    """
+    src = tmp_path / "bruto.csv"
+    pd.DataFrame(
+        [
+            {"source": "scopus", "doi": "", "title": "A Paper",
+             "authors": None, "year": 2021, "abstract": "x",
+             "venue": "J", "language": "en"},
+            {"source": "scopus", "doi": "10.1/b", "title": None,
+             "authors": "Doe, J.", "year": None, "abstract": "y",
+             "venue": "J", "language": "en"},
+        ]
+    ).to_csv(src, index=False)
+    out = tmp_path / "dedup.csv"
+    dedup.run(input=src, output=out, log=tmp_path / "log.csv", use_embeddings=False)
+    assert len(pd.read_csv(out)) == 2
+
+
 def test_dedup_preserves_first_occurrence(tmp_path: Path, bruto: Path) -> None:
     out = tmp_path / "dedup.csv"
     dedup.run(input=bruto, output=out, log=tmp_path / "log.csv", use_embeddings=False)

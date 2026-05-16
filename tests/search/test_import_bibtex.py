@@ -76,6 +76,21 @@ def test_parse_bib_files_normalizes_titlecase_keys() -> None:
     assert all(r["year"] for r in rows)
 
 
+def test_parse_bib_files_recovers_duplicate_cite_keys() -> None:
+    """Scopus reuses BibTeX cite-keys across distinct papers.
+
+    Regression test: bibtexparser routes the colliding entries into
+    DuplicateBlockKeyBlock (excluded from library.entries). They must be
+    recovered so distinct papers are not silently dropped. Intra-source
+    dedup keys on DOI/title, so true duplicates are still removed later.
+    """
+    entries = parse_bib_files([FIXTURES / "scopus_dupkey_sample.bib"])
+    assert len(entries) == 3
+    rows = [map_scopus(e) for e in entries]
+    dois = {r["doi"] for r in rows}
+    assert dois == {"10.1000/dup.1", "10.1000/dup.2", "10.1000/dup.3"}
+
+
 def test_map_scopus_preserves_spanish() -> None:
     entry = {
         "author": "García, Luis",

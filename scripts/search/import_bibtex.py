@@ -72,7 +72,7 @@ def parse_bib_files(files: list[Path]) -> list[dict]:
     all_entries: list[dict] = []
     for f in files:
         library = bibtexparser.parse_file(str(f))
-        for entry in library.entries:
+        for entry in _iter_entries(library):
             d = {}
             for field_key, field in entry.fields_dict.items():
                 value = field.value if hasattr(field, "value") else field
@@ -81,6 +81,23 @@ def parse_bib_files(files: list[Path]) -> list[dict]:
             d["key"] = entry.key
             all_entries.append(d)
     return all_entries
+
+
+def _iter_entries(library):
+    """Yield every Entry, including ones bibtexparser flagged as failed.
+
+    Scopus reuses BibTeX cite-keys across distinct papers; bibtexparser
+    routes the collisions into ``DuplicateBlockKeyBlock`` (and other
+    ``FailedBlock`` subclasses), which are excluded from ``library.entries``.
+    The recoverable ``Entry`` lives at ``block.ignore_error_block``.
+    Intra-source dedup keys on DOI/title, so true duplicates are still
+    removed downstream — recovering these only prevents silent data loss.
+    """
+    yield from library.entries
+    for block in library.failed_blocks:
+        recovered = getattr(block, "ignore_error_block", None)
+        if isinstance(recovered, bibtexparser.model.Entry):
+            yield recovered
 
 
 def map_wos(entry: dict) -> dict:
