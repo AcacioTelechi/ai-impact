@@ -31,6 +31,10 @@ def test_pipeline_consolidate_dedup_screen(tmp_path: Path) -> None:
     incl = tmp_path / "03_incluidos.csv"
     screening_ta(input=deduped, output=screened, incluidos=incl, mock=True)
     df = pd.read_csv(screened)
-    assert {"decisao_llm", "justificativa_llm", "confianca_llm"} <= set(df.columns)
-    # At least 1 record should be marked include or duvida (mock heuristic)
-    assert (df["decisao_llm"].isin(["incluir", "duvida"])).sum() >= 1
+    assert {
+        "decisao_sonnet", "justificativa_sonnet", "confianca_sonnet",
+        "decisao_haiku", "justificativa_haiku", "confianca_haiku",
+        "decisao_final", "concordancia", "criterio_exclusao",
+    } <= set(df.columns)
+    # At least 1 record should be marked incluir (mock heuristic)
+    assert (df["decisao_final"] == "incluir").sum() >= 1

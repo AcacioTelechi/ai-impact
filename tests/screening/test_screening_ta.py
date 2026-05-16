@@ -21,6 +21,8 @@ def test_merge_only_excludes_when_both_exclude(s, h):
     else:
         assert d["decisao_final"] == "incluir"
     assert d["concordancia"] == ("concordam" if s == h else "divergem")
+    if not (s == "excluir" and h == "excluir"):
+        assert d["criterio_exclusao"] == ""
 
 
 def test_merge_picks_criterio_from_higher_confidence_when_both_exclude():
@@ -39,3 +41,46 @@ def test_merge_no_criterio_when_included():
     )
     assert d["decisao_final"] == "incluir"
     assert d["criterio_exclusao"] == ""
+
+
+NEW_COLS = {
+    "decisao_sonnet", "justificativa_sonnet", "confianca_sonnet",
+    "decisao_haiku", "justificativa_haiku", "confianca_haiku",
+    "decisao_final", "concordancia", "criterio_exclusao",
+}
+
+
+def _corpus(tmp_path: Path) -> Path:
+    p = tmp_path / "02_dedup.csv"
+    pd.DataFrame([
+        {"source": "wos", "doi": "10.1/a", "title": "AI and employment in the US",
+         "authors": "Smith, J.", "year": 2020, "abstract": "AI exposure on labor",
+         "venue": "AER", "language": "en"},
+        {"source": "wos", "doi": "10.1/b", "title": "Cooking recipes book",
+         "authors": "Brown, P.", "year": 2019, "abstract": "food and recipes",
+         "venue": "Food", "language": "en"},
+    ]).to_csv(p, index=False)
+    return p
+
+
+def test_run_mock_produces_dual_schema(tmp_path: Path):
+    src = _corpus(tmp_path)
+    out = tmp_path / "03_screening_ta.csv"
+    inc = tmp_path / "03_incluidos_ta.csv"
+    screening_ta.run(input=src, output=out, incluidos=inc, mock=True)
+    df = pd.read_csv(out)
+    assert NEW_COLS <= set(df.columns)
+    assert len(df) == 2
+    assert df["decisao_final"].isin(["incluir", "excluir"]).all()
+    inc_df = pd.read_csv(inc)
+    assert (inc_df["decisao_final"] == "incluir").all()
+    assert len(inc_df) == (df["decisao_final"] == "incluir").sum()
+
+
+def test_run_preserves_original_columns(tmp_path: Path):
+    src = _corpus(tmp_path)
+    out = tmp_path / "03.csv"
+    screening_ta.run(input=src, output=out, mock=True)
+    df = pd.read_csv(out)
+    assert {"source", "doi", "title", "authors", "year", "abstract",
+            "venue", "language"} <= set(df.columns)
