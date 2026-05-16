@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
+import pytest
 
 from scripts.screening.llm.batch_client import cache_key, custom_id
 from scripts.screening.revisao_export import SHEET_COLS, build_sheet, soft_includes
@@ -103,3 +105,32 @@ def test_merge_preserve_no_existing_returns_fresh():
     })
     out = merge_preserve(fresh, None)
     assert out.equals(fresh)
+
+
+def test_merge_preserve_rejects_duplicate_review_id():
+    fresh = pd.DataFrame({
+        "review_id": ["a"], "decisao_humana": [""], "nota_humana": [""], "title": ["TA"],
+    })
+    existing = pd.DataFrame({
+        "review_id": ["a", "a"],  # duplicado pelo usuário no LibreOffice
+        "decisao_humana": ["i", "e"], "nota_humana": ["", ""], "title": ["TA", "TA"],
+    })
+    with pytest.raises(ValueError, match="review_id duplicado"):
+        merge_preserve(fresh, existing)
+
+
+def test_merge_preserve_nan_decisions_treated_as_blank():
+    """existing lido sem keep_default_na=False traz NaN; deve virar ''."""
+    fresh = pd.DataFrame({
+        "review_id": ["a", "b"], "decisao_humana": ["", ""],
+        "nota_humana": ["", ""], "title": ["TA", "TB"],
+    })
+    existing = pd.DataFrame({
+        "review_id": ["a", "b"],
+        "decisao_humana": ["i", np.nan],   # 'b' em branco como NaN
+        "nota_humana": [np.nan, ""], "title": ["TA", "TB"],
+    })
+    merged = merge_preserve(fresh, existing).set_index("review_id")
+    assert merged.loc["a", "decisao_humana"] == "i"
+    assert merged.loc["a", "nota_humana"] == ""      # NaN → ""
+    assert merged.loc["b", "decisao_humana"] == ""   # NaN → ""

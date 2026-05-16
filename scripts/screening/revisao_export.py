@@ -55,6 +55,14 @@ def merge_preserve(fresh: pd.DataFrame, existing: pd.DataFrame | None) -> pd.Dat
     if existing is None or existing.empty:
         return fresh.reset_index(drop=True)
 
+    _ids = existing["review_id"].astype(str).str.strip()
+    _dups = sorted(_ids[(_ids != "") & _ids.duplicated()].unique())
+    if _dups:
+        raise ValueError(
+            "review_id duplicado na planilha editada — corrija no LibreOffice "
+            f"(cada linha deve ter um review_id único): {_dups}"
+        )
+
     prev = existing.set_index("review_id")
     out = fresh.copy()
 
