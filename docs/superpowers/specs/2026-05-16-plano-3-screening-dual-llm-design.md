@@ -144,7 +144,7 @@ Correções obrigatórias ao prompt atual:
   completo + `03_incluidos_ta.csv` coerente.
 - `agreement.py`: gera `kappa_screening.tex` com κ, n, % e matriz 3×3.
 
-Meta: suíte total continua verde (atualmente 63 testes).
+Meta: suíte total continua verde (baseline 63 testes pré-Plano 3; 96 após a implementação).
 
 ## 9. Makefile
 
@@ -172,7 +172,7 @@ de critérios (~90% nos tokens de entrada repetidos). Sonnet 4.6 + Haiku 4.5
 - `03_screening_ta.csv` com schema completo; `03_incluidos_ta.csv` coerente
   com a regra de união conservadora.
 - `text/tables/kappa_screening.tex` gerado com κ inter-modelo reportável.
-- Suíte de testes verde (≥ 63 + novos testes do Plano 3).
+- Suíte de testes verde (≥ 63 baseline + novos testes do Plano 3; 96 ao final).
 - Corpus pós-screening dentro de uma faixa plausível. O gate original do
   design §F4 era [80, 400], calibrado para um corpus bruto estimado em ~150;
   como o corpus real (2.605) é ~17× maior, a faixa de sanidade pós-screening
