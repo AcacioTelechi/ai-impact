@@ -1,0 +1,6 @@
+source,doi,title,authors,year,abstract,venue,language
+wos,10.1234/aer.2020.001,Artificial Intelligence and Employment in the US,"Smith, J.; Doe, A.",2020,"We study AI exposure across US occupations using O*NET data.",American Economic Review,en
+wos,10.1234/jole.2021.045,Generative AI and Wages in Brazil,"Silva, R.; Costa, M.",2024,"We analyze wage effects of LLM adoption in Brazilian formal labor market.",Journal of Labor Economics,en
+wos,10.1234/educ.2019.012,AI in Higher Education Classrooms,"Brown, P.",2019,"Effects of AI tutors on student grades.",Educational Review,en
+wos,10.1234/lab.2022.077,Robots and Manufacturing Jobs in Europe,"Müller, H.; Dupont, C.",2022,"DiD analysis of industrial robot adoption across European regions.",Labour Economics,en
+wos,10.1234/llm.2023.099,ChatGPT and Knowledge Worker Productivity,"Lee, S.",2023,"RCT in a software company; productivity effects only, no employment outcome.",Working Paper NBER 31000,en

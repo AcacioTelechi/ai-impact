@@ -219,3 +219,23 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific
+.venv/
+build/
+data/raw/**/*.csv
+data/raw/**/*.json
+data/processed/**/*.csv
+!data/processed/.gitkeep
+text/figures/*.pdf
+!text/figures/.gitkeep
+text/tables/*.tex
+!text/tables/.gitkeep
+.env
+.streamlit/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Plan 2: manual export staging area
+data/raw/searches/manual/

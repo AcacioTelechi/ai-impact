@@ -1,0 +1,18 @@
+# String de busca em português
+# Versão 1.0
+
+(
+  "inteligência artificial" OR "aprendizado de máquina" OR "aprendizagem de máquina"
+  OR "automação" OR "IA generativa" OR "modelo de linguagem" OR "LLM"
+  OR "redes neurais" OR "aprendizagem profunda" OR "ChatGPT"
+)
+AND
+(
+  "emprego" OR "mercado de trabalho" OR "ocupações" OR "ocupação"
+  OR "salários" OR "demanda por trabalho" OR "postos de trabalho"
+)
+AND
+(
+  "impacto*" OR "efeito*" OR "deslocamento" OR "substituição"
+  OR "complementaridade" OR "exposição" OR "risco de automação"
+)

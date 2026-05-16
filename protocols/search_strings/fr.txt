@@ -1,0 +1,18 @@
+# Chaîne de recherche en français
+# Version 1.0
+
+(
+  "intelligence artificielle" OR "apprentissage automatique" OR "apprentissage profond"
+  OR "réseaux de neurones" OR "automatisation" OR "IA générative"
+  OR "modèles de langage" OR "LLM" OR "ChatGPT"
+)
+AND
+(
+  "emploi" OR "marché du travail" OR "professions" OR "métiers"
+  OR "salaires" OR "demande de travail" OR "postes de travail"
+)
+AND
+(
+  "impact*" OR "effet*" OR "déplacement" OR "substitution"
+  OR "complémentarité" OR "exposition" OR "risque d'automatisation"
+)
