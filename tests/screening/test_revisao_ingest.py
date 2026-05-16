@@ -1,9 +1,13 @@
 # tests/screening/test_revisao_ingest.py
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from scripts.screening.revisao_ingest import normalize_decisao
+from scripts.screening import revisao_ingest
+from scripts.screening.revisao_ingest import normalize_decisao, apply_decisions
+from scripts.screening.llm.batch_client import cache_key, custom_id
 
 
 @pytest.mark.parametrize("raw,exp", [
@@ -20,10 +24,6 @@ def test_normalize_valid_and_empty(raw, exp):
 def test_normalize_invalid_raises(bad):
     with pytest.raises(ValueError):
         normalize_decisao(bad)
-
-
-from scripts.screening.revisao_ingest import apply_decisions
-from scripts.screening.llm.batch_client import cache_key, custom_id
 
 
 def _row(s, h, final, doi):
@@ -90,3 +90,50 @@ def test_apply_decisions_invalid_value_raises_listing_rows():
     ])
     with pytest.raises(ValueError, match="talvez"):
         apply_decisions(screening, sheet)
+
+
+def test_run_writes_revisado_and_incluidos(tmp_path, capsys):
+    screening = pd.DataFrame([
+        _row("incluir", "incluir", "incluir", "10.1/bi"),
+        _row("excluir", "excluir", "excluir", "10.1/be"),
+        _row("incluir", "duvida", "incluir", "10.1/s1"),
+        _row("duvida", "duvida", "incluir", "10.1/s2"),
+    ])
+    scsv = tmp_path / "03_screening_ta.csv"
+    screening.to_csv(scsv, index=False)
+    sheet = pd.DataFrame([
+        {"review_id": _rid(screening.iloc[2].to_dict()), "decisao_humana": "i", "nota_humana": ""},
+        {"review_id": _rid(screening.iloc[3].to_dict()), "decisao_humana": "", "nota_humana": ""},
+    ])
+    shcsv = tmp_path / "03_revisao_duvidas.csv"
+    sheet.to_csv(shcsv, index=False)
+
+    rev = tmp_path / "03_screening_revisado.csv"
+    inc = tmp_path / "03_incluidos_final.csv"
+    revisao_ingest.run(screening_csv=scsv, sheet_csv=shcsv,
+                        revisado_csv=rev, incluidos_csv=inc)
+
+    r = pd.read_csv(rev, keep_default_na=False)
+    assert len(r) == 4
+    assert {"decisao_final_revisada", "origem_decisao", "nota_humana"} <= set(r.columns)
+    i = pd.read_csv(inc, keep_default_na=False)
+    # incluídos = bi (llm) + s1 (humano i) + s2 (pendente→incluir) = 3
+    assert len(i) == 3
+    assert "10.1/be" not in set(i["doi"])
+    out = capsys.readouterr().out
+    assert "pendente" in out.lower()
+    assert "1" in out
+
+
+def test_run_invalid_sheet_aborts_without_writing(tmp_path):
+    screening = pd.DataFrame([_row("duvida", "duvida", "incluir", "10.1/s1")])
+    scsv = tmp_path / "s.csv"; screening.to_csv(scsv, index=False)
+    sheet = pd.DataFrame([
+        {"review_id": _rid(screening.iloc[0].to_dict()), "decisao_humana": "talvez", "nota_humana": ""},
+    ])
+    shcsv = tmp_path / "sh.csv"; sheet.to_csv(shcsv, index=False)
+    rev = tmp_path / "rev.csv"; inc = tmp_path / "inc.csv"
+    with pytest.raises(ValueError):
+        revisao_ingest.run(screening_csv=scsv, sheet_csv=shcsv,
+                            revisado_csv=rev, incluidos_csv=inc)
+    assert not rev.exists() and not inc.exists()

@@ -60,18 +60,64 @@ def apply_decisions(screening: pd.DataFrame, sheet: pd.DataFrame) -> pd.DataFram
     for _, row in out.iterrows():
         s, h = row["decisao_sonnet"], row["decisao_haiku"]
         if s == "incluir" and h == "incluir":
-            finals.append("incluir"); origens.append("llm_concordante"); out_notas.append("")
+            finals.append("incluir")
+            origens.append("llm_concordante")
+            out_notas.append("")
         elif s == "excluir" and h == "excluir":
-            finals.append("excluir"); origens.append("llm_concordante"); out_notas.append("")
+            finals.append("excluir")
+            origens.append("llm_concordante")
+            out_notas.append("")
         else:
             rid = custom_id(cache_key(row))
             decided = human.get(rid, "pendente")
             if decided == "pendente":
-                finals.append("incluir"); origens.append("pendente")
+                finals.append("incluir")
+                origens.append("pendente")
             else:
-                finals.append(decided); origens.append("humano")
+                finals.append(decided)
+                origens.append("humano")
             out_notas.append(notas.get(rid, ""))
     out["decisao_final_revisada"] = finals
     out["origem_decisao"] = origens
     out["nota_humana"] = out_notas
     return out
+
+
+def run(screening_csv: Path, sheet_csv: Path,
+        revisado_csv: Path, incluidos_csv: Path) -> None:
+    screening = pd.read_csv(screening_csv, encoding="utf-8", keep_default_na=False)
+    sheet = pd.read_csv(sheet_csv, encoding="utf-8", keep_default_na=False)
+    # apply_decisions levanta ValueError em valor inválido ANTES de escrever
+    revisado = apply_decisions(screening, sheet)
+
+    revisado_csv.parent.mkdir(parents=True, exist_ok=True)
+    revisado.to_csv(revisado_csv, index=False, encoding="utf-8")
+    incluidos = revisado[revisado["decisao_final_revisada"] == "incluir"]
+    incluidos.to_csv(incluidos_csv, index=False, encoding="utf-8")
+
+    n_pend = int((revisado["origem_decisao"] == "pendente").sum())
+    n_hum = int((revisado["origem_decisao"] == "humano").sum())
+    n_inc = len(incluidos)
+    print(f"Revisão ingest: {len(revisado)} registros | "
+          f"{n_inc} incluídos | {n_hum} decididos por humano | "
+          f"{n_pend} PENDENTES")
+    if n_pend:
+        print(f"  ⚠ {n_pend} dúvidas ainda sem decisão (contam como incluir). "
+              f"Rode PRISMA/Plano 4 só com 0 pendentes.")
+    print(f"  → {revisado_csv}\n  → {incluidos_csv}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser(description="Ingere a planilha de revisão das dúvidas.")
+    p.add_argument("--screening", type=Path, required=True)
+    p.add_argument("--sheet", type=Path, required=True)
+    p.add_argument("--revisado", type=Path, required=True)
+    p.add_argument("--incluidos", type=Path, required=True)
+    a = p.parse_args(argv)
+    run(screening_csv=a.screening, sheet_csv=a.sheet,
+        revisado_csv=a.revisado, incluidos_csv=a.incluidos)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))
