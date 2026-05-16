@@ -32,6 +32,7 @@ def soft_includes(df: pd.DataFrame) -> pd.DataFrame:
 
 def build_sheet(soft_df: pd.DataFrame) -> pd.DataFrame:
     """Constrói a planilha de trabalho a partir dos soft-includes."""
+    soft_df = soft_df.reset_index(drop=True)
     out = pd.DataFrame()
     out["review_id"] = soft_df.apply(lambda r: custom_id(cache_key(r)), axis=1)
     out["decisao_humana"] = ""

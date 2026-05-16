@@ -2,15 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from scripts.screening.revisao_export import soft_includes
-from scripts.screening.revisao_export import build_sheet
-
-SHEET_COLS = [
-    "review_id", "decisao_humana", "nota_humana",
-    "year", "title", "venue", "authors", "abstract",
-    "decisao_sonnet", "confianca_sonnet", "justificativa_sonnet",
-    "decisao_haiku", "confianca_haiku", "justificativa_haiku", "doi",
-]
+from scripts.screening.llm.batch_client import cache_key, custom_id
+from scripts.screening.revisao_export import SHEET_COLS, build_sheet, soft_includes
 
 
 def _row(s, h, final):
@@ -48,7 +41,6 @@ def test_build_sheet_schema_and_empty_human_cols():
     assert (sheet["decisao_humana"] == "").all()
     assert (sheet["nota_humana"] == "").all()
     # review_id estável e consistente com batch_client
-    from scripts.screening.llm.batch_client import cache_key, custom_id
     assert sheet.iloc[0]["review_id"] == custom_id(cache_key(df.iloc[0]))
 
 
