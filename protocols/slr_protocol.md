@@ -13,14 +13,14 @@
 
 ## 1. Pergunta de pesquisa
 
-Como a literatura econômica caracterizou os efeitos da inteligência artificial sobre o nível e a composição do emprego entre 2013 e 2025, e em que medida o surgimento da IA generativa (pós-novembro de 2022) representa uma ruptura ou continuidade em relação ao consenso anterior?
+Como a literatura econômica caracterizou os efeitos da inteligência artificial sobre o nível e a composição do emprego entre 2013 e meados de 2026, e em que medida o surgimento da IA generativa (pós-novembro de 2022) representa uma ruptura ou continuidade em relação ao consenso anterior?
 
 ## 2. Objetivos
 
 **Geral:** revisar sistematicamente a literatura econômica sobre o impacto da IA no emprego (deslocamento e criação de postos), comparando achados antes e depois da difusão de LLMs.
 
 **Específicos:**
-1. Mapear a literatura entre 2013–2025, em três janelas: 2013–2017 (automação), 2018–2022 (deep learning/ML), 2022–2025 (IA generativa/LLMs).
+1. Mapear a literatura entre 2013–2026, em três janelas: 2013–2017 (automação), 2018–2022 (deep learning/ML), 2022–2026 (IA generativa/LLMs).
 2. Caracterizar mecanismos teóricos (deslocamento, reinstalação, complementaridade, demanda agregada).
 3. Sistematizar achados empíricos (sinal, magnitude, ocupações, robustez).
 4. Comparar pré- e pós-ChatGPT.
@@ -45,7 +45,13 @@ A produção SciELO é coberta via Scopus, que indexa a *SciELO Citation Index*;
 isso o SciELO não é consultado como base autônoma, evitando duplicação e
 mantendo um único pipeline de exportação BibTeX. Decisão tomada em 2026-05-16.
 Strings de busca em `search_strings/` (en, pt, es, fr).
-Período: 2013-01-01 a 2025-12-31.
+Período: 2013-01-01 a 2026-06-30. A janela foi estendida de 2025-12-31 para
+meados de 2026 em 2026-05-16: as bases retornaram 349 registros com data de
+publicação 2026 (early-access / online-first), tipicamente disponibilizados
+online ainda em 2025 mas vinculados a um fascículo de 2026. Como representam
+a evidência pós-ChatGPT mais recente — núcleo da pergunta de pesquisa —,
+excluí-los por mero carimbo editorial empobreceria a comparação pré/pós-LLM.
+O fechamento em 2026-06-30 coincide com a data de execução da busca.
 
 **Nota sobre OpenAlex:** inicialmente previsto como base complementar (via API), foi descartado em 2026-05-13 após teste empírico. A query original retornava 4,4 milhões de registros porque o parâmetro `search` da OpenAlex não suporta operadores booleanos AND/OR no server-side — apenas full-text fuzzy. Mesmo com filtros de conceito (e.g., `concepts.id:C162324750` Economics + `C154945302` AI) o volume ficava acima de 870k, inviável de pós-filtrar. WoS e Scopus oferecem booleano nativo e curadoria temática, suficientes para o escopo da revisão. Decisão documentada no commit fazendo parte do registro pré-execução.
 
