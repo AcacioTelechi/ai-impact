@@ -176,3 +176,35 @@ def test_run_reexport_is_non_destructive(tmp_path: Path):
     row = s2[s2["doi"] == "10.1/s1"].iloc[0]
     assert row["decisao_humana"] == "e"
     assert row["nota_humana"] == "fora do escopo"
+
+
+def test_run_backs_up_existing_sheet_before_overwrite(tmp_path: Path):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s = pd.read_csv(sheet, keep_default_na=False)
+    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "e"
+    s.to_csv(sheet, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)  # re-export → backup
+    backups = list(tmp_path.glob("03_revisao_duvidas.bak-*.csv"))
+    assert len(backups) == 1
+    # backup contém a decisão que existia antes do overwrite
+    b = pd.read_csv(backups[0], keep_default_na=False)
+    assert (b["decisao_humana"] == "e").sum() == 1
+
+
+def test_run_warns_when_decisions_drop(tmp_path: Path, capsys):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s = pd.read_csv(sheet, keep_default_na=False)
+    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "e"
+    s.to_csv(sheet, index=False)
+    capsys.readouterr()
+    # usuário apaga a linha decidida (simula deleção acidental no LibreOffice)
+    s2 = s[s["doi"] != "10.1/s1"]
+    s2.to_csv(sheet, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    out = capsys.readouterr().out
+    assert "ATENÇÃO" in out
+    assert "Backup salvo" in out

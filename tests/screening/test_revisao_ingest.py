@@ -90,6 +90,13 @@ def test_apply_decisions_invalid_value_raises_listing_rows():
     ])
     with pytest.raises(ValueError, match="talvez"):
         apply_decisions(screening, sheet)
+    # e que a mensagem localiza a linha/registro
+    import re
+    try:
+        apply_decisions(screening, sheet)
+    except ValueError as e:
+        msg = str(e)
+    assert "linha" in msg and "review_id=" in msg
 
 
 def test_run_writes_revisado_and_incluidos(tmp_path, capsys):

@@ -8,6 +8,7 @@ entram na planilha (decisão LLM concordante já basta).
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import sys
 from pathlib import Path
 
@@ -81,6 +82,7 @@ def merge_preserve(fresh: pd.DataFrame, existing: pd.DataFrame | None) -> pd.Dat
         & (existing["decisao_humana"].fillna("").astype(str).str.strip() != "")
     ]
     if not orphan_decided.empty:
+        orphan_decided = orphan_decided.reindex(columns=out.columns)
         out = pd.concat([out, orphan_decided], ignore_index=True)
     return out.reset_index(drop=True)
 
@@ -90,14 +92,32 @@ def run(screening_csv: Path, sheet_csv: Path) -> None:
     soft = soft_includes(df)
     fresh = build_sheet(soft)
     existing = None
+    n_dec_before = 0
     if sheet_csv.exists():
         existing = pd.read_csv(sheet_csv, encoding="utf-8", keep_default_na=False)
+        n_dec_before = int((existing["decisao_humana"].astype(str).str.strip() != "").sum())
+        # Backup defensivo ANTES de sobrescrever — protege contra deleção
+        # acidental de linhas no LibreOffice (decisão de linha apagada não
+        # é recuperável pelo merge; o backup é a rede de segurança).
+        ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = sheet_csv.with_suffix(f".bak-{ts}.csv")
+        backup.write_bytes(sheet_csv.read_bytes())
+    # Detecta linhas da planilha deletadas pelo usuário (fresh_id ausente em existing).
+    _deleted_from_existing: set[str] = set()
+    if existing is not None:
+        _ex_ids = set(existing["review_id"].astype(str).str.strip())
+        _fr_ids = set(fresh["review_id"].astype(str).str.strip())
+        _deleted_from_existing = _fr_ids - _ex_ids
     merged = merge_preserve(fresh, existing)
     sheet_csv.parent.mkdir(parents=True, exist_ok=True)
     merged.to_csv(sheet_csv, index=False, encoding="utf-8")
     n_dec = int((merged["decisao_humana"].astype(str).str.strip() != "").sum())
     print(f"Revisão export: {len(merged)} a revisar | {n_dec} já decididas | "
           f"{len(merged) - n_dec} pendentes → {sheet_csv}")
+    if existing is not None and (n_dec < n_dec_before or _deleted_from_existing):
+        print(f"  ⚠ ATENÇÃO: {n_dec_before - n_dec} decisão(ões) a menos que "
+              f"antes do export. Possível linha apagada na planilha. "
+              f"Backup salvo em {backup} — verifique antes de continuar.")
 
 
 def _cli(argv: list[str]) -> int:

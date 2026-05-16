@@ -47,9 +47,14 @@ def apply_decisions(screening: pd.DataFrame, sheet: pd.DataFrame) -> pd.DataFram
     """
     human = {}
     notas = {}
-    for _, r in sheet.iterrows():
+    for pos, (_, r) in enumerate(sheet.iterrows()):
         rid = str(r["review_id"])
-        human[rid] = normalize_decisao(r.get("decisao_humana"))
+        try:
+            human[rid] = normalize_decisao(r.get("decisao_humana"))
+        except ValueError as e:
+            raise ValueError(
+                f"{e} (planilha linha {pos + 2}, review_id={rid})"
+            ) from e
         nota = r.get("nota_humana")
         notas[rid] = "" if nota is None or pd.isna(nota) else str(nota)
 
