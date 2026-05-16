@@ -150,7 +150,8 @@ from scripts.screening.llm.batch_client import anthropic_submit_fn
 
 
 class _FakeResultMsg:
-    def __init__(self, text): self.content = [type("C", (), {"text": text})()]
+    def __init__(self, text):
+        self.content = [type("C", (), {"text": text, "type": "text"})()]
 
 
 class _FakeResult:
@@ -183,3 +184,22 @@ def test_anthropic_submit_fn_with_fake_client():
              "system": [], "messages": [{"role": "user", "content": "x"}]}}]
     out = fn(reqs)
     assert out["rABC"].startswith('{"decisao":"incluir"')
+
+
+def test_anthropic_submit_fn_times_out_even_with_zero_poll_interval(monkeypatch):
+    import scripts.screening.llm.batch_client as bc
+
+    class _NeverEnds:
+        def create(self, requests): return type("B", (), {"id": "b"})()
+        def retrieve(self, _id): return type("B", (), {"processing_status": "in_progress"})()
+        def results(self, _id): return []
+
+    class _C:
+        def __init__(self): self.messages = type("M", (), {"batches": _NeverEnds()})()
+
+    # POLL_TIMEOUT_S=0 → deadline already passed → must raise immediately, not loop forever
+    monkeypatch.setattr(bc, "POLL_TIMEOUT_S", 0)
+    fn = bc.anthropic_submit_fn("m", client=_C(), poll_interval=0)
+    import pytest
+    with pytest.raises(TimeoutError):
+        fn([{"custom_id": "r1", "params": {}}])

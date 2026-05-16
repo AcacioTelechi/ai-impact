@@ -155,7 +155,7 @@ POLL_INTERVAL_S = 15
 POLL_TIMEOUT_S = 24 * 3600
 
 
-def anthropic_submit_fn(model: str, client=None, poll_interval: int = POLL_INTERVAL_S):
+def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INTERVAL_S):
     """Devolve submit_fn(requests)->{custom_id:texto} via Message Batches API.
 
     client injetável para teste; em produção usa anthropic.Anthropic()
@@ -172,19 +172,22 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: int = POLL_INTER
 
     def submit_fn(requests: list[dict]) -> dict[str, str]:
         batch = _create(requests)
-        waited = 0
+        deadline = time.monotonic() + POLL_TIMEOUT_S
         while True:
             status = client.messages.batches.retrieve(batch.id).processing_status
             if status == "ended":
                 break
-            if waited >= POLL_TIMEOUT_S:
+            if time.monotonic() >= deadline:
                 raise TimeoutError(f"Batch {batch.id} excedeu 24h")
             time.sleep(poll_interval)
-            waited += poll_interval
         out: dict[str, str] = {}
         for entry in client.messages.batches.results(batch.id):
             if getattr(entry.result, "type", None) == "succeeded":
-                out[entry.custom_id] = entry.result.message.content[0].text
+                blocks = entry.result.message.content
+                out[entry.custom_id] = next(
+                    (b.text for b in blocks if getattr(b, "type", None) == "text"),
+                    "",
+                )
             else:
                 out[entry.custom_id] = ""  # → parse_fail → duvida/0
         return out
