@@ -83,3 +83,31 @@ def merge_preserve(fresh: pd.DataFrame, existing: pd.DataFrame | None) -> pd.Dat
     if not orphan_decided.empty:
         out = pd.concat([out, orphan_decided], ignore_index=True)
     return out.reset_index(drop=True)
+
+
+def run(screening_csv: Path, sheet_csv: Path) -> None:
+    df = pd.read_csv(screening_csv, encoding="utf-8", keep_default_na=False)
+    soft = soft_includes(df)
+    fresh = build_sheet(soft)
+    existing = None
+    if sheet_csv.exists():
+        existing = pd.read_csv(sheet_csv, encoding="utf-8", keep_default_na=False)
+    merged = merge_preserve(fresh, existing)
+    sheet_csv.parent.mkdir(parents=True, exist_ok=True)
+    merged.to_csv(sheet_csv, index=False, encoding="utf-8")
+    n_dec = int((merged["decisao_humana"].astype(str).str.strip() != "").sum())
+    print(f"Revisão export: {len(merged)} a revisar | {n_dec} já decididas | "
+          f"{len(merged) - n_dec} pendentes → {sheet_csv}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser(description="Gera planilha de revisão das dúvidas.")
+    p.add_argument("--screening", type=Path, required=True)
+    p.add_argument("--sheet", type=Path, required=True)
+    a = p.parse_args(argv)
+    run(screening_csv=a.screening, sheet_csv=a.sheet)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))

@@ -134,3 +134,45 @@ def test_merge_preserve_nan_decisions_treated_as_blank():
     assert merged.loc["a", "decisao_humana"] == "i"
     assert merged.loc["a", "nota_humana"] == ""      # NaN → ""
     assert merged.loc["b", "decisao_humana"] == ""   # NaN → ""
+
+
+from pathlib import Path
+
+from scripts.screening import revisao_export
+
+
+def _screening_csv(tmp_path: Path) -> Path:
+    p = tmp_path / "03_screening_ta.csv"
+    pd.DataFrame([
+        {**_row("incluir", "incluir", "incluir"), "doi": "10.1/bi"},   # both-incluir
+        {**_row("excluir", "excluir", "excluir"), "doi": "10.1/be"},   # both-excluir
+        {**_row("incluir", "duvida", "incluir"), "doi": "10.1/s1"},    # soft
+        {**_row("duvida", "excluir", "incluir"), "doi": "10.1/s2"},    # soft
+    ]).to_csv(p, index=False)
+    return p
+
+
+def test_run_creates_sheet_with_only_soft_includes(tmp_path: Path):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s = pd.read_csv(sheet, keep_default_na=False)
+    assert len(s) == 2  # só os 2 soft
+    assert set(s["doi"]) == {"10.1/s1", "10.1/s2"}
+    assert (s["decisao_humana"] == "").all()
+
+
+def test_run_reexport_is_non_destructive(tmp_path: Path):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s = pd.read_csv(sheet, keep_default_na=False)
+    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "e"
+    s.loc[s["doi"] == "10.1/s1", "nota_humana"] = "fora do escopo"
+    s.to_csv(sheet, index=False)
+    # re-export
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s2 = pd.read_csv(sheet, keep_default_na=False)
+    row = s2[s2["doi"] == "10.1/s1"].iloc[0]
+    assert row["decisao_humana"] == "e"
+    assert row["nota_humana"] == "fora do escopo"
