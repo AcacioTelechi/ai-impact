@@ -12,6 +12,8 @@ import re
 
 import pandas as pd
 
+from scripts.screening.llm.prompt import build_system_block, build_user_block
+
 _VALID = {"incluir", "excluir", "duvida"}
 
 _FALLBACK = {
@@ -72,3 +74,27 @@ def cache_key(row: pd.Series) -> str:
 def custom_id(key: str) -> str:
     """custom_id seguro para a Batch API (≤64 chars, [A-Za-z0-9_-])."""
     return "r" + hashlib.sha1(key.encode("utf-8")).hexdigest()[:32]
+
+
+MAX_TOKENS = 400
+
+
+def build_requests(df, model: str, cached: dict | None = None) -> list[dict]:
+    """Um request por registro ainda não cacheado. system = bloco estável."""
+    cached = cached or {}
+    system = build_system_block()
+    out: list[dict] = []
+    for _, row in df.iterrows():
+        key = cache_key(row)
+        if key in cached:
+            continue
+        out.append({
+            "custom_id": custom_id(key),
+            "params": {
+                "model": model,
+                "max_tokens": MAX_TOKENS,
+                "system": system,
+                "messages": [{"role": "user", "content": build_user_block(row)}],
+            },
+        })
+    return out

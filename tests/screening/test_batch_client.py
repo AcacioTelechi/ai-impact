@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 
-from scripts.screening.llm.batch_client import cache_key, custom_id, parse_response
+from scripts.screening.llm.batch_client import build_requests, cache_key, custom_id, parse_response
 
 
 def test_parse_clean_json():
@@ -53,3 +53,34 @@ def test_custom_id_is_safe_and_deterministic():
     a, b = custom_id(k), custom_id(k)
     assert a == b
     assert re.fullmatch(r"[A-Za-z0-9_-]{1,64}", a)
+
+
+def _df():
+    return pd.DataFrame([
+        {"doi": "10.1/a", "title": "AI Jobs", "authors": "S, J", "year": 2020,
+         "venue": "AER", "abstract": "abs a"},
+        {"doi": "10.1/b", "title": "AI Wages", "authors": "B, P", "year": 2021,
+         "venue": "JOLE", "abstract": "abs b"},
+    ])
+
+
+def test_build_requests_one_per_row_with_cached_system():
+    reqs = build_requests(_df(), model="claude-sonnet-4-6")
+    assert len(reqs) == 2
+    r0 = reqs[0]
+    assert r0["custom_id"] == custom_id(cache_key(_df().iloc[0]))
+    p = r0["params"]
+    assert p["model"] == "claude-sonnet-4-6"
+    assert p["max_tokens"] == 400
+    # system é o bloco cacheável estável (idêntico entre requests)
+    assert p["system"][0]["cache_control"] == {"type": "ephemeral"}
+    assert reqs[0]["params"]["system"] == reqs[1]["params"]["system"]
+    # user block carrega os dados do registro
+    assert "AI Jobs" in p["messages"][0]["content"]
+
+
+def test_build_requests_skips_cached_keys():
+    done = {cache_key(_df().iloc[0]): {"decisao": "incluir"}}
+    reqs = build_requests(_df(), model="claude-haiku-4-5-20251001", cached=done)
+    assert len(reqs) == 1
+    assert "AI Wages" in reqs[0]["params"]["messages"][0]["content"]
