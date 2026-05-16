@@ -30,3 +30,15 @@ def test_run_writes_latex_table(tmp_path: Path):
     assert "kappa" in tex.lower() or "κ" in tex or "$\\kappa$" in tex
     for lab in ("incluir", "excluir", "duvida"):
         assert lab in tex
+    assert r"\%" in tex  # percent MUST be LaTeX-escaped (bare % is a comment)
+    assert tex.count("{") == tex.count("}")  # brace balance (caption not eaten)
+
+
+def test_run_handles_empty_input(tmp_path):
+    src = tmp_path / "empty.csv"
+    pd.DataFrame({"decisao_sonnet": [], "decisao_haiku": []}).to_csv(src, index=False)
+    out = tmp_path / "k.tex"
+    run(input=src, output_table=out)
+    tex = out.read_text(encoding="utf-8")
+    assert "tabular" in tex
+    assert tex.count("{") == tex.count("}")

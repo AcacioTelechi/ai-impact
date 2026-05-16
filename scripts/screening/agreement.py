@@ -23,8 +23,16 @@ def run(input: Path, output_table: Path) -> None:
     df = pd.read_csv(input, encoding="utf-8")
     s = df["decisao_sonnet"].astype(str).tolist()
     h = df["decisao_haiku"].astype(str).tolist()
-    k = cohen_kappa(s, h)
     n = len(df)
+    if n == 0:
+        output_table.parent.mkdir(parents=True, exist_ok=True)
+        output_table.write_text(
+            "\\begin{tabular}{l}\\toprule Nenhum registro \\\\ \\bottomrule \\end{tabular}\n",
+            encoding="utf-8",
+        )
+        print(f"κ inter-modelo = n/a (0 registros); → {output_table}")
+        return
+    k = cohen_kappa(s, h)
     agree = int((df["decisao_sonnet"] == df["decisao_haiku"]).sum())
     cm = confusion_matrix(s, h, labels=_LABELS)
 
@@ -38,7 +46,7 @@ def run(input: Path, output_table: Path) -> None:
         "\\begin{table}[ht]\n\\centering\n"
         "\\caption{Concordância inter-modelo no screening "
         f"($\\kappa$ de Cohen = {k:.3f}; "
-        f"concordância = {agree}/{n} = {agree / n:.1%})}}\n"
+        f"concordância = {agree}/{n} = {agree / n * 100:.1f}\\%)}}\n"
         "\\label{tab:kappa-screening}\n"
         "\\begin{tabular}{lccc}\n\\toprule\n"
         " & \\multicolumn{3}{c}{Haiku 4.5} \\\\\n"
