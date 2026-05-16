@@ -99,7 +99,13 @@ screening_ta:
 	    --input $(DATA_PROC)/02_corpus_dedup.csv \
 	    --output $(DATA_PROC)/03_screening_ta.csv \
 	    --incluidos $(DATA_PROC)/03_incluidos_ta.csv \
-	    --cache $(DATA_PROC)/03_llm_cache.json
+	    --cache-dir $(DATA_PROC)
+
+.PHONY: screening-kappa
+screening-kappa:
+	$(PYTHON) -m scripts.screening.agreement \
+	    --input $(DATA_PROC)/03_screening_ta.csv \
+	    --output-table $(TAB_DIR)/kappa_screening.tex
 
 .PHONY: fetch
 fetch:
@@ -118,7 +124,7 @@ prisma:
 	    --output $(FIG_DIR)/prisma_flow.tex
 
 .PHONY: screen
-screen: consolidate dedup screening_ta
+screen: consolidate dedup screening_ta screening-kappa
 
 .PHONY: extract
 extract:
