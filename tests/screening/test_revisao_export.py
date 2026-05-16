@@ -178,22 +178,28 @@ def test_run_reexport_is_non_destructive(tmp_path: Path):
     assert row["nota_humana"] == "fora do escopo"
 
 
-def test_run_backs_up_existing_sheet_before_overwrite(tmp_path: Path):
+import json as _json
+
+
+def test_run_first_export_writes_state_no_backup(tmp_path: Path):
     src = _screening_csv(tmp_path)
     sheet = tmp_path / "03_revisao_duvidas.csv"
     revisao_export.run(screening_csv=src, sheet_csv=sheet)
-    s = pd.read_csv(sheet, keep_default_na=False)
-    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "e"
-    s.to_csv(sheet, index=False)
-    revisao_export.run(screening_csv=src, sheet_csv=sheet)  # re-export → backup
-    backups = list(tmp_path.glob("03_revisao_duvidas.bak-*.csv"))
-    assert len(backups) == 1
-    # backup contém a decisão que existia antes do overwrite
-    b = pd.read_csv(backups[0], keep_default_na=False)
-    assert (b["decisao_humana"] == "e").sum() == 1
+    assert not list(tmp_path.glob("*.bak-*.csv"))          # nada para backupar
+    state = sheet.with_suffix(".state.json")
+    assert state.exists()
+    assert _json.loads(state.read_text())["decided_review_ids"] == []
 
 
-def test_run_warns_when_decisions_drop(tmp_path: Path, capsys):
+def test_run_backup_taken_on_reexport(tmp_path: Path):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    assert len(list(tmp_path.glob("03_revisao_duvidas.bak-*.csv"))) == 1
+
+
+def test_run_no_warning_on_normal_reexport(tmp_path: Path, capsys):
     src = _screening_csv(tmp_path)
     sheet = tmp_path / "03_revisao_duvidas.csv"
     revisao_export.run(screening_csv=src, sheet_csv=sheet)
@@ -201,10 +207,50 @@ def test_run_warns_when_decisions_drop(tmp_path: Path, capsys):
     s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "e"
     s.to_csv(sheet, index=False)
     capsys.readouterr()
-    # usuário apaga a linha decidida (simula deleção acidental no LibreOffice)
-    s2 = s[s["doi"] != "10.1/s1"]
-    s2.to_csv(sheet, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)  # decisão preservada
+    out = capsys.readouterr().out
+    assert "ATENÇÃO" not in out
+    s2 = pd.read_csv(sheet, keep_default_na=False)
+    assert (s2["decisao_humana"] == "e").sum() == 1
+
+
+def test_run_warns_when_decided_row_deleted_and_saved(tmp_path: Path, capsys):
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s = pd.read_csv(sheet, keep_default_na=False)
+    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "i"
+    s.to_csv(sheet, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)  # state agora tem s1 decidido
+    capsys.readouterr()
+    # usuário apaga a linha decidida e salva
+    s3 = pd.read_csv(sheet, keep_default_na=False)
+    s3 = s3[s3["doi"] != "10.1/s1"]
+    s3.to_csv(sheet, index=False)
     revisao_export.run(screening_csv=src, sheet_csv=sheet)
     out = capsys.readouterr().out
     assert "ATENÇÃO" in out
-    assert "Backup salvo" in out
+    assert "sumiram" in out
+    assert ".bak-" in out
+
+
+def test_run_no_false_positive_on_corpus_growth(tmp_path: Path, capsys):
+    # primeiro corpus com 2 soft (s1,s2); decide s1
+    src = _screening_csv(tmp_path)
+    sheet = tmp_path / "03_revisao_duvidas.csv"
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    s = pd.read_csv(sheet, keep_default_na=False)
+    s.loc[s["doi"] == "10.1/s1", "decisao_humana"] = "i"
+    s.to_csv(sheet, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)  # state: s1 decidido
+    capsys.readouterr()
+    # corpus CRESCE: adiciona um novo soft-include s3
+    base = pd.read_csv(src, keep_default_na=False)
+    grown = pd.concat(
+        [base, pd.DataFrame([{**_row("duvida", "duvida", "incluir"), "doi": "10.1/s3"}])],
+        ignore_index=True,
+    )
+    grown.to_csv(src, index=False)
+    revisao_export.run(screening_csv=src, sheet_csv=sheet)
+    out = capsys.readouterr().out
+    assert "ATENÇÃO" not in out   # crescimento NÃO é perda → sem alarme falso

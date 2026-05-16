@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import sys
 from pathlib import Path
 
@@ -87,37 +88,82 @@ def merge_preserve(fresh: pd.DataFrame, existing: pd.DataFrame | None) -> pd.Dat
     return out.reset_index(drop=True)
 
 
+def _state_path(sheet_csv: Path) -> Path:
+    return sheet_csv.with_suffix(".state.json")
+
+
 def run(screening_csv: Path, sheet_csv: Path) -> None:
+    ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    # 1. Read screening, build fresh.
     df = pd.read_csv(screening_csv, encoding="utf-8", keep_default_na=False)
     soft = soft_includes(df)
     fresh = build_sheet(soft)
+
+    # 2. existing = None; prior_decided = set()
     existing = None
-    n_dec_before = 0
+    prior_decided: set[str] = set()
+    lost: list[str] = []
+
+    # 3. If sheet exists: read existing, backup, load prior state, compute lost.
     if sheet_csv.exists():
         existing = pd.read_csv(sheet_csv, encoding="utf-8", keep_default_na=False)
-        n_dec_before = int((existing["decisao_humana"].astype(str).str.strip() != "").sum())
-        # Backup defensivo ANTES de sobrescrever — protege contra deleção
-        # acidental de linhas no LibreOffice (decisão de linha apagada não
-        # é recuperável pelo merge; o backup é a rede de segurança).
-        ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
         backup = sheet_csv.with_suffix(f".bak-{ts}.csv")
         backup.write_bytes(sheet_csv.read_bytes())
-    # Detecta linhas da planilha deletadas pelo usuário (fresh_id ausente em existing).
-    _deleted_from_existing: set[str] = set()
-    if existing is not None:
-        _ex_ids = set(existing["review_id"].astype(str).str.strip())
-        _fr_ids = set(fresh["review_id"].astype(str).str.strip())
-        _deleted_from_existing = _fr_ids - _ex_ids
+        if _state_path(sheet_csv).exists():
+            prior_decided = set(
+                json.loads(_state_path(sheet_csv).read_text(encoding="utf-8"))
+                .get("decided_review_ids", [])
+            )
+        cur_decided = set(
+            existing.loc[
+                existing["decisao_humana"].astype(str).str.strip() != "",
+                "review_id",
+            ].astype(str)
+        )
+        lost = sorted(prior_decided - cur_decided)
+
+    # 4. Merge and write sheet.
     merged = merge_preserve(fresh, existing)
     sheet_csv.parent.mkdir(parents=True, exist_ok=True)
     merged.to_csv(sheet_csv, index=False, encoding="utf-8")
+
+    # 5. Compute decided count.
     n_dec = int((merged["decisao_humana"].astype(str).str.strip() != "").sum())
+
+    # 6. Write new state file.
+    decided_ids = (
+        merged.loc[
+            merged["decisao_humana"].astype(str).str.strip() != "",
+            "review_id",
+        ]
+        .astype(str)
+        .tolist()
+    )
+    _state_path(sheet_csv).write_text(
+        json.dumps(
+            {
+                "decided_review_ids": decided_ids,
+                "n_decididas": len(decided_ids),
+                "exportado_em": ts,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    # 7. Print standard summary.
     print(f"Revisão export: {len(merged)} a revisar | {n_dec} já decididas | "
           f"{len(merged) - n_dec} pendentes → {sheet_csv}")
-    if existing is not None and (n_dec < n_dec_before or _deleted_from_existing):
-        print(f"  ⚠ ATENÇÃO: {n_dec_before - n_dec} decisão(ões) a menos que "
-              f"antes do export. Possível linha apagada na planilha. "
-              f"Backup salvo em {backup} — verifique antes de continuar.")
+
+    # 8. Warn accurately only when previously-decided ids are truly missing.
+    if lost:
+        print(f"  ⚠ ATENÇÃO: {len(lost)} decisão(ões) registradas no último export "
+              f"sumiram da planilha (review_id: {lost[:5]}{' ...' if len(lost) > 5 else ''}). "
+              f"Provável linha apagada/limpa no LibreOffice. Há backups em "
+              f"{sheet_csv.parent}/{sheet_csv.stem}.bak-*.csv — recupere de um anterior "
+              f"ao sumiço e re-exporte.")
 
 
 def _cli(argv: list[str]) -> int:
