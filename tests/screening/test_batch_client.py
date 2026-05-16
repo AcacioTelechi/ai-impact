@@ -144,3 +144,42 @@ def test_screen_with_model_preserves_row_order():
     # result[0] MUST be row0's decision, result[1] MUST be row1's — by df order
     assert res[0]["decisao"] == "incluir" and res[0]["justificativa"] == "row0"
     assert res[1]["decisao"] == "excluir" and res[1]["justificativa"] == "row1"
+
+
+from scripts.screening.llm.batch_client import anthropic_submit_fn
+
+
+class _FakeResultMsg:
+    def __init__(self, text): self.content = [type("C", (), {"text": text})()]
+
+
+class _FakeResult:
+    def __init__(self, text): self.type = "succeeded"; self.message = _FakeResultMsg(text)
+
+
+class _FakeEntry:
+    def __init__(self, cid, text): self.custom_id = cid; self.result = _FakeResult(text)
+
+
+class _FakeBatches:
+    def __init__(self): self._reqs = None
+    def create(self, requests):
+        self._reqs = requests
+        return type("B", (), {"id": "batch_x"})()
+    def retrieve(self, _id):
+        return type("B", (), {"processing_status": "ended"})()
+    def results(self, _id):
+        return [_FakeEntry(r["custom_id"], '{"decisao":"incluir","justificativa":"k","confianca":1.0,"criterio":null}')
+                for r in self._reqs]
+
+
+class _FakeClient:
+    def __init__(self): self.messages = type("M", (), {"batches": _FakeBatches()})()
+
+
+def test_anthropic_submit_fn_with_fake_client():
+    fn = anthropic_submit_fn("claude-sonnet-4-6", client=_FakeClient(), poll_interval=0)
+    reqs = [{"custom_id": "rABC", "params": {"model": "m", "max_tokens": 1,
+             "system": [], "messages": [{"role": "user", "content": "x"}]}}]
+    out = fn(reqs)
+    assert out["rABC"].startswith('{"decisao":"incluir"')

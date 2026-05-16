@@ -9,12 +9,17 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from scripts.screening.llm.prompt import build_system_block, build_user_block
 from scripts.screening.screening_ta import _mock_judge
+
+load_dotenv()
 
 _VALID = {"incluir", "excluir", "duvida"}
 
@@ -144,3 +149,44 @@ def screen_with_model(
         _save_cache(cache_path, cache)
 
     return [cache[custom_id(cache_key(row))] for _, row in df.iterrows()]
+
+
+POLL_INTERVAL_S = 15
+POLL_TIMEOUT_S = 24 * 3600
+
+
+def anthropic_submit_fn(model: str, client=None, poll_interval: int = POLL_INTERVAL_S):
+    """Devolve submit_fn(requests)->{custom_id:texto} via Message Batches API.
+
+    client injetável para teste; em produção usa anthropic.Anthropic()
+    (ANTHROPIC_API_KEY via .env). Retry/backoff na submissão.
+    """
+    if client is None:
+        from anthropic import Anthropic
+        client = Anthropic()
+
+    @retry(stop=stop_after_attempt(4),
+           wait=wait_exponential(multiplier=2, min=2, max=30))
+    def _create(requests):
+        return client.messages.batches.create(requests=requests)
+
+    def submit_fn(requests: list[dict]) -> dict[str, str]:
+        batch = _create(requests)
+        waited = 0
+        while True:
+            status = client.messages.batches.retrieve(batch.id).processing_status
+            if status == "ended":
+                break
+            if waited >= POLL_TIMEOUT_S:
+                raise TimeoutError(f"Batch {batch.id} excedeu 24h")
+            time.sleep(poll_interval)
+            waited += poll_interval
+        out: dict[str, str] = {}
+        for entry in client.messages.batches.results(batch.id):
+            if getattr(entry.result, "type", None) == "succeeded":
+                out[entry.custom_id] = entry.result.message.content[0].text
+            else:
+                out[entry.custom_id] = ""  # → parse_fail → duvida/0
+        return out
+
+    return submit_fn
