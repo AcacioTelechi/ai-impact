@@ -42,3 +42,36 @@ def build_sheet(soft_df: pd.DataFrame) -> pd.DataFrame:
                 "decisao_haiku", "confianca_haiku", "justificativa_haiku", "doi"):
         out[col] = soft_df[col].values
     return out[SHEET_COLS].reset_index(drop=True)
+
+
+def merge_preserve(fresh: pd.DataFrame, existing: pd.DataFrame | None) -> pd.DataFrame:
+    """Funde a planilha recém-computada com a já preenchida, sem perder trabalho.
+
+    - Preserva decisao_humana/nota_humana de `existing` por review_id.
+    - Linhas novas em `fresh` entram vazias.
+    - Linhas de `existing` ausentes em `fresh` mas COM decisao_humana
+      preenchida são mantidas (anexadas ao fim) — nunca descartadas.
+    """
+    if existing is None or existing.empty:
+        return fresh.reset_index(drop=True)
+
+    prev = existing.set_index("review_id")
+    out = fresh.copy()
+
+    def _prev(rid: str, col: str) -> str:
+        if rid in prev.index:
+            val = prev.loc[rid, col]
+            return "" if pd.isna(val) else str(val)
+        return ""
+
+    out["decisao_humana"] = out["review_id"].map(lambda r: _prev(r, "decisao_humana"))
+    out["nota_humana"] = out["review_id"].map(lambda r: _prev(r, "nota_humana"))
+
+    fresh_ids = set(fresh["review_id"])
+    orphan_decided = existing[
+        (~existing["review_id"].isin(fresh_ids))
+        & (existing["decisao_humana"].fillna("").astype(str).str.strip() != "")
+    ]
+    if not orphan_decided.empty:
+        out = pd.concat([out, orphan_decided], ignore_index=True)
+    return out.reset_index(drop=True)

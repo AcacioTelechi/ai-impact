@@ -51,3 +51,55 @@ def test_build_sheet_review_id_unique_per_row():
     ])
     sheet = build_sheet(df)
     assert sheet["review_id"].nunique() == 2
+
+
+from scripts.screening.revisao_export import merge_preserve
+
+
+def test_merge_preserve_keeps_filled_decisions_and_adds_new():
+    fresh = pd.DataFrame({
+        "review_id": ["a", "b", "c"],
+        "decisao_humana": ["", "", ""],
+        "nota_humana": ["", "", ""],
+        "title": ["TA", "TB", "TC"],
+    })
+    existing = pd.DataFrame({
+        "review_id": ["a", "b"],
+        "decisao_humana": ["i", "e"],
+        "nota_humana": ["gostei", ""],
+        "title": ["TA", "TB"],
+    })
+    merged = merge_preserve(fresh, existing)
+    by = merged.set_index("review_id")
+    assert by.loc["a", "decisao_humana"] == "i"      # preservado
+    assert by.loc["a", "nota_humana"] == "gostei"    # preservado
+    assert by.loc["b", "decisao_humana"] == "e"      # preservado
+    assert by.loc["c", "decisao_humana"] == ""       # novo, vazio
+    assert len(merged) == 3
+
+
+def test_merge_preserve_retains_orphaned_decided_rows():
+    """Linha decidida que sumiu do conjunto fresh não é descartada."""
+    fresh = pd.DataFrame({
+        "review_id": ["a"], "decisao_humana": [""], "nota_humana": [""],
+        "title": ["TA"],
+    })
+    existing = pd.DataFrame({
+        "review_id": ["a", "z"],
+        "decisao_humana": ["", "i"],   # 'z' não está em fresh mas foi decidido
+        "nota_humana": ["", "nota z"],
+        "title": ["TA", "TZ"],
+    })
+    merged = merge_preserve(fresh, existing)
+    assert "z" in set(merged["review_id"])
+    z = merged.set_index("review_id").loc["z"]
+    assert z["decisao_humana"] == "i"
+
+
+def test_merge_preserve_no_existing_returns_fresh():
+    fresh = pd.DataFrame({
+        "review_id": ["a"], "decisao_humana": [""], "nota_humana": [""],
+        "title": ["TA"],
+    })
+    out = merge_preserve(fresh, None)
+    assert out.equals(fresh)
