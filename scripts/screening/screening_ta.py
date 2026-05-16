@@ -37,10 +37,10 @@ def _mock_judge(row: pd.Series) -> dict:
         t in text for t in ["employment", "labor", "labour", "jobs", "wages", "occupation"]
     )
     if has_ai and has_labor:
-        return dict(decisao="incluir", justificativa="Mock: AI + labor keywords.", confianca=0.85)
+        return dict(decisao="incluir", justificativa="Mock: AI + labor keywords.", confianca=0.85, criterio=None)
     if has_ai:
-        return dict(decisao="duvida", justificativa="Mock: AI mention but no labor.", confianca=0.5)
-    return dict(decisao="excluir", justificativa="Mock: no AI keyword.", confianca=0.9)
+        return dict(decisao="duvida", justificativa="Mock: AI mention but no labor.", confianca=0.5, criterio=None)
+    return dict(decisao="excluir", justificativa="Mock: no AI keyword.", confianca=0.9, criterio="E1")
 
 
 def merge_conservative(sonnet: dict, haiku: dict) -> dict:
@@ -69,7 +69,7 @@ def merge_conservative(sonnet: dict, haiku: dict) -> dict:
 
 
 SONNET = "claude-sonnet-4-6"
-HAIKU = "claude-haiku-4-5-20251001"
+HAIKU = "claude-haiku-4-5-20251001"  # ID datado é o oficial do Haiku 4.5 (não é typo)
 
 
 def run(

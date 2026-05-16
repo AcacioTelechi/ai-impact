@@ -84,3 +84,11 @@ def test_run_preserves_original_columns(tmp_path: Path):
     df = pd.read_csv(out)
     assert {"source", "doi", "title", "authors", "year", "abstract",
             "venue", "language"} <= set(df.columns)
+
+
+def test_mock_judge_returns_full_schema():
+    """_mock_judge must emit the same keys as the real parse_response path."""
+    from scripts.screening.screening_ta import _mock_judge
+    for title, abstract in [("AI and jobs", "labor"), ("AI only", "x"), ("nothing", "y")]:
+        d = _mock_judge(pd.Series({"title": title, "abstract": abstract}))
+        assert set(d) == {"decisao", "justificativa", "confianca", "criterio"}
