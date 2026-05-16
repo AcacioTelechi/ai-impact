@@ -11,6 +11,8 @@
 *.lof
 *.bbl
 *.blg
+*.bcf
+*.run.xml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
