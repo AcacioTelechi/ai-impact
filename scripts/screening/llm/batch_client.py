@@ -85,6 +85,26 @@ def custom_id(key: str) -> str:
 
 MAX_TOKENS = 400
 
+_MODEL_LABELS = {
+    "claude-sonnet-4-6": "Sonnet 4.6",
+    "claude-haiku-4-5-20251001": "Haiku 4.5",
+}
+
+
+def _label(model: str) -> str:
+    return _MODEL_LABELS.get(model, model)
+
+
+def _fmt_elapsed(secs: float) -> str:
+    secs = int(secs)
+    h, rem = divmod(secs, 3600)
+    m, s = divmod(rem, 60)
+    if h:
+        return f"{h}h{m:02d}m"
+    if m:
+        return f"{m}m{s:02d}s"
+    return f"{s}s"
+
 
 def build_requests(df, model: str, cached: dict | None = None) -> list[dict]:
     """Um request por registro ainda não cacheado. system = bloco estável."""
@@ -133,7 +153,9 @@ def screen_with_model(
     mock=True → usa _mock_judge (sem API). Caso contrário, submit_fn(requests)
     deve devolver {custom_id: texto_bruto}. Ordem do retorno segue o df.
     """
+    label = _label(model)
     if mock:
+        print(f"[{label}] modo mock — {len(df)} registros (sem API, sem custo)")
         return [_mock_judge(row) for _, row in df.iterrows()]
 
     if submit_fn is None:
@@ -141,12 +163,21 @@ def screen_with_model(
 
     cache = _load_cache(cache_path)
     pending = build_requests(df, model=model, cached=cache)
+    n_total = len(df)
+    n_pending = len(pending)
+    print(
+        f"[{label}] {n_total} registros | {n_total - n_pending} em cache | "
+        f"{n_pending} a processar"
+    )
     if pending:
         raw_by_cid = submit_fn(pending)
         for req in pending:
             cid = req["custom_id"]
             cache[cid] = parse_response(raw_by_cid.get(cid, ""))
         _save_cache(cache_path, cache)
+        print(f"[{label}] {n_pending} processados e gravados em cache")
+    else:
+        print(f"[{label}] nada a fazer → pulando (0 chamadas, $0)")
 
     return [cache[custom_id(cache_key(row))] for _, row in df.iterrows()]
 
@@ -171,16 +202,47 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INT
         return client.messages.batches.create(requests=requests)
 
     def submit_fn(requests: list[dict]) -> dict[str, str]:
+        total = len(requests)
         batch = _create(requests)
-        deadline = time.monotonic() + POLL_TIMEOUT_S
+        print(
+            f"  [{_label(model)}] batch {batch.id} criado — {total} requests; "
+            f"processamento assíncrono (minutos a horas)",
+            flush=True,
+        )
+        start = time.monotonic()
+        deadline = start + POLL_TIMEOUT_S
         while True:
-            status = client.messages.batches.retrieve(batch.id).processing_status
+            b = client.messages.batches.retrieve(batch.id)
+            status = b.processing_status
+            elapsed = _fmt_elapsed(time.monotonic() - start)
+            rc = getattr(b, "request_counts", None)
+            if rc is not None:
+                done = (
+                    getattr(rc, "succeeded", 0) + getattr(rc, "errored", 0)
+                    + getattr(rc, "canceled", 0) + getattr(rc, "expired", 0)
+                )
+                print(
+                    f"  [{_label(model)}] {batch.id}: {status} — "
+                    f"{done}/{total} processados "
+                    f"({getattr(rc, 'succeeded', 0)} ok, "
+                    f"{getattr(rc, 'errored', 0)} erro, "
+                    f"{getattr(rc, 'processing', 0)} na fila) — "
+                    f"decorrido {elapsed}",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"  [{_label(model)}] {batch.id}: {status} — "
+                    f"decorrido {elapsed}",
+                    flush=True,
+                )
             if status == "ended":
                 break
             if time.monotonic() >= deadline:
                 raise TimeoutError(f"Batch {batch.id} excedeu 24h")
             time.sleep(poll_interval)
         out: dict[str, str] = {}
+        n_ok = 0
         for entry in client.messages.batches.results(batch.id):
             if getattr(entry.result, "type", None) == "succeeded":
                 blocks = entry.result.message.content
@@ -188,8 +250,14 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INT
                     (b.text for b in blocks if getattr(b, "type", None) == "text"),
                     "",
                 )
+                n_ok += 1
             else:
                 out[entry.custom_id] = ""  # → parse_fail → duvida/0
+        print(
+            f"  [{_label(model)}] coletado: {n_ok} sucesso, "
+            f"{total - n_ok} sem resposta (→ duvida/0)",
+            flush=True,
+        )
         return out
 
     return submit_fn

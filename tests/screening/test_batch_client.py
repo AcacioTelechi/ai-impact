@@ -203,3 +203,82 @@ def test_anthropic_submit_fn_times_out_even_with_zero_poll_interval(monkeypatch)
     import pytest
     with pytest.raises(TimeoutError):
         fn([{"custom_id": "r1", "params": {}}])
+
+
+# ---- logging / observability ----
+
+
+def _fake_submit_all_incluir(requests):
+    return {
+        r["custom_id"]:
+        '{"decisao":"incluir","justificativa":"k","confianca":1.0,"criterio":null}'
+        for r in requests
+    }
+
+
+def test_screen_with_model_mock_logs_no_api(capsys):
+    screen_with_model(_df(), model="claude-sonnet-4-6", mock=True)
+    out = capsys.readouterr().out
+    assert "Sonnet 4.6" in out
+    assert "modo mock" in out
+    assert "sem custo" in out or "sem API" in out
+
+
+def test_screen_with_model_logs_workload(capsys):
+    screen_with_model(_df(), model="claude-sonnet-4-6",
+                      submit_fn=_fake_submit_all_incluir)
+    out = capsys.readouterr().out
+    assert "Sonnet 4.6" in out          # friendly model label
+    assert "2 a processar" in out       # pending count
+    assert "0 em cache" in out          # cached count
+
+
+def test_screen_with_model_logs_skip_when_fully_cached(capsys, tmp_path):
+    cp = tmp_path / "c.json"
+    screen_with_model(_df(), model="claude-haiku-4-5-20251001",
+                      cache_path=cp, submit_fn=_fake_submit_all_incluir)
+    capsys.readouterr()  # discard first-run output
+    screen_with_model(_df(), model="claude-haiku-4-5-20251001",
+                      cache_path=cp, submit_fn=_fake_submit_all_incluir)
+    out = capsys.readouterr().out
+    assert "Haiku 4.5" in out
+    assert "0 a processar" in out
+    assert "pulando" in out
+
+
+class _RC:
+    succeeded = 2
+    errored = 0
+    canceled = 0
+    expired = 0
+    processing = 0
+
+
+class _BatchesWithCounts:
+    def __init__(self): self._reqs = None
+    def create(self, requests):
+        self._reqs = requests
+        return type("B", (), {"id": "msgbatch_obs"})()
+    def retrieve(self, _id):
+        return type("B", (), {"processing_status": "ended",
+                              "request_counts": _RC()})()
+    def results(self, _id):
+        return [_FakeEntry(r["custom_id"],
+                '{"decisao":"incluir","justificativa":"x","confianca":1.0,"criterio":null}')
+                for r in self._reqs]
+
+
+class _ClientWithCounts:
+    def __init__(self):
+        self.messages = type("M", (), {"batches": _BatchesWithCounts()})()
+
+
+def test_anthropic_submit_fn_logs_batch_id_and_progress(capsys):
+    fn = anthropic_submit_fn("claude-haiku-4-5-20251001",
+                             client=_ClientWithCounts(), poll_interval=0)
+    fn([{"custom_id": "r1", "params": {}}, {"custom_id": "r2", "params": {}}])
+    out = capsys.readouterr().out
+    assert "msgbatch_obs" in out      # batch id surfaced
+    assert "2/2" in out               # done/total progress
+    assert "coletado" in out          # collection summary
+    assert "decorrido" in out         # elapsed time
