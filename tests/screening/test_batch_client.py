@@ -86,7 +86,6 @@ def test_build_requests_skips_cached_keys():
     assert "AI Wages" in reqs[0]["params"]["messages"][0]["content"]
 
 
-import json as _json
 from pathlib import Path
 
 from scripts.screening.llm.batch_client import screen_with_model
@@ -125,15 +124,23 @@ def test_screen_with_model_uses_submit_fn_and_caches(tmp_path: Path):
 
 
 def test_screen_with_model_preserves_row_order():
-    df = _df()
+    df = _df()  # row0: doi 10.1/a "AI Jobs"; row1: doi 10.1/b "AI Wages"
+    # Map each custom_id to a DISTINCT decisao tied to that row, and return
+    # the dict in REVERSED insertion order to prove ordering is by df, not by
+    # submit_fn return order.
+    cid0 = custom_id(cache_key(df.iloc[0]))
+    cid1 = custom_id(cache_key(df.iloc[1]))
 
     def fake_submit(requests):
-        out = {}
-        for i, r in enumerate(reversed(requests)):
-            d = "excluir" if i == 0 else "incluir"
-            out[r["custom_id"]] = f'{{"decisao":"{d}","justificativa":"x","confianca":0.7,"criterio":null}}'
-        return out
+        mapping = {
+            cid0: '{"decisao":"incluir","justificativa":"row0","confianca":0.9,"criterio":null}',
+            cid1: '{"decisao":"excluir","justificativa":"row1","confianca":0.8,"criterio":"E1"}',
+        }
+        # return reversed so a naive implementation would mis-order
+        return {k: mapping[k] for k in reversed(list(mapping))}
 
     res = screen_with_model(df, model="m", submit_fn=fake_submit)
     assert len(res) == 2
-    assert res[0]["decisao"] in {"incluir", "excluir"}
+    # result[0] MUST be row0's decision, result[1] MUST be row1's — by df order
+    assert res[0]["decisao"] == "incluir" and res[0]["justificativa"] == "row0"
+    assert res[1]["decisao"] == "excluir" and res[1]["justificativa"] == "row1"
