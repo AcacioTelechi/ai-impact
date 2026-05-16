@@ -122,7 +122,7 @@ def test_run_writes_revisado_and_incluidos(tmp_path, capsys):
     assert "10.1/be" not in set(i["doi"])
     out = capsys.readouterr().out
     assert "pendente" in out.lower()
-    assert "1" in out
+    assert "1 PENDENTES" in out
 
 
 def test_run_invalid_sheet_aborts_without_writing(tmp_path):
