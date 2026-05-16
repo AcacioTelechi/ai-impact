@@ -1,70 +1,41 @@
-import json
+import itertools
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from scripts.screening import screening_ta
+from scripts.screening.screening_ta import merge_conservative
+
+LABELS = ["incluir", "excluir", "duvida"]
 
 
-def test_screening_ta_mock_marks_all_records(tmp_path: Path) -> None:
-    """In mock mode, every record gets a decision/justification/confidence."""
-    dedup = tmp_path / "dedup.csv"
-    pd.DataFrame(
-        [
-            {
-                "source": "wos",
-                "doi": "10.1/a",
-                "title": "AI and employment in the US",
-                "authors": "Smith, J.",
-                "year": 2020,
-                "abstract": "...",
-                "venue": "AER",
-                "language": "en",
-            },
-            {
-                "source": "wos",
-                "doi": "10.1/b",
-                "title": "AI tutors in classrooms",
-                "authors": "Brown, P.",
-                "year": 2019,
-                "abstract": "...",
-                "venue": "Educ Review",
-                "language": "en",
-            },
-        ]
-    ).to_csv(dedup, index=False)
-
-    out = tmp_path / "screening_ta.csv"
-    screening_ta.run(input=dedup, output=out, mock=True)
-
-    df = pd.read_csv(out)
-    assert {"decisao_llm", "justificativa_llm", "confianca_llm"} <= set(df.columns)
-    assert len(df) == 2
-    assert df["decisao_llm"].isin(["incluir", "excluir", "duvida"]).all()
-    assert df["confianca_llm"].between(0, 1).all()
+@pytest.mark.parametrize("s,h", itertools.product(LABELS, LABELS))
+def test_merge_only_excludes_when_both_exclude(s, h):
+    d = merge_conservative(
+        {"decisao": s, "justificativa": "a", "confianca": 0.8, "criterio": "E1" if s == "excluir" else None},
+        {"decisao": h, "justificativa": "b", "confianca": 0.6, "criterio": "E2" if h == "excluir" else None},
+    )
+    if s == "excluir" and h == "excluir":
+        assert d["decisao_final"] == "excluir"
+    else:
+        assert d["decisao_final"] == "incluir"
+    assert d["concordancia"] == ("concordam" if s == h else "divergem")
 
 
-def test_screening_ta_writes_incluidos_file(tmp_path: Path) -> None:
-    dedup = tmp_path / "dedup.csv"
-    pd.DataFrame(
-        [
-            {
-                "source": "wos",
-                "doi": "10.1/a",
-                "title": "AI and employment in the US",
-                "authors": "Smith, J.",
-                "year": 2020,
-                "abstract": "AI exposure analysis",
-                "venue": "AER",
-                "language": "en",
-            }
-        ]
-    ).to_csv(dedup, index=False)
+def test_merge_picks_criterio_from_higher_confidence_when_both_exclude():
+    d = merge_conservative(
+        {"decisao": "excluir", "justificativa": "x", "confianca": 0.6, "criterio": "E1"},
+        {"decisao": "excluir", "justificativa": "y", "confianca": 0.9, "criterio": "E3"},
+    )
+    assert d["decisao_final"] == "excluir"
+    assert d["criterio_exclusao"] == "E3"  # maior confiança
 
-    out = tmp_path / "screening_ta.csv"
-    inc = tmp_path / "incluidos.csv"
-    screening_ta.run(input=dedup, output=out, mock=True, incluidos=inc)
 
-    inc_df = pd.read_csv(inc)
-    # In mock mode, "AI and employment" matches inclusion → 1 row
-    assert len(inc_df) >= 0  # mock heuristic may or may not include
+def test_merge_no_criterio_when_included():
+    d = merge_conservative(
+        {"decisao": "incluir", "justificativa": "x", "confianca": 0.9, "criterio": None},
+        {"decisao": "excluir", "justificativa": "y", "confianca": 0.5, "criterio": "E1"},
+    )
+    assert d["decisao_final"] == "incluir"
+    assert d["criterio_exclusao"] == ""

@@ -73,6 +73,31 @@ def _mock_judge(row: pd.Series) -> dict:
     return dict(decisao="excluir", justificativa="Mock: no AI keyword.", confianca=0.9)
 
 
+def merge_conservative(sonnet: dict, haiku: dict) -> dict:
+    """União conservadora: excluir sse AMBOS = excluir.
+
+    criterio_exclusao vem do modelo de maior confiança (só quando exclui).
+    """
+    both_exclude = sonnet["decisao"] == "excluir" and haiku["decisao"] == "excluir"
+    final = "excluir" if both_exclude else "incluir"
+    if both_exclude:
+        winner = sonnet if sonnet["confianca"] >= haiku["confianca"] else haiku
+        criterio = winner.get("criterio") or ""
+    else:
+        criterio = ""
+    return {
+        "decisao_sonnet": sonnet["decisao"],
+        "justificativa_sonnet": sonnet["justificativa"],
+        "confianca_sonnet": sonnet["confianca"],
+        "decisao_haiku": haiku["decisao"],
+        "justificativa_haiku": haiku["justificativa"],
+        "confianca_haiku": haiku["confianca"],
+        "decisao_final": final,
+        "concordancia": "concordam" if sonnet["decisao"] == haiku["decisao"] else "divergem",
+        "criterio_exclusao": criterio,
+    }
+
+
 def _llm_judge(row: pd.Series, model: str, cache: dict, client) -> dict:
     cache_key = row.get("doi") or f"{row['title']}-{row['year']}"
     if cache_key in cache:
