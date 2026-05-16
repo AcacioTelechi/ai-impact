@@ -63,6 +63,15 @@ O fechamento em 2026-06-30 coincide com a data de execução da busca.
 4. **Eligibility (texto completo)** — leitura completa, 100% manual.
 5. **Inclusion** — corpus final usado para extração.
 
+A revisão humana do screening foi operacionalizada em 2026-05-16: o pré-filtro
+dual-LLM (Sonnet 4.6 + Haiku 4.5, κ=0,602) classificou 2605 registros; os 462
+"ambos-incluir" e 1278 "ambos-excluir" foram aceitos pela concordância dos dois
+modelos, e os 865 casos ambíguos (decisão final "incluir" não unânime — passados
+pela união conservadora por "dúvida"/divergência) foram adjudicados manualmente
+pelo revisor via planilha (`scripts/screening/revisao_export.py` →
+`revisao_ingest.py`), conforme `docs/superpowers/specs/2026-05-16-revisao-manual-duvidas-design.md`.
+Isso concretiza o compromisso de "LLM-as-judge + revisão humana" deste protocolo.
+
 Diagrama PRISMA gerado automaticamente em `text/figures/prisma_flow.tex`.
 
 ## 8. Extração de dados
