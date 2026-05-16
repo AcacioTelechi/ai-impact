@@ -13,9 +13,31 @@ from pathlib import Path
 
 import pandas as pd
 
+from scripts.screening.llm.batch_client import cache_key, custom_id
+
+SHEET_COLS = [
+    "review_id", "decisao_humana", "nota_humana",
+    "year", "title", "venue", "authors", "abstract",
+    "decisao_sonnet", "confianca_sonnet", "justificativa_sonnet",
+    "decisao_haiku", "confianca_haiku", "justificativa_haiku", "doi",
+]
+
 
 def soft_includes(df: pd.DataFrame) -> pd.DataFrame:
     """Subconjunto a revisar: incluir final que não é ambos-incluir."""
     is_incluir = df["decisao_final"] == "incluir"
     both_incluir = (df["decisao_sonnet"] == "incluir") & (df["decisao_haiku"] == "incluir")
     return df[is_incluir & ~both_incluir].reset_index(drop=True)
+
+
+def build_sheet(soft_df: pd.DataFrame) -> pd.DataFrame:
+    """Constrói a planilha de trabalho a partir dos soft-includes."""
+    out = pd.DataFrame()
+    out["review_id"] = soft_df.apply(lambda r: custom_id(cache_key(r)), axis=1)
+    out["decisao_humana"] = ""
+    out["nota_humana"] = ""
+    for col in ("year", "title", "venue", "authors", "abstract",
+                "decisao_sonnet", "confianca_sonnet", "justificativa_sonnet",
+                "decisao_haiku", "confianca_haiku", "justificativa_haiku", "doi"):
+        out[col] = soft_df[col].values
+    return out[SHEET_COLS].reset_index(drop=True)
