@@ -7,7 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def pdf_is_extractable(path) -> bool:
+def pdf_is_extractable(path: str | Path) -> bool:
     """True se `path` é um PDF que o pypdf abre, parseia e não está cifrado.
 
     Conservador: qualquer falha (arquivo ausente, bytes não-PDF, corrompido,
