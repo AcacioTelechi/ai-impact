@@ -149,3 +149,44 @@ def fundir(row, parsed: dict) -> dict:
     out["text_source"] = row.get("text_source", "")
     out["confianca_extracao"] = parsed.get("confianca_extracao", 0.0)
     return {c: out.get(c, "") for c in OUTPUT_COLUMNS}
+
+
+def run(corpus: Path, manifest: Path, output: Path, cache: Path,
+        submit_fn=None) -> None:
+    cdf = pd.read_csv(corpus, encoding="utf-8", keep_default_na=False)
+    mdf = pd.read_csv(manifest, encoding="utf-8", keep_default_na=False)
+    cdf["review_id"] = [custom_id(cache_key(r)) for _, r in cdf.iterrows()]
+    m = mdf[["id", "review_id", "text_source", "pdf_path"]]
+    df = cdf.merge(m, on="review_id", how="inner")
+
+    res = screen_with_model(
+        df, model=MODEL, cache_path=cache, submit_fn=submit_fn,
+        system_block=build_extract_system_block(),
+        user_content_fn=build_user_content, parse_fn=parse_extraction,
+    )
+    rows = [fundir(r, parsed) for (_, r), parsed in zip(df.iterrows(), res)]
+    odf = pd.DataFrame(rows, columns=OUTPUT_COLUMNS)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    odf.to_csv(output, index=False, encoding="utf-8")
+
+    n = len(odf)
+    n_inc = int((odf["elegivel"] == "incluir").sum())
+    n_pdf = int((odf["text_source"] == "pdf").sum())
+    print(f"Extração: {n} processados | {n_inc} elegíveis | "
+          f"{n - n_inc} excluídos | {n_pdf} via PDF — modelo {MODEL}")
+    print(f"  → {output}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser(description="Plano 4b-i: elegibilidade+extração LLM.")
+    p.add_argument("--corpus", type=Path, required=True)
+    p.add_argument("--manifest", type=Path, required=True)
+    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--cache", type=Path, default=Path("data/processed/06_cache_extract.json"))
+    a = p.parse_args(argv)
+    run(corpus=a.corpus, manifest=a.manifest, output=a.output, cache=a.cache)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))

@@ -5,7 +5,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from scripts.extraction import extract_llm
 from scripts.extraction.extract_llm import build_user_content, parse_extraction, _LLM_FIELDS, fundir, OUTPUT_COLUMNS
+from scripts.screening.llm.batch_client import cache_key, custom_id
 
 
 def _row(**kw):
@@ -120,3 +122,39 @@ def test_fundir_excluded_keeps_metadata_and_na_fields():
     assert out["sinal_efeito"] == "n/a"
     assert out["revisto_humano"] == "False"
     assert out["confianca_extracao"] == 0.9
+
+
+def test_run_e2e_mock(tmp_path, capsys):
+    corpus = tmp_path / "03.csv"
+    pd.DataFrame([
+        {"source": "wos", "doi": "10.1/a", "title": "A", "authors": "S, J",
+         "year": 2020, "abstract": "Resumo A", "venue": "AER", "language": "en"},
+        {"source": "wos", "doi": "10.1/b", "title": "B", "authors": "B, P",
+         "year": 2024, "abstract": "Resumo B", "venue": "JOLE", "language": "en"},
+    ]).to_csv(corpus, index=False)
+    cdf = pd.read_csv(corpus)
+    rids = [custom_id(cache_key(r)) for _, r in cdf.iterrows()]
+    man = tmp_path / "04.csv"
+    pd.DataFrame({"id": ["s-001", "s-002"], "review_id": rids,
+                  "doi": cdf["doi"], "title": cdf["title"],
+                  "text_source": ["abstract", "abstract"],
+                  "fonte": ["—", "—"], "pdf_path": ["", ""],
+                  "status": ["nao_oa", "nao_oa"]}).to_csv(man, index=False)
+
+    def fake_submit(requests):
+        return {r["custom_id"]:
+                ('{"elegivel":"incluir","motivo_exclusao":"",'
+                 '"confianca_extracao":0.6,"extracao":{"tipo_estudo":"survey/revisão"}}')
+                for r in requests}
+
+    out = tmp_path / "06_extraction.csv"
+    extract_llm.run(corpus=corpus, manifest=man, output=out,
+                    cache=tmp_path / "06c.json", submit_fn=fake_submit)
+    df = pd.read_csv(out, keep_default_na=False)
+    assert len(df) == 2
+    assert list(df.columns) == OUTPUT_COLUMNS
+    assert (df["elegivel"] == "incluir").all()
+    assert set(df["id"]) == {"s-001", "s-002"}
+    assert (df["tipo_estudo"] == "survey/revisão").all()
+    assert (df["revisto_humano"].astype(str) == "False").all()
+    assert "Extração:" in capsys.readouterr().out
