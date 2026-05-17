@@ -2,6 +2,7 @@
 import base64
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from scripts.extraction.extract_llm import build_user_content
@@ -38,5 +39,11 @@ def test_user_content_pdf_has_document_block(tmp_path: Path):
 def test_user_content_pdf_missing_file_degrades_to_text(tmp_path: Path):
     c = build_user_content(_row(id="s-003", text_source="pdf",
                                 pdf_path=str(tmp_path / "naoexiste.pdf")))
+    assert len(c) == 1 and c[0]["type"] == "text"
+    assert "Resumo X" in c[0]["text"]
+
+
+def test_user_content_pdf_nan_path_degrades_to_text():
+    c = build_user_content(_row(id="s-004", text_source="pdf", pdf_path=np.nan))
     assert len(c) == 1 and c[0]["type"] == "text"
     assert "Resumo X" in c[0]["text"]
