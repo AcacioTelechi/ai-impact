@@ -68,3 +68,45 @@ def fundir(screening: pd.DataFrame, arb_by_rid: dict[str, dict]) -> pd.DataFrame
     out["decisao_final_arbitrada"] = finais
     out["origem_decisao"] = origens
     return out
+
+
+def _to_binary(label: str) -> str:
+    """incluir/duvida → 'incluir' (manter); excluir → 'excluir'.
+
+    Mantém o rótulo no espaço ["incluir","excluir","duvida"] de
+    agreement.cohen_kappa (o "duvida" ausente tem marginal zero e não
+    altera κ → reúso DRY correto)."""
+    return "excluir" if str(label) == "excluir" else "incluir"
+
+
+def kappa_table(arbitrado: pd.DataFrame, output_table: Path) -> None:
+    """Concordância par-a-par árbitro×Sonnet e árbitro×Haiku nos arbitrados."""
+    sub = arbitrado[arbitrado["origem_decisao"].isin(["arbitro", "arbitro_falha"])]
+    n = len(sub)
+    output_table.parent.mkdir(parents=True, exist_ok=True)
+    if n == 0:
+        output_table.write_text(
+            "\\begin{tabular}{l}\\toprule Nenhum arbitrado \\\\ \\bottomrule \\end{tabular}\n",
+            encoding="utf-8")
+        print(f"κ árbitro = n/a (0 arbitrados); → {output_table}")
+        return
+    arb = [_to_binary(x) for x in sub["decisao_arbitro"]]
+    son = [_to_binary(x) for x in sub["decisao_sonnet"]]
+    hai = [_to_binary(x) for x in sub["decisao_haiku"]]
+    k_s, k_h = cohen_kappa(arb, son), cohen_kappa(arb, hai)
+    ag_s = int(sum(a == b for a, b in zip(arb, son)))
+    ag_h = int(sum(a == b for a, b in zip(arb, hai)))
+    tex = (
+        "\\begin{table}[ht]\n\\centering\n"
+        "\\caption{Concordância do árbitro (Opus 4.7) com os triadores nos "
+        f"casos arbitrados (n={n}; rótulo binário: excluir vs. manter "
+        "[incluir/duvida])}\n"
+        "\\label{tab:arbitragem-kappa}\n"
+        "\\begin{tabular}{lcc}\n\\toprule\n"
+        "Par & Concordância & $\\kappa$ de Cohen \\\\\n\\midrule\n"
+        f"Árbitro × Sonnet 4.6 & {ag_s}/{n} = {ag_s / n * 100:.1f}\\% & {k_s:.3f} \\\\\n"
+        f"Árbitro × Haiku 4.5 & {ag_h}/{n} = {ag_h / n * 100:.1f}\\% & {k_h:.3f} \\\\\n"
+        "\\bottomrule\n\\end{tabular}\n\\end{table}\n"
+    )
+    output_table.write_text(tex, encoding="utf-8")
+    print(f"κ árbitro×Sonnet={k_s:.3f}, ×Haiku={k_h:.3f} (n={n}); → {output_table}")

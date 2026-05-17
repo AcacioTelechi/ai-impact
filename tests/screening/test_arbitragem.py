@@ -61,3 +61,41 @@ def test_fundir_missing_rid_is_conservative_arbitro_falha():
     assert out["decisao_final_arbitrada"] == "incluir"   # nunca exclui por falta de árbitro
     assert out["origem_decisao"] == "arbitro_falha"
     assert out["decisao_arbitro"] == ""
+
+
+from pathlib import Path
+from scripts.screening.arbitragem import kappa_table
+
+
+def test_kappa_table_writes_latex_pairwise(tmp_path: Path):
+    df = pd.DataFrame([
+        {"decisao_sonnet": "duvida", "decisao_haiku": "excluir",
+         "decisao_arbitro": "excluir", "origem_decisao": "arbitro"},
+        {"decisao_sonnet": "incluir", "decisao_haiku": "duvida",
+         "decisao_arbitro": "incluir", "origem_decisao": "arbitro"},
+        {"decisao_sonnet": "duvida", "decisao_haiku": "duvida",
+         "decisao_arbitro": "incluir", "origem_decisao": "arbitro"},
+        {"decisao_sonnet": "incluir", "decisao_haiku": "incluir",
+         "decisao_arbitro": "", "origem_decisao": "llm_concordante"},  # ignorado
+    ])
+    out = tmp_path / "arbitragem_kappa.tex"
+    kappa_table(df, out)
+    tex = out.read_text(encoding="utf-8")
+    assert "tabular" in tex
+    assert "kappa" in tex.lower() or "$\\kappa$" in tex
+    assert "Sonnet" in tex and "Haiku" in tex
+    assert r"\%" in tex
+    assert tex.count("{") == tex.count("}")
+    assert "n=3" in tex or "n = 3" in tex
+
+
+def test_kappa_table_empty_when_no_arbitrados(tmp_path: Path):
+    df = pd.DataFrame([
+        {"decisao_sonnet": "incluir", "decisao_haiku": "incluir",
+         "decisao_arbitro": "", "origem_decisao": "llm_concordante"},
+    ])
+    out = tmp_path / "k.tex"
+    kappa_table(df, out)
+    tex = out.read_text(encoding="utf-8")
+    assert "tabular" in tex
+    assert tex.count("{") == tex.count("}")
