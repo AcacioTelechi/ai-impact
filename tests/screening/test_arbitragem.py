@@ -149,3 +149,16 @@ def test_run_mock_produces_arbitrado_and_incluidos(tmp_path: Path):
     assert (i["decisao_final_arbitrada"] == "incluir").all()
     assert len(i) == (a["decisao_final_arbitrada"] == "incluir").sum()
     assert kap.exists() and "tabular" in kap.read_text()
+
+
+def test_run_asserts_on_length_mismatch(tmp_path: Path, monkeypatch):
+    import scripts.screening.arbitragem as A
+    src = _screening_csv(tmp_path)
+    # screen_with_model devolve menos resultados que soft → deve abortar alto
+    monkeypatch.setattr(A, "screen_with_model", lambda *a, **k: [])
+    import pytest
+    with pytest.raises(AssertionError, match="truncaria"):
+        A.run(screening_csv=src, arbitrado_csv=tmp_path / "a.csv",
+              incluidos_csv=tmp_path / "i.csv",
+              kappa_table_path=tmp_path / "k.tex",
+              cache_dir=tmp_path, mock=True)

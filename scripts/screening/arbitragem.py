@@ -131,12 +131,22 @@ def run(
     cache_dir: Path | None = None,
     mock: bool = False,
 ) -> None:
+    """Roda o árbitro Opus nos soft-includes e grava arbitrado/incluídos/κ.
+
+    cache_dir: diretório do 03_cache_arbitro.json. None desativa o cache
+    (sem idempotência — re-rodar re-paga a API; NÃO recomendado em
+    produção). O CLI usa data/processed por default.
+    """
     df = pd.read_csv(screening_csv, encoding="utf-8", keep_default_na=False)
     soft = soft_includes(df)
     cache_path = (cache_dir / "03_cache_arbitro.json") if cache_dir else None
     res = screen_with_model(
         soft, model=ARBITRO, cache_path=cache_path, mock=mock,
         system_block=build_arbiter_system_block(),
+    )
+    assert len(res) == len(soft), (
+        f"screen_with_model devolveu {len(res)} resultados para {len(soft)} "
+        "soft-includes; o zip truncaria silenciosamente — abortando"
     )
     arb_by_rid: dict[str, dict] = {}
     for (_, row), r in zip(soft.iterrows(), res):
