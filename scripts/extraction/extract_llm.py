@@ -60,6 +60,9 @@ _TEXT_FIELDS = {"mec_outros", "fonte_dados", "magnitude_reportada",
                 "magnitude_normalizada", "ocupacoes_afetadas",
                 "limitacoes_declaradas", "nota_extracao", "citacoes_chave",
                 "pais_estudo", "periodo_dados"}
+assert _TEXT_FIELDS <= set(_LLM_FIELDS), (
+    f"_TEXT_FIELDS fora do schema: {_TEXT_FIELDS - set(_LLM_FIELDS)}"
+)
 
 
 def _empty_extracao(nota: str = "") -> dict:

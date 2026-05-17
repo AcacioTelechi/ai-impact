@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from scripts.extraction.extract_llm import build_user_content
+from scripts.extraction.extract_llm import build_user_content, parse_extraction, _LLM_FIELDS
 
 
 def _row(**kw):
@@ -48,8 +48,6 @@ def test_user_content_pdf_nan_path_degrades_to_text():
     assert len(c) == 1 and c[0]["type"] == "text"
     assert "Resumo X" in c[0]["text"]
 
-
-from scripts.extraction.extract_llm import parse_extraction, _LLM_FIELDS
 
 
 def _good_json():
