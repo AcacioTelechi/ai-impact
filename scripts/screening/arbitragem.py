@@ -20,9 +20,6 @@ from scripts.screening.revisao_export import soft_includes
 
 ARBITRO = "claude-opus-4-7"
 
-_ARB_COLS = ["decisao_arbitro", "justificativa_arbitro", "confianca_arbitro",
-             "decisao_final_arbitrada", "origem_decisao"]
-
 
 def fundir(screening: pd.DataFrame, arb_by_rid: dict[str, dict]) -> pd.DataFrame:
     """Funde concordância LLM + veredito do árbitro nos 865.
@@ -65,6 +62,8 @@ def fundir(screening: pd.DataFrame, arb_by_rid: dict[str, dict]) -> pd.DataFrame
                 origens.append("arbitro_falha")
     out["decisao_arbitro"] = d_arb
     out["justificativa_arbitro"] = j_arb
+    # confianca_arbitro: "" (str) p/ concordantes/arbitro_falha-sem-rid;
+    # float p/ arbitrados. Coluna object dtype intencional (sobrevive CSV).
     out["confianca_arbitro"] = c_arb
     out["decisao_final_arbitrada"] = finais
     out["origem_decisao"] = origens

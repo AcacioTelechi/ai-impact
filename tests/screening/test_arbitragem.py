@@ -53,3 +53,11 @@ def test_fundir_concordantes_have_empty_arbiter_cols():
     assert out.iloc[0]["decisao_arbitro"] == ""
     assert out.iloc[0]["justificativa_arbitro"] == ""
     assert out.iloc[0]["confianca_arbitro"] == ""
+
+
+def test_fundir_missing_rid_is_conservative_arbitro_falha():
+    screening = pd.DataFrame([_row("duvida", "duvida", "incluir", "10.1/miss")])
+    out = fundir(screening, {}).iloc[0]   # arb_by_rid vazio → rid ausente
+    assert out["decisao_final_arbitrada"] == "incluir"   # nunca exclui por falta de árbitro
+    assert out["origem_decisao"] == "arbitro_falha"
+    assert out["decisao_arbitro"] == ""
