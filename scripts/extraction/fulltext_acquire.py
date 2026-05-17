@@ -75,7 +75,8 @@ def resolve(row, id_: str, manual_dir: Path, oa_dir: Path, *, email: str,
     lookup_fn(doi, email)->dict|None (default produção: _unpaywall_lookup).
     download_fn(url, dest)->str (default produção: download_pdf).
     """
-    doi = str(row.get("doi") or "").strip()
+    _doi = row.get("doi")
+    doi = "" if pd.isna(_doi) else str(_doi).strip()
     base = {"id": id_, "review_id": row.get("review_id", ""),
             "doi": doi, "title": str(row.get("title") or "")}
 

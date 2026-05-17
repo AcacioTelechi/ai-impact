@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from scripts.extraction.fulltext_acquire import assign_ids, download_pdf, MAX_PDF_BYTES
+import numpy as np
+
+from scripts.extraction.fulltext_acquire import assign_ids, download_pdf, MAX_PDF_BYTES, resolve
 from scripts.screening.llm.batch_client import cache_key, custom_id
 
 
@@ -94,9 +96,6 @@ def test_http_get_bytes_retries_5xx_not_4xx(monkeypatch):
     assert calls2["n"] == 1  # no retry on 4xx
 
 
-from scripts.extraction.fulltext_acquire import resolve
-
-
 def _dirs(tmp_path):
     m = tmp_path / "manual"; o = tmp_path / "oa"
     m.mkdir(); o.mkdir()
@@ -147,17 +146,22 @@ def test_resolve_oa_download_ok(tmp_path):
     assert r["status"] == "ok_oa" and r["pdf_path"].endswith("oa/s-004.pdf")
 
 
-def test_resolve_oa_download_failure_and_oversized(tmp_path):
+def test_resolve_oa_download_failure(tmp_path):
     m, o = _dirs(tmp_path)
     row = pd.Series(_row("10.1/x", "X"))
-    r_fail = resolve(row, "s-005", m, o, email="e@e",
-                     lookup_fn=lambda doi, email: {"pdf_url": "u"},
-                     download_fn=lambda u, d: "download_falhou")
-    assert r_fail["text_source"] == "abstract" and r_fail["status"] == "download_falhou"
-    r_big = resolve(row, "s-006", m, o, email="e@e",
-                    lookup_fn=lambda doi, email: {"pdf_url": "u"},
-                    download_fn=lambda u, d: "oversized")
-    assert r_big["text_source"] == "abstract" and r_big["status"] == "oversized"
+    r = resolve(row, "s-005", m, o, email="e@e",
+                lookup_fn=lambda doi, email: {"pdf_url": "u"},
+                download_fn=lambda u, d: "download_falhou")
+    assert r["text_source"] == "abstract" and r["status"] == "download_falhou"
+
+
+def test_resolve_oa_oversized(tmp_path):
+    m, o = _dirs(tmp_path)
+    row = pd.Series(_row("10.1/x", "X"))
+    r = resolve(row, "s-006", m, o, email="e@e",
+                lookup_fn=lambda doi, email: {"pdf_url": "u"},
+                download_fn=lambda u, d: "oversized")
+    assert r["text_source"] == "abstract" and r["status"] == "oversized"
 
 
 def test_resolve_idempotent_existing_oa(tmp_path):
@@ -174,3 +178,16 @@ def test_resolve_idempotent_existing_oa(tmp_path):
                 lookup_fn=lambda doi, email: {"pdf_url": "u"}, download_fn=dl)
     assert r["status"] == "ok_oa" and r["fonte"] == "unpaywall"
     assert calls["n"] == 0  # já em disco → não re-baixa
+
+
+def test_resolve_nan_doi_routes_to_sem_doi(tmp_path):
+    m, o = _dirs(tmp_path)
+    row = pd.Series({**_row("X", "T"), "doi": np.nan})  # doi NaN (default read_csv)
+    calls = {"n": 0}
+    def lk(doi, email):
+        calls["n"] += 1
+        return {"pdf_url": "u"}
+    r = resolve(row, "s-009", m, o, email="e@e", lookup_fn=lk,
+                download_fn=lambda u, d: "ok")
+    assert r["status"] == "sem_doi" and r["text_source"] == "abstract"
+    assert calls["n"] == 0  # NaN doi NÃO dispara Unpaywall
