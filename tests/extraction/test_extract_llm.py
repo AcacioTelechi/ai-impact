@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from scripts.extraction.extract_llm import build_user_content, parse_extraction, _LLM_FIELDS
+from scripts.extraction.extract_llm import build_user_content, parse_extraction, _LLM_FIELDS, fundir, OUTPUT_COLUMNS
 
 
 def _row(**kw):
@@ -87,9 +87,6 @@ def test_parse_clamps_confianca_and_fills_missing():
     assert r["extracao"]["janela"] == "n/a" and r["extracao"]["mec_outros"] == ""
 
 
-from scripts.extraction.extract_llm import fundir, OUTPUT_COLUMNS
-
-
 def test_fundir_38_columns_and_block_A_from_corpus():
     row = _row(id="s-009", doi="10.1/z", title="Título Z", authors="X, Y",
                year=2024, venue="JOLE", text_source="pdf")
@@ -122,3 +119,4 @@ def test_fundir_excluded_keeps_metadata_and_na_fields():
     assert out["id"] == "s-010" and out["titulo"] == "T"   # A ainda do corpus
     assert out["sinal_efeito"] == "n/a"
     assert out["revisto_humano"] == "False"
+    assert out["confianca_extracao"] == 0.9

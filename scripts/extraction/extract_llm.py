@@ -141,7 +141,7 @@ def fundir(row, parsed: dict) -> dict:
     out["doi"] = str(row.get("doi") or "")
     out["titulo"] = str(row.get("title") or "")
     out["autores"] = str(row.get("authors") or "")
-    out["ano"] = row.get("year", "")
+    out["ano"] = row.get("year", "")  # int (não str): validate.py faz int(ano); CSV normaliza
     out["periodico"] = str(row.get("venue") or "")
     out["revisto_humano"] = "False"
     out["elegivel"] = parsed.get("elegivel", "incluir")
