@@ -193,7 +193,6 @@ def test_resolve_nan_doi_routes_to_sem_doi(tmp_path):
     assert calls["n"] == 0  # NaN doi NÃO dispara Unpaywall
 
 
-import json
 from scripts.extraction import fulltext_acquire
 
 

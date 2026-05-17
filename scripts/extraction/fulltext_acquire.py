@@ -73,8 +73,8 @@ def resolve(row, id_: str, manual_dir: Path, oa_dir: Path, *, email: str,
     """Resolve o texto de UM registro. Precedência: manual > oa-cache >
     unpaywall+download > abstract. Retorna a linha do manifesto.
 
-    lookup_fn(doi, email)->dict|None (default produção: _unpaywall_lookup).
-    download_fn(url, dest)->str (default produção: download_pdf).
+    lookup_fn(doi, email)->dict|None — injetado por run() (prod: _unpaywall_lookup).
+    download_fn(url, dest)->str — injetado por run() (prod: download_pdf).
     """
     _doi = row.get("doi")
     doi = "" if pd.isna(_doi) else str(_doi).strip()
