@@ -117,3 +117,35 @@ def test_kappa_table_empty_when_no_arbitrados(tmp_path: Path):
     tex = out.read_text(encoding="utf-8")
     assert "tabular" in tex
     assert tex.count("{") == tex.count("}")
+
+
+from scripts.screening import arbitragem
+
+
+def _screening_csv(tmp_path: Path) -> Path:
+    p = tmp_path / "03_screening_ta.csv"
+    pd.DataFrame([
+        _row("incluir", "incluir", "incluir", "10.1/bi"),
+        _row("excluir", "excluir", "excluir", "10.1/be"),
+        _row("incluir", "duvida", "incluir", "10.1/s1"),
+        _row("duvida", "duvida", "incluir", "10.1/s2"),
+    ]).to_csv(p, index=False)
+    return p
+
+
+def test_run_mock_produces_arbitrado_and_incluidos(tmp_path: Path):
+    src = _screening_csv(tmp_path)
+    arb = tmp_path / "03_screening_arbitrado.csv"
+    inc = tmp_path / "03_incluidos_final.csv"
+    kap = tmp_path / "arbitragem_kappa.tex"
+    arbitragem.run(screening_csv=src, arbitrado_csv=arb, incluidos_csv=inc,
+                   kappa_table_path=kap, cache_dir=tmp_path, mock=True)
+    a = pd.read_csv(arb, keep_default_na=False)
+    assert len(a) == 4
+    assert {"decisao_arbitro", "decisao_final_arbitrada", "origem_decisao"} <= set(a.columns)
+    assert (a["origem_decisao"] == "llm_concordante").sum() == 2  # bi + be
+    assert a["decisao_final_arbitrada"].isin(["incluir", "excluir"]).all()
+    i = pd.read_csv(inc, keep_default_na=False)
+    assert (i["decisao_final_arbitrada"] == "incluir").all()
+    assert len(i) == (a["decisao_final_arbitrada"] == "incluir").sum()
+    assert kap.exists() and "tabular" in kap.read_text()

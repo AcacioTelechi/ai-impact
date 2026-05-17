@@ -121,3 +121,56 @@ def kappa_table(arbitrado: pd.DataFrame, output_table: Path) -> None:
     )
     output_table.write_text(tex, encoding="utf-8")
     print(f"κ árbitro×Sonnet={k_s_str}, ×Haiku={k_h_str} (n={n}; {n_falha} falhas excluídas); → {output_table}")
+
+
+def run(
+    screening_csv: Path,
+    arbitrado_csv: Path,
+    incluidos_csv: Path,
+    kappa_table_path: Path,
+    cache_dir: Path | None = None,
+    mock: bool = False,
+) -> None:
+    df = pd.read_csv(screening_csv, encoding="utf-8", keep_default_na=False)
+    soft = soft_includes(df)
+    cache_path = (cache_dir / "03_cache_arbitro.json") if cache_dir else None
+    res = screen_with_model(
+        soft, model=ARBITRO, cache_path=cache_path, mock=mock,
+        system_block=build_arbiter_system_block(),
+    )
+    arb_by_rid: dict[str, dict] = {}
+    for (_, row), r in zip(soft.iterrows(), res):
+        arb_by_rid[custom_id(cache_key(row))] = r
+
+    arbitrado = fundir(df, arb_by_rid)
+    arbitrado_csv.parent.mkdir(parents=True, exist_ok=True)
+    arbitrado.to_csv(arbitrado_csv, index=False, encoding="utf-8")
+    incluidos = arbitrado[arbitrado["decisao_final_arbitrada"] == "incluir"]
+    incluidos.to_csv(incluidos_csv, index=False, encoding="utf-8")
+    kappa_table(arbitrado, kappa_table_path)
+
+    n_inc = len(incluidos)
+    n_arb = int(arbitrado["origem_decisao"].isin(["arbitro", "arbitro_falha"]).sum())
+    n_fail = int((arbitrado["origem_decisao"] == "arbitro_falha").sum())
+    print(f"Arbitragem: {len(arbitrado)} registros | {n_arb} arbitrados | "
+          f"{n_inc} incluídos | {n_fail} falhas→incluir")
+    print(f"  → {arbitrado_csv}\n  → {incluidos_csv}\n  → {kappa_table_path}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser(description="Arbitragem por 3º LLM dos soft-includes.")
+    p.add_argument("--screening", type=Path, required=True)
+    p.add_argument("--arbitrado", type=Path, required=True)
+    p.add_argument("--incluidos", type=Path, required=True)
+    p.add_argument("--kappa-table", type=Path, required=True)
+    p.add_argument("--cache-dir", type=Path, default=Path("data/processed"))
+    p.add_argument("--mock", action="store_true")
+    a = p.parse_args(argv)
+    run(screening_csv=a.screening, arbitrado_csv=a.arbitrado,
+        incluidos_csv=a.incluidos, kappa_table_path=a.kappa_table,
+        cache_dir=a.cache_dir, mock=a.mock)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))
