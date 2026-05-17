@@ -1,7 +1,9 @@
 # tests/extraction/test_fulltext_acquire.py
+from pathlib import Path
+
 import pandas as pd
 
-from scripts.extraction.fulltext_acquire import assign_ids
+from scripts.extraction.fulltext_acquire import assign_ids, download_pdf, MAX_PDF_BYTES
 from scripts.screening.llm.batch_client import cache_key, custom_id
 
 
@@ -28,3 +30,28 @@ def test_assign_ids_width_scales_to_corpus():
     df = pd.DataFrame([_row(f"10.1/{i}", f"T{i}") for i in range(12)])
     a = assign_ids(df)
     assert set(a["id"]) == {f"s-{i:03d}" for i in range(1, 13)}
+
+
+def test_download_pdf_ok_atomic(tmp_path: Path):
+    dest = tmp_path / "s-001.pdf"
+    status = download_pdf("http://x/p.pdf", dest, get_fn=lambda u: b"%PDF-1.4 ok")
+    assert status == "ok"
+    assert dest.exists() and dest.read_bytes() == b"%PDF-1.4 ok"
+    assert not (tmp_path / "s-001.pdf.part").exists()
+
+
+def test_download_pdf_failure_leaves_nothing(tmp_path: Path):
+    dest = tmp_path / "s-002.pdf"
+    status = download_pdf("http://x/p.pdf", dest, get_fn=lambda u: None)
+    assert status == "download_falhou"
+    assert not dest.exists()
+    assert not (tmp_path / "s-002.pdf.part").exists()
+
+
+def test_download_pdf_oversized_rejected(tmp_path: Path):
+    dest = tmp_path / "s-003.pdf"
+    big = b"x" * (MAX_PDF_BYTES + 1)
+    status = download_pdf("http://x/big.pdf", dest, get_fn=lambda u: big)
+    assert status == "oversized"
+    assert not dest.exists()
+    assert not (tmp_path / "s-003.pdf.part").exists()
