@@ -88,6 +88,7 @@ MAX_TOKENS = 400
 _MODEL_LABELS = {
     "claude-sonnet-4-6": "Sonnet 4.6",
     "claude-haiku-4-5-20251001": "Haiku 4.5",
+    "claude-opus-4-7": "Opus 4.7",
 }
 
 
@@ -106,10 +107,12 @@ def _fmt_elapsed(secs: float) -> str:
     return f"{s}s"
 
 
-def build_requests(df, model: str, cached: dict | None = None) -> list[dict]:
-    """Um request por registro ainda não cacheado. system = bloco estável."""
+def build_requests(df, model: str, cached: dict | None = None,
+                   system_block: list[dict] | None = None) -> list[dict]:
+    """Um request por registro ainda não cacheado. system = bloco estável
+    (screening por default; injetável p/ árbitro via system_block)."""
     cached = cached or {}
-    system = build_system_block()
+    system = system_block if system_block is not None else build_system_block()
     out: list[dict] = []
     for _, row in df.iterrows():
         cid = custom_id(cache_key(row))
@@ -147,6 +150,7 @@ def screen_with_model(
     cache_path: Path | None = None,
     submit_fn=None,
     mock: bool = False,
+    system_block: list[dict] | None = None,
 ) -> list[dict]:
     """Rotula todos os registros do df com um modelo. Idempotente via cache.
 
@@ -162,7 +166,7 @@ def screen_with_model(
         submit_fn = anthropic_submit_fn(model)
 
     cache = _load_cache(cache_path)
-    pending = build_requests(df, model=model, cached=cache)
+    pending = build_requests(df, model=model, cached=cache, system_block=system_block)
     n_total = len(df)
     n_pending = len(pending)
     print(
