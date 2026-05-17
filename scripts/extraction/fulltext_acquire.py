@@ -21,10 +21,12 @@ from scripts.screening.llm.batch_client import cache_key, custom_id
 MAX_PDF_BYTES = 32 * 1024 * 1024  # 32 MB — guard p/ limite prático da API no 4b
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10), reraise=True)
 def _http_get_bytes(url: str) -> bytes | None:
-    """GET com retry/backoff. None se status != 200 ou corpo vazio."""
+    """GET com retry/backoff (apenas 5xx). None se 4xx/empty (sem retry)."""
     r = requests.get(url, timeout=30)
+    if r.status_code >= 500:
+        r.raise_for_status()  # HTTPError → tenacity re-tenta (5xx transitório)
     if r.status_code != 200 or not r.content:
         return None
     return r.content

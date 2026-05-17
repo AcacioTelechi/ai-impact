@@ -55,3 +55,40 @@ def test_download_pdf_oversized_rejected(tmp_path: Path):
     assert status == "oversized"
     assert not dest.exists()
     assert not (tmp_path / "s-003.pdf.part").exists()
+
+
+def test_http_get_bytes_retries_5xx_not_4xx(monkeypatch):
+    import scripts.extraction.fulltext_acquire as fa
+    import requests
+
+    # Patch sleep on the Retrying object directly so retries don't actually wait
+    monkeypatch.setattr(fa._http_get_bytes.retry, "sleep", lambda *_: None)
+
+    class _Resp:
+        def __init__(self, code, content=b""):
+            self.status_code = code
+            self.content = content
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise requests.HTTPError(f"{self.status_code}")
+
+    import pytest
+
+    # 5xx: must retry (tenacity stop_after_attempt(3)) and eventually raise HTTPError
+    calls = {"n": 0}
+    def get_503(url, timeout=0):
+        calls["n"] += 1
+        return _Resp(503)
+    monkeypatch.setattr(fa.requests, "get", get_503)
+    with pytest.raises(requests.HTTPError):
+        fa._http_get_bytes("http://x/p.pdf")
+    assert calls["n"] >= 2  # tenacity retried (stop_after_attempt(3))
+
+    # 404: must NOT retry, return None in exactly 1 call
+    calls2 = {"n": 0}
+    def get_404(url, timeout=0):
+        calls2["n"] += 1
+        return _Resp(404)
+    monkeypatch.setattr(fa.requests, "get", get_404)
+    assert fa._http_get_bytes("http://x/p.pdf") is None
+    assert calls2["n"] == 1  # no retry on 4xx
