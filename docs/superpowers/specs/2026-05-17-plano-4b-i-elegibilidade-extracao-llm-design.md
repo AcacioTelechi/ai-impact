@@ -3,7 +3,7 @@
 **Data:** 2026-05-17
 **Contexto:** Pós-4a. Corpus 852 (`03_incluidos_final.csv`) + `04_fulltext_manifest.csv` (134 `pdf` / 718 `abstract`, cobertura full-text 15,7%). O Plano 4b (elegibilidade+extração por LLM com verificação humana amostral) foi decomposto em **4b-i (extração LLM)** e **4b-ii (verificação humana + PRISMA)**. Este é o 4b-i.
 **Entrada:** `data/processed/03_incluidos_final.csv` + `data/processed/04_fulltext_manifest.csv`.
-**Saída:** `data/processed/06_extraction.csv` (38 colunas) + cache `06_cache_extract.json`.
+**Saída:** `data/processed/06_extraction.csv` (37 colunas) + cache `06_cache_extract.json`.
 **Marco previsto:** tag `v0.7.0-extracao`.
 
 ---
@@ -47,7 +47,7 @@ Reúso: `screen_with_model`/`anthropic_submit_fn` (Batch API + prompt caching + 
         user_content_fn=build_user_content,
         cache_path=data/processed/06_cache_extract.json)
         │  1 chamada/paper → JSON {elegivel, motivo_exclusao, confianca_extracao, extracao{33}}
-        └─ fundir + parse_extraction → data/processed/06_extraction.csv (38 colunas)
+        └─ fundir + parse_extraction → data/processed/06_extraction.csv (37 colunas)
 ```
 
 `build_user_content(row)`: `text_source=="pdf"` e `pdf_path` existe → `[{"type":"document","source":{"type":"base64","media_type":"application/pdf","data":<b64>}}, {"type":"text","text": <instrução + id/título/ano/venue>}]`; senão → `[{"type":"text","text": <instrução + título/autores/ano/venue/abstract>}]`. (Retorna list — daí o `user_content_fn` injetável; o builder default de screening retorna str, ambos aceitos pela API no campo `content`.)
@@ -73,9 +73,9 @@ Quando `elegivel="excluir"`, `extracao` vem com `n/a`/vazios.
 - Campo ausente → `""` (texto) ou `n/a` (enum) conforme o tipo no schema.
 - `confianca_extracao` fora de [0,1] → clamp.
 
-## 6. Schema de saída — `06_extraction.csv` (38 colunas)
+## 6. Schema de saída — `06_extraction.csv` (37 colunas)
 
-Os **33** de `SCHEMA_COLUMNS` (`scripts/extraction/extract.py`, blocos A–G) **+** 5:
+Os **33** de `SCHEMA_COLUMNS` (`scripts/extraction/extract.py`, blocos A–G — `revisto_humano` já está aí, bloco G) **+ 4 extras**:
 
 | Coluna extra | Conteúdo |
 |---|---|
@@ -83,7 +83,8 @@ Os **33** de `SCHEMA_COLUMNS` (`scripts/extraction/extract.py`, blocos A–G) **
 | `motivo_exclusao` | `E1`..`E5` \| `""` |
 | `text_source` | `pdf` \| `abstract` (do manifesto — proveniência da extração) |
 | `confianca_extracao` | float 0–1 |
-| `revisto_humano` | `False` (o 4b-ii marca `True` no que verificar) |
+
+`revisto_humano` (bloco G, já nos 33) é setado `False` aqui; o 4b-ii marca `True` no que verificar — **não** é coluna extra (evita dupla contagem). Total = 33 + 4 = **37**.
 
 `id` = o `s-NNN` do manifesto (não gerado pelo LLM). Corpus pós-elegibilidade = `elegivel=="incluir"`. **Bloco A bibliográfico** (`id`, `doi`, `titulo`, `autores`, `ano`, `periodico`) é preenchido **deterministicamente do join corpus/manifesto** — não se confia no LLM para metadados que já temos. O LLM preenche **B–G + os 3 campos de conteúdo de A** (`tipo_pub`, `pais_estudo`, `periodo_dados`), que são inferência do estudo, não metadado bibliográfico.
 
@@ -100,9 +101,9 @@ Os **33** de `SCHEMA_COLUMNS` (`scripts/extraction/extract.py`, blocos A–G) **
 - `build_extract_system_block`: determinístico/cacheável (1 dict, `cache_control` ephemeral); contém E1–E5, os 33 nomes de campo, a rubrica 1–5, contrato JSON, instrução abstract-only "não inventar".
 - `build_user_content`: `pdf` (path existente) → lista com bloco `document` base64 + texto; `abstract` → lista só texto com abstract/metadados; `pdf` com path ausente → degrada para texto (abstract) + flag.
 - `parse_extraction`: JSON ok; irrecuperável → incluir/0/n-a/parse_fail; `elegivel` inválido → incluir; enum inválido → n/a + nota; faltantes → vazio/n-a; confianca clamp.
-- `fundir`: 38 colunas exatas; `id` do manifesto; A determinístico do corpus; `elegivel=excluir` → campos B–G n/a; `revisto_humano=False`.
+- `fundir`: 37 colunas exatas; `id` do manifesto; A determinístico do corpus; `elegivel=excluir` → campos B–G n/a; `revisto_humano=False`.
 - **Retrocompat batch_client:** `user_content_fn=None` → comportamento idêntico (suíte existente verde, sem alterar testes de screening/arbitragem).
-- e2e mock no manifesto real (852) → `06_extraction.csv` 38 colunas, contagens coerentes; `validate.py` roda sobre a saída sem erro estrutural.
+- e2e mock no manifesto real (852) → `06_extraction.csv` 37 colunas, contagens coerentes; `validate.py` roda sobre a saída sem erro estrutural.
 - Suíte total verde (≥ 171 + novos).
 
 ## 9. Integração
@@ -122,7 +123,7 @@ Os **33** de `SCHEMA_COLUMNS` (`scripts/extraction/extract.py`, blocos A–G) **
 
 ## 11. Critérios de sucesso
 
-- `make extract-llm` roda os 852 (PDF nativo nos 134, abstract nos 718) e produz `06_extraction.csv` com 38 colunas e `id` s-NNN do manifesto.
+- `make extract-llm` roda os 852 (PDF nativo nos 134, abstract nos 718) e produz `06_extraction.csv` com 37 colunas e `id` s-NNN do manifesto.
 - `elegivel` distribui incluir/excluir com `motivo_exclusao` nos excluídos; corpus pós-elegibilidade = `elegivel==incluir` num tamanho reportado.
 - `batch_client` retrocompatível (testes existentes verdes sem alteração) + novos testes do 4b-i.
 - `validate.py` roda sobre a saída sem erro estrutural.
