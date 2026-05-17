@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Para os 852 estudos, uma passada combinada por Sonnet 4.6 que decide elegibilidade (E1–E5) e extrai os 33 campos do schema (PDF nativo nos 134, abstract nos 718), produzindo `06_extraction.csv` (37 colunas = 33 do schema + 4 extras; `revisto_humano` já está nos 33).
+**Goal:** Para os 852 estudos, uma passada combinada por Sonnet 4.6 que decide elegibilidade (E1–E5) e extrai os 33 campos do schema (PDF nativo nos 134, abstract nos 718), produzindo `06_extraction.csv` (38 colunas = 34 do schema + 4 extras; `revisto_humano` já está nos 34).
 
 **Architecture:** Estende `batch_client` com dois pontos de injeção opcionais retrocompatíveis (`user_content_fn` p/ bloco *document* PDF, `parse_fn` p/ o parser de extração) — reusando Batch API + prompt caching + cache + logging + retry. Novo `extract_llm.py` orquestra; novo prompt estável de extração; `validate.py` reusado como sanity.
 
@@ -25,7 +25,7 @@
 | `Makefile` | (modificar) alvo `extract-llm` |
 | `protocols/slr_protocol.md` | (modificar) nota interina §8 |
 
-Fatos de reúso (não modificar): `screen_with_model(df, model, *, cache_path=None, submit_fn=None, mock=False, system_block=None)` retorna `[parse(raw) por linha, ordem do df]`, cache por `custom_id(cache_key(row))`; `build_requests(df, model, cached=None, system_block=None)` monta `messages=[{"role":"user","content": build_user_block(row)}]`; `cache_key`/`custom_id` em `batch_client`; `SCHEMA_COLUMNS` (33, blocos A–G) em `scripts/extraction/extract.py`; `validate.py::run(path)`. Colunas `03_incluidos_final.csv`: `source,doi,title,authors,year,abstract,venue,language,...`. Colunas `04_fulltext_manifest.csv`: `id,review_id,doi,title,text_source,fonte,pdf_path,status`.
+Fatos de reúso (não modificar): `screen_with_model(df, model, *, cache_path=None, submit_fn=None, mock=False, system_block=None)` retorna `[parse(raw) por linha, ordem do df]`, cache por `custom_id(cache_key(row))`; `build_requests(df, model, cached=None, system_block=None)` monta `messages=[{"role":"user","content": build_user_block(row)}]`; `cache_key`/`custom_id` em `batch_client`; `SCHEMA_COLUMNS` (34, blocos A–G) em `scripts/extraction/extract.py`; `validate.py::run(path)`. Colunas `03_incluidos_final.csv`: `source,doi,title,authors,year,abstract,venue,language,...`. Colunas `04_fulltext_manifest.csv`: `id,review_id,doi,title,text_source,fonte,pdf_path,status`.
 
 Convenções: `from __future__ import annotations`; `_cli(argv)` + `if __name__ == "__main__": sys.exit(_cli(sys.argv[1:]))`; `print`; venv local (não `uv run`); pytest TDD; commits convencionais terminando com `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
 
@@ -570,7 +570,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ---
 
-## Task 5: `extract_llm.fundir` — linha de 37 colunas
+## Task 5: `extract_llm.fundir` — linha de 38 colunas
 
 **Files:**
 - Modify: `scripts/extraction/extract_llm.py`
@@ -583,7 +583,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 from scripts.extraction.extract_llm import fundir, OUTPUT_COLUMNS
 
 
-def test_fundir_37_columns_and_block_A_from_corpus():
+def test_fundir_38_columns_and_block_A_from_corpus():
     row = _row(id="s-009", doi="10.1/z", title="Título Z", authors="X, Y",
                year=2024, venue="JOLE", text_source="pdf")
     parsed = {"elegivel": "incluir", "motivo_exclusao": "",
@@ -593,7 +593,7 @@ def test_fundir_37_columns_and_block_A_from_corpus():
                            "mec_outros": "spillovers"}}
     out = fundir(row, parsed)
     assert list(out.keys()) == OUTPUT_COLUMNS
-    assert len(OUTPUT_COLUMNS) == 37  # 33 do schema (inclui revisto_humano) + 4 extras
+    assert len(OUTPUT_COLUMNS) == 38  # 34 do schema (inclui revisto_humano) + 4 extras
     # Bloco A bibliográfico do corpus, não do LLM
     assert out["id"] == "s-009" and out["doi"] == "10.1/z"
     assert out["titulo"] == "Título Z" and out["autores"] == "X, Y"
@@ -625,7 +625,7 @@ Expected: FAIL — `ImportError: cannot import name 'fundir'`
 - [ ] **Step 3: Append implementation to scripts/extraction/extract_llm.py**
 
 ```python
-# 33 do schema (já inclui revisto_humano, bloco G) + 4 extras = 37
+# 34 do schema (já inclui revisto_humano, bloco G) + 4 extras = 38
 OUTPUT_COLUMNS = SCHEMA_COLUMNS + [
     "elegivel", "motivo_exclusao", "text_source", "confianca_extracao",
 ]
@@ -663,7 +663,7 @@ Expected: PASS (7 + 2 = 9). Full suite `pytest -q` (182 + 2 = 184). Report actua
 
 ```bash
 git add scripts/extraction/extract_llm.py tests/extraction/test_extract_llm.py
-git commit -m "feat(4b-i): fundir — 37 colunas, bloco A do corpus, revisto_humano=False
+git commit -m "feat(4b-i): fundir — 38 colunas, bloco A do corpus, revisto_humano=False
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ```
@@ -871,7 +871,7 @@ E.run(corpus=Path('data/processed/03_incluidos_final.csv'),
       output=Path('/tmp/06_extraction.csv'), cache=Path('/tmp/06c.json'), submit_fn=fake)
 d=pd.read_csv('/tmp/06_extraction.csv', keep_default_na=False)
 print('linhas:', len(d), '(esperado 852)')
-print('colunas:', len(d.columns), '(esperado 37)')
+print('colunas:', len(d.columns), '(esperado 38)')
 print('text_source:', d['text_source'].value_counts().to_dict())
 print('ids:', d['id'].iloc[0], '..', d['id'].iloc[-1], 'únicos:', bool(d['id'].is_unique))
 from scripts.extraction import validate
@@ -880,7 +880,7 @@ issues = validate.run(Path('/tmp/06_extraction.csv'))
 print('validate issues estruturais:', len(issues))
 "
 ```
-Expected: 852 linhas, 37 colunas, text_source {abstract:718, pdf:134}, ids s-001..s-852 únicos, `validate.run` roda sem exceção (issues = lista, pode ser 0 ou >0 por causa do mock uniforme — o importante é não estourar exceção estrutural).
+Expected: 852 linhas, 38 colunas, text_source {abstract:718, pdf:134}, ids s-001..s-852 únicos, `validate.run` roda sem exceção (issues = lista, pode ser 0 ou >0 por causa do mock uniforme — o importante é não estourar exceção estrutural).
 
 - [ ] **Step 4: Tag**
 
@@ -888,7 +888,7 @@ Expected: 852 linhas, 37 colunas, text_source {abstract:718, pdf:134}, ids s-001
 git tag -a v0.7.0-extracao -m "Plano 4b-i: elegibilidade + extração por LLM
 
 Sonnet 4.6, 1 passada combinada (PDF nativo 134 / abstract 718).
-06_extraction.csv 37 colunas; batch_client estendido retrocompatível
+06_extraction.csv 38 colunas; batch_client estendido retrocompatível
 (user_content_fn/parse_fn). Verificação humana + κ + emenda formal: 4b-ii.
 Execução real (~US\$3-8) é operação manual do usuário."
 git tag -l | tail -3
@@ -898,7 +898,7 @@ git tag -l | tail -3
 
 ## Self-Review (autor do plano)
 
-**Cobertura do spec:** §1 decisões (1 passada/Sonnet/híbrido/abstract-best-effort/elegibilidade) → Tasks 2,3,4,5,6; §2 desvio + nota interina → Task 8; §3 arquitetura (batch_client retrocompat + prompt + extract_llm + validate reuse) → Tasks 1,2,3,4,5,6; §4 fluxo (join review_id, screen_with_model com 3 injeções) → Task 6; §5 contrato/parse conservador → Tasks 2,4; §6 schema 37 col + bloco A do corpus → Task 5; §7 robustez (idempotência via cache do screen_with_model; parse_fail conservador; sem rede nos testes) → Tasks 1,4,6; §8 testes → todas; §9 Makefile/§8 protocolo/validate → Tasks 7,8; §10 YAGNI (verificação/PRISMA/emenda formal = 4b-ii; não tocar validate/extract/fetch) → respeitado; §11 sucesso → Task 8. Sem lacunas. A injeção de `parse_fn` (não citada literalmente no spec mas exigida pela fidelidade ao reúso de `screen_with_model`) está documentada na Nota de arquitetura.
+**Cobertura do spec:** §1 decisões (1 passada/Sonnet/híbrido/abstract-best-effort/elegibilidade) → Tasks 2,3,4,5,6; §2 desvio + nota interina → Task 8; §3 arquitetura (batch_client retrocompat + prompt + extract_llm + validate reuse) → Tasks 1,2,3,4,5,6; §4 fluxo (join review_id, screen_with_model com 3 injeções) → Task 6; §5 contrato/parse conservador → Tasks 2,4; §6 schema 38 col + bloco A do corpus → Task 5; §7 robustez (idempotência via cache do screen_with_model; parse_fail conservador; sem rede nos testes) → Tasks 1,4,6; §8 testes → todas; §9 Makefile/§8 protocolo/validate → Tasks 7,8; §10 YAGNI (verificação/PRISMA/emenda formal = 4b-ii; não tocar validate/extract/fetch) → respeitado; §11 sucesso → Task 8. Sem lacunas. A injeção de `parse_fn` (não citada literalmente no spec mas exigida pela fidelidade ao reúso de `screen_with_model`) está documentada na Nota de arquitetura.
 
 **Placeholders:** nenhum "TBD/TODO"; todo passo mostra código completo; comandos com saída esperada. O `_LLM_FIELDS`/`_A_BIBLIO` derivam de `SCHEMA_COLUMNS` (não hardcode divergente).
 
