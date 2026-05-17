@@ -109,7 +109,8 @@ def _fmt_elapsed(secs: float) -> str:
 
 def build_requests(df, model: str, cached: dict | None = None,
                    system_block: list[dict] | None = None,
-                   user_content_fn=None) -> list[dict]:
+                   user_content_fn=None,
+                   max_tokens: int = MAX_TOKENS) -> list[dict]:
     """Um request por registro ainda não cacheado. system = bloco estável
     (screening por default; injetável p/ árbitro via system_block).
     user_content_fn(row)->str|list injetável (default: build_user_block)."""
@@ -125,7 +126,7 @@ def build_requests(df, model: str, cached: dict | None = None,
             "custom_id": cid,
             "params": {
                 "model": model,
-                "max_tokens": MAX_TOKENS,
+                "max_tokens": max_tokens,
                 "system": system,
                 "messages": [{"role": "user", "content": content_fn(row)}],
             },
@@ -156,6 +157,7 @@ def screen_with_model(
     system_block: list[dict] | None = None,
     user_content_fn=None,
     parse_fn=None,
+    max_tokens: int = MAX_TOKENS,
 ) -> list[dict]:
     """Rotula todos os registros do df com um modelo. Idempotente via cache.
 
@@ -173,7 +175,8 @@ def screen_with_model(
     cache = _load_cache(cache_path)
     pending = build_requests(df, model=model, cached=cache,
                              system_block=system_block,
-                             user_content_fn=user_content_fn)
+                             user_content_fn=user_content_fn,
+                             max_tokens=max_tokens)
     n_total = len(df)
     n_pending = len(pending)
     print(

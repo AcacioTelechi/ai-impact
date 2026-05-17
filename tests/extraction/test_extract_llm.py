@@ -158,3 +158,21 @@ def test_run_e2e_mock(tmp_path, capsys):
     assert (df["tipo_estudo"] == "survey/revisão").all()
     assert (df["revisto_humano"].astype(str) == "False").all()
     assert "Extração:" in capsys.readouterr().out
+
+
+def test_run_asserts_on_length_mismatch(tmp_path, monkeypatch):
+    import pytest
+    import scripts.extraction.extract_llm as M
+    corpus = tmp_path / "c.csv"
+    pd.DataFrame([{"source": "wos", "doi": "10.1/a", "title": "A", "authors": "S",
+                   "year": 2020, "abstract": "x", "venue": "AER", "language": "en"}]).to_csv(corpus, index=False)
+    cdf = pd.read_csv(corpus)
+    rid = custom_id(cache_key(cdf.iloc[0]))
+    man = tmp_path / "m.csv"
+    pd.DataFrame({"id": ["s-001"], "review_id": [rid], "doi": ["10.1/a"], "title": ["A"],
+                  "text_source": ["abstract"], "fonte": ["—"], "pdf_path": [""],
+                  "status": ["nao_oa"]}).to_csv(man, index=False)
+    monkeypatch.setattr(M, "screen_with_model", lambda *a, **k: [])  # 0 != 1
+    with pytest.raises(AssertionError, match="truncaria"):
+        M.run(corpus=corpus, manifest=man, output=tmp_path / "o.csv",
+              cache=tmp_path / "k.json", submit_fn=lambda r: {})

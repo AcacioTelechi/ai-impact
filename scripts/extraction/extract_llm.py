@@ -21,6 +21,7 @@ from scripts.screening.llm.batch_client import (
 )
 
 MODEL = "claude-sonnet-4-6"
+MAX_TOKENS_EXTRACT = 4096
 
 # Bloco A bibliográfico vem do join (não do LLM); o LLM devolve B–G + A-conteúdo.
 _A_BIBLIO = ["id", "doi", "titulo", "autores", "ano", "periodico"]
@@ -163,6 +164,11 @@ def run(corpus: Path, manifest: Path, output: Path, cache: Path,
         df, model=MODEL, cache_path=cache, submit_fn=submit_fn,
         system_block=build_extract_system_block(),
         user_content_fn=build_user_content, parse_fn=parse_extraction,
+        max_tokens=MAX_TOKENS_EXTRACT,
+    )
+    assert len(res) == len(df), (
+        f"screen_with_model devolveu {len(res)} para {len(df)} linhas; "
+        "o zip truncaria silenciosamente — abortando"
     )
     rows = [fundir(r, parsed) for (_, r), parsed in zip(df.iterrows(), res)]
     odf = pd.DataFrame(rows, columns=OUTPUT_COLUMNS)

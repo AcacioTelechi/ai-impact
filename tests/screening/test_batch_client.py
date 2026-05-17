@@ -347,3 +347,21 @@ def test_screen_with_model_injected_parse_and_content(tmp_path):
         parse_fn=parse_fn)
     assert seen["content"] == [{"type": "text", "text": "Z"}]
     assert res[0] == {"parsed": '{"x":1}', "ok": True}
+
+
+def test_build_requests_default_max_tokens_is_400():
+    df = _df()
+    reqs = build_requests(df, model="claude-sonnet-4-6")
+    assert reqs[0]["params"]["max_tokens"] == 400
+
+
+def test_screen_with_model_threads_max_tokens(tmp_path):
+    df = _df()
+    seen = {}
+    def fake_submit(requests):
+        seen["mt"] = requests[0]["params"]["max_tokens"]
+        return {r["custom_id"]: '{"x":1}' for r in requests}
+    screen_with_model(df, model="m", cache_path=tmp_path/"c.json",
+                       submit_fn=fake_submit, parse_fn=lambda raw: {"r": raw},
+                       max_tokens=4096)
+    assert seen["mt"] == 4096
