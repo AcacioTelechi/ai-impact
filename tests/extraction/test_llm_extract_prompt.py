@@ -20,3 +20,8 @@ def test_extract_block_cacheable_stable():
     assert '"elegivel"' in t and '"extracao"' in t and '"confianca_extracao"' in t
     assert "n/a" in t.lower()
     assert "não inven" in t.lower()
+    assert "2022-2026" in t and "2022-2025" not in t   # janela corrigida
+    assert "IA generativa/LLMs" in t
+    assert "alta-quali em risco" in t and "baixa-quali em risco" in t
+    assert "curto prazo" in t and "projeção" in t
+    assert "<inteiro 1-5>" in t

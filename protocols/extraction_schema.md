@@ -1,6 +1,8 @@
 # Esquema de Extração de Dados
 
-Versão 1.0 — registrada antes da extração. Cada linha de `data/processed/06_extraction.csv` segue este esquema.
+Versão 1.1 — janela 2022-2025→2022-2026 alinhada à extensão §6 do protocolo (2026-05-16); ver nota. Cada linha de `data/processed/06_extraction.csv` segue este esquema.
+
+> Nota 2026-05-17: a terceira janela foi estendida para 2022-2026 para acompanhar a janela de busca §6 (até 2026-06-30); ~124 estudos de 2026 entrariam órfãos com 2022-2025.
 
 ## Bloco A — Identificação
 
@@ -20,7 +22,7 @@ Versão 1.0 — registrada antes da extração. Cada linha de `data/processed/06
 
 | Coluna | Tipo | Valores |
 |--------|------|---------|
-| `janela` | enum | `2013-2017` \| `2018-2022` \| `2022-2025` |
+| `janela` | enum | `2013-2017` \| `2018-2022` \| `2022-2026` |
 | `pre_pos_chatgpt` | enum | `pre` \| `pos` (pivô = 2022-11-30) |
 | `tecnologia_focada` | enum | `automação` \| `ML/preditiva` \| `deep learning` \| `IA generativa/LLMs` \| `robôs+IA` \| `geral` |
 

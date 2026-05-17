@@ -20,7 +20,7 @@ ELEGIBILIDADE — exclua marcando o código quando:
 Na incerteza genuína de elegibilidade, prefira INCLUIR.
 
 EXTRAÇÃO — preencha cada campo com os valores permitidos:
-- janela: 2013-2017 | 2018-2022 | 2022-2025
+- janela: 2013-2017 | 2018-2022 | 2022-2026
 - pre_pos_chatgpt: pre | pos   (pivô 2022-11-30)
 - tecnologia_focada: automação | ML/preditiva | deep learning | IA generativa/LLMs | robôs+IA | geral
 - tipo_estudo: exposição ocupacional | evidência macro/setorial | firma/freelancer | teórico/modelo | survey/revisão
@@ -42,7 +42,8 @@ bem feito; 2=identificação fraca, sem robustez; 1=sem revisão/preliminar. Ref
 não direção do achado.
 - limitacoes_declaradas: texto curto; replicavel: sim | parcial | não | n/a; \
 revisado_por_pares: sim | não
-- mec_outros/nota_extracao/citacoes_chave: texto livre (citacoes_chave: vazio aqui)
+- nota_extracao: texto livre — observações do extrator (ex.: campos incertos, ressalvas)
+- citacoes_chave: deixe vazio nesta fase
 
 IMPORTANTE: se a fonte for apenas o RESUMO e um campo não for sustentável pelo \
 texto disponível, responda "n/a" (enums) ou vazio (texto). NÃO invente dados \
@@ -50,7 +51,7 @@ ausentes. Quando elegivel="excluir", devolva os campos de extração como "n/a"/
 
 Responda EXCLUSIVAMENTE com um objeto JSON estrito, sem texto antes/depois:
 {"elegivel": "incluir" | "excluir",
- "motivo_exclusao": "E1".."E5" | "",
+ "motivo_exclusao": "<E1|E2|E3|E4|E5 se excluir; senão string vazia>",
  "confianca_extracao": <float 0-1>,
  "extracao": {"tipo_pub": ..., "pais_estudo": ..., "periodo_dados": ...,
    "janela": ..., "pre_pos_chatgpt": ..., "tecnologia_focada": ...,
@@ -59,7 +60,7 @@ Responda EXCLUSIVAMENTE com um objeto JSON estrito, sem texto antes/depois:
    "mec_demanda_agregada": ..., "mec_outros": ...,
    "sinal_efeito": ..., "magnitude_reportada": ..., "magnitude_normalizada": ...,
    "ocupacoes_afetadas": ..., "polarizacao": ..., "horizonte": ...,
-   "score_qualidade": ..., "limitacoes_declaradas": ..., "replicavel": ...,
+   "score_qualidade": <inteiro 1-5>, "limitacoes_declaradas": ..., "replicavel": ...,
    "revisado_por_pares": ..., "nota_extracao": ..., "citacoes_chave": ""}}\
 """
 
