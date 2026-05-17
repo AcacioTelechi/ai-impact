@@ -75,7 +75,7 @@ def _interactive_form(meta: pd.Series, id_: str) -> dict:
     )
     row["pais_estudo"] = _prompt("pais_estudo (ou 'multipais')")
     row["periodo_dados"] = _prompt("periodo_dados (e.g., 2010-2019)")
-    row["janela"] = _prompt("janela (2013-2017|2018-2022|2022-2025)")
+    row["janela"] = _prompt("janela (2013-2017|2018-2022|2022-2026)")
     row["pre_pos_chatgpt"] = _prompt("pre_pos_chatgpt (pre|pos)")
     row["tecnologia_focada"] = _prompt("tecnologia_focada")
     row["tipo_estudo"] = _prompt("tipo_estudo")

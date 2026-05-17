@@ -26,7 +26,7 @@ def _fig_anos(df: pd.DataFrame, output: Path) -> None:
 
 def _fig_janelas(df: pd.DataFrame, output: Path) -> None:
     fig, ax = plt.subplots(figsize=(6, 4))
-    counts = df["janela"].value_counts().reindex(["2013-2017", "2018-2022", "2022-2025"]).fillna(0)
+    counts = df["janela"].value_counts().reindex(["2013-2017", "2018-2022", "2022-2026"]).fillna(0)
     ax.bar(counts.index, counts.values, color=["#cccccc", "#888888", "#444444"])
     ax.set_ylabel("Número de estudos")
     ax.set_title("Corpus por janela temporal")

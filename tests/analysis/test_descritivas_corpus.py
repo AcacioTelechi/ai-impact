@@ -14,8 +14,8 @@ def _sample_extraction() -> pd.DataFrame:
                 (2015, "2013-2017", "pre", "exposição ocupacional"),
                 (2016, "2013-2017", "pre", "teórico/modelo"),
                 (2020, "2018-2022", "pre", "evidência macro/setorial"),
-                (2023, "2022-2025", "pos", "exposição ocupacional"),
-                (2024, "2022-2025", "pos", "firma/freelancer"),
+                (2023, "2022-2026", "pos", "exposição ocupacional"),
+                (2024, "2022-2026", "pos", "firma/freelancer"),
             ], start=1)
         ]
     )

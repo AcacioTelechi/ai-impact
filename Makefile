@@ -139,6 +139,14 @@ fulltext-acquire:
 	    --manual-dir data/raw/fulltext/manual \
 	    --oa-dir data/raw/fulltext/oa
 
+.PHONY: extract-llm
+extract-llm:
+	$(PYTHON) -m scripts.extraction.extract_llm \
+	    --corpus $(DATA_PROC)/03_incluidos_final.csv \
+	    --manifest $(DATA_PROC)/04_fulltext_manifest.csv \
+	    --output $(DATA_PROC)/06_extraction.csv \
+	    --cache $(DATA_PROC)/06_cache_extract.json
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \

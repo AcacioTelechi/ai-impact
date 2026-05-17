@@ -24,11 +24,29 @@ def test_validate_detects_inconsistent_window(tmp_path: Path) -> None:
 
 
 def test_validate_detects_pre_pos_inconsistency(tmp_path: Path) -> None:
-    df = pd.DataFrame([_row(ano=2024, janela="2022-2025", pre_pos_chatgpt="pre")])
+    df = pd.DataFrame([_row(ano=2024, janela="2022-2026", pre_pos_chatgpt="pre")])
     out = tmp_path / "out.csv"
     df.to_csv(out, index=False)
     issues = validate.run(out)
     assert any(i["rule"] == "pre_pos_chatgpt_inconsistent" for i in issues)
+
+
+def test_validate_detects_year_outside_2022_2026(tmp_path: Path) -> None:
+    """ano=2027 is genuinely outside the 2022-2026 window → should flag mismatch."""
+    df = pd.DataFrame([_row(ano=2027, janela="2022-2026")])
+    out = tmp_path / "out.csv"
+    df.to_csv(out, index=False)
+    issues = validate.run(out)
+    assert any(i["rule"] == "year_window_mismatch" for i in issues)
+
+
+def test_validate_year_2026_valid_in_window(tmp_path: Path) -> None:
+    """ano=2026 must NOT flag a year_window_mismatch now that the window is 2022-2026."""
+    df = pd.DataFrame([_row(ano=2026, janela="2022-2026", pre_pos_chatgpt="pos")])
+    out = tmp_path / "out.csv"
+    df.to_csv(out, index=False)
+    issues = validate.run(out)
+    assert not any(i["rule"] == "year_window_mismatch" for i in issues)
 
 
 def test_validate_passes_clean_row(tmp_path: Path) -> None:
