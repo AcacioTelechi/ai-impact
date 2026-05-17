@@ -157,8 +157,14 @@ def run(corpus: Path, manifest: Path, output: Path, cache: Path,
     cdf = pd.read_csv(corpus, encoding="utf-8", keep_default_na=False)
     mdf = pd.read_csv(manifest, encoding="utf-8", keep_default_na=False)
     cdf["review_id"] = [custom_id(cache_key(r)) for _, r in cdf.iterrows()]
+    # `id` (s-NNN) e text_source/pdf_path vêm do manifesto (4a) via este merge;
+    # o corpus não tem coluna id. fundir/_meta_text dependem do df pós-merge.
     m = mdf[["id", "review_id", "text_source", "pdf_path"]]
     df = cdf.merge(m, on="review_id", how="inner")
+    assert len(df) == len(cdf), (
+        f"join corpus↔manifesto perdeu linhas: {len(cdf)} corpus → {len(df)} "
+        "após merge por review_id (manifesto desatualizado/incompleto?) — abortando"
+    )
 
     res = screen_with_model(
         df, model=MODEL, cache_path=cache, submit_fn=submit_fn,

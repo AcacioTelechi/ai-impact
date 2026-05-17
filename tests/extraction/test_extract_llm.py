@@ -176,3 +176,24 @@ def test_run_asserts_on_length_mismatch(tmp_path, monkeypatch):
     with pytest.raises(AssertionError, match="truncaria"):
         M.run(corpus=corpus, manifest=man, output=tmp_path / "o.csv",
               cache=tmp_path / "k.json", submit_fn=lambda r: {})
+
+
+def test_run_aborts_if_manifest_drops_corpus_rows(tmp_path):
+    corpus = tmp_path / "c.csv"
+    pd.DataFrame([
+        {"source":"wos","doi":"10.1/a","title":"A","authors":"S","year":2020,
+         "abstract":"x","venue":"AER","language":"en"},
+        {"source":"wos","doi":"10.1/b","title":"B","authors":"T","year":2021,
+         "abstract":"y","venue":"JOLE","language":"en"},
+    ]).to_csv(corpus, index=False)
+    cdf = pd.read_csv(corpus)
+    rids = [custom_id(cache_key(r)) for _, r in cdf.iterrows()]
+    # manifesto SÓ com a 1ª linha → merge perde a 2ª → deve abortar alto
+    man = tmp_path / "m.csv"
+    pd.DataFrame({"id":["s-001"],"review_id":[rids[0]],"doi":["10.1/a"],
+                  "title":["A"],"text_source":["abstract"],"fonte":["—"],
+                  "pdf_path":[""],"status":["nao_oa"]}).to_csv(man, index=False)
+    import pytest
+    with pytest.raises(AssertionError, match="perdeu linhas"):
+        extract_llm.run(corpus=corpus, manifest=man, output=tmp_path/"o.csv",
+                        cache=tmp_path/"k.json", submit_fn=lambda r: {})
