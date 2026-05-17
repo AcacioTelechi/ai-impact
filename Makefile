@@ -121,6 +121,15 @@ revisao-ingest:
 	    --revisado $(DATA_PROC)/03_screening_revisado.csv \
 	    --incluidos $(DATA_PROC)/03_incluidos_final.csv
 
+.PHONY: arbitragem
+arbitragem:
+	$(PYTHON) -m scripts.screening.arbitragem \
+	    --screening $(DATA_PROC)/03_screening_ta.csv \
+	    --arbitrado $(DATA_PROC)/03_screening_arbitrado.csv \
+	    --incluidos $(DATA_PROC)/03_incluidos_final.csv \
+	    --kappa-table $(TAB_DIR)/arbitragem_kappa.tex \
+	    --cache-dir $(DATA_PROC)
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
