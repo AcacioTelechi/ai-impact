@@ -1,7 +1,9 @@
 # tests/screening/test_arbitragem.py
+from pathlib import Path
+
 import pandas as pd
 
-from scripts.screening.arbitragem import fundir
+from scripts.screening.arbitragem import fundir, kappa_table
 from scripts.screening.llm.batch_client import cache_key, custom_id
 
 
@@ -63,10 +65,6 @@ def test_fundir_missing_rid_is_conservative_arbitro_falha():
     assert out["decisao_arbitro"] == ""
 
 
-from pathlib import Path
-from scripts.screening.arbitragem import kappa_table
-
-
 def test_kappa_table_writes_latex_pairwise(tmp_path: Path):
     df = pd.DataFrame([
         {"decisao_sonnet": "duvida", "decisao_haiku": "excluir",
@@ -87,6 +85,26 @@ def test_kappa_table_writes_latex_pairwise(tmp_path: Path):
     assert r"\%" in tex
     assert tex.count("{") == tex.count("}")
     assert "n=3" in tex or "n = 3" in tex
+    # Numerical checks: arb=[excluir,incluir,incluir], son=[incluir,incluir,incluir]
+    # Árbitro×Sonnet: 2/3 agree (rows 1,2 match; row 0 differs)
+    assert "2/3" in tex
+    # Árbitro×Haiku: hai=[excluir,incluir,incluir] → 3/3 agree
+    assert "3/3" in tex
+
+
+def test_kappa_table_discloses_arbitro_falha(tmp_path: Path):
+    df = pd.DataFrame([
+        {"decisao_sonnet": "duvida", "decisao_haiku": "excluir",
+         "decisao_arbitro": "excluir", "origem_decisao": "arbitro"},
+        {"decisao_sonnet": "duvida", "decisao_haiku": "duvida",
+         "decisao_arbitro": "", "origem_decisao": "arbitro_falha"},
+    ])
+    out = tmp_path / "k.tex"
+    kappa_table(df, out)
+    tex = out.read_text(encoding="utf-8")
+    assert "n=1" in tex or "n = 1" in tex          # só 1 arbitrado real no κ
+    assert "1 falha" in tex or "falhas técnicas" in tex  # falha divulgada
+    assert tex.count("{") == tex.count("}")
 
 
 def test_kappa_table_empty_when_no_arbitrados(tmp_path: Path):

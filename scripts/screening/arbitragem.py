@@ -8,6 +8,7 @@ e protocolo §7 (versão 1.1, emenda 2026-05-17).
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from pathlib import Path
 
@@ -80,15 +81,22 @@ def _to_binary(label: str) -> str:
 
 
 def kappa_table(arbitrado: pd.DataFrame, output_table: Path) -> None:
-    """Concordância par-a-par árbitro×Sonnet e árbitro×Haiku nos arbitrados."""
-    sub = arbitrado[arbitrado["origem_decisao"].isin(["arbitro", "arbitro_falha"])]
+    """Concordância par-a-par árbitro×Sonnet e árbitro×Haiku nos arbitrados.
+
+    κ é calculado APENAS nas linhas onde o árbitro realmente decidiu
+    (origem_decisao == "arbitro"). Linhas "arbitro_falha" (decisão ausente,
+    forçadas a incluir pelo fallback conservador) são excluídas do κ mas
+    contadas e divulgadas na legenda.
+    """
+    sub = arbitrado[arbitrado["origem_decisao"] == "arbitro"]
+    n_falha = int((arbitrado["origem_decisao"] == "arbitro_falha").sum())
     n = len(sub)
     output_table.parent.mkdir(parents=True, exist_ok=True)
     if n == 0:
         output_table.write_text(
             "\\begin{tabular}{l}\\toprule Nenhum arbitrado \\\\ \\bottomrule \\end{tabular}\n",
             encoding="utf-8")
-        print(f"κ árbitro = n/a (0 arbitrados); → {output_table}")
+        print(f"κ árbitro = n/a (0 arbitrados reais; {n_falha} falhas técnicas); → {output_table}")
         return
     arb = [_to_binary(x) for x in sub["decisao_arbitro"]]
     son = [_to_binary(x) for x in sub["decisao_sonnet"]]
@@ -96,17 +104,20 @@ def kappa_table(arbitrado: pd.DataFrame, output_table: Path) -> None:
     k_s, k_h = cohen_kappa(arb, son), cohen_kappa(arb, hai)
     ag_s = int(sum(a == b for a, b in zip(arb, son)))
     ag_h = int(sum(a == b for a, b in zip(arb, hai)))
+    k_s_str = f"{k_s:.3f}" if math.isfinite(k_s) else "n/a"
+    k_h_str = f"{k_h:.3f}" if math.isfinite(k_h) else "n/a"
     tex = (
         "\\begin{table}[ht]\n\\centering\n"
         "\\caption{Concordância do árbitro (Opus 4.7) com os triadores nos "
-        f"casos arbitrados (n={n}; rótulo binário: excluir vs. manter "
-        "[incluir/duvida])}\n"
+        f"casos efetivamente arbitrados (n={n}; {n_falha} falhas técnicas "
+        "excluídas do $\\kappa$ e forçadas a incluir; rótulo binário: "
+        "excluir vs. manter [incluir/duvida])}\n"
         "\\label{tab:arbitragem-kappa}\n"
         "\\begin{tabular}{lcc}\n\\toprule\n"
         "Par & Concordância & $\\kappa$ de Cohen \\\\\n\\midrule\n"
-        f"Árbitro × Sonnet 4.6 & {ag_s}/{n} = {ag_s / n * 100:.1f}\\% & {k_s:.3f} \\\\\n"
-        f"Árbitro × Haiku 4.5 & {ag_h}/{n} = {ag_h / n * 100:.1f}\\% & {k_h:.3f} \\\\\n"
+        f"Árbitro × Sonnet 4.6 & {ag_s}/{n} = {ag_s / n * 100:.1f}\\% & {k_s_str} \\\\\n"
+        f"Árbitro × Haiku 4.5 & {ag_h}/{n} = {ag_h / n * 100:.1f}\\% & {k_h_str} \\\\\n"
         "\\bottomrule\n\\end{tabular}\n\\end{table}\n"
     )
     output_table.write_text(tex, encoding="utf-8")
-    print(f"κ árbitro×Sonnet={k_s:.3f}, ×Haiku={k_h:.3f} (n={n}); → {output_table}")
+    print(f"κ árbitro×Sonnet={k_s_str}, ×Haiku={k_h_str} (n={n}; {n_falha} falhas excluídas); → {output_table}")
