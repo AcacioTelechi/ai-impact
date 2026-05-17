@@ -19,6 +19,7 @@ dependencies = [
     "scikit-learn>=1.4",
     "bibtexparser>=2.0.0b9",
     "langdetect>=1.0.9",
+    "pypdf>=4.0",
 ]
 
 [dependency-groups]
