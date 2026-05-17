@@ -6,7 +6,7 @@
 **Autor:** Acacio
 **Orientador:** [a preencher]
 **Instituição:** [a preencher]
-**Versão do protocolo:** 1.0
+**Versão do protocolo:** 1.1 (emenda 2026-05-17 — ver §7 e §11)
 **Data do registro:** 2026-05-13
 
 ---
@@ -59,18 +59,24 @@ O fechamento em 2026-06-30 coincide com a data de execução da busca.
 
 1. **Identification** — consolidação dos resultados de cada base.
 2. **Deduplicação** — DOI → (título+autor+ano) → embeddings.
-3. **Screening (título+resumo)** — pré-filtragem por LLM-as-judge + revisão humana.
+3. **Screening (título+resumo) — tri-LLM.** Pré-filtragem por dois triadores
+   independentes (Claude Sonnet 4.6 + Haiku 4.5, união conservadora, κ=0,602).
+   Os casos não-unânimes ("soft-includes": decisão final "incluir" não unânime —
+   865 registros) são decididos por um terceiro avaliador independente e mais
+   capaz — Claude Opus 4.7, cego (não vê os pareceres dos triadores) e forçado a
+   binário (incluir/excluir). 462 "ambos-incluir" e 1278 "ambos-excluir" são
+   aceitos pela concordância dos triadores; os 865 ambíguos pelo árbitro.
 4. **Eligibility (texto completo)** — leitura completa, 100% manual.
 5. **Inclusion** — corpus final usado para extração.
 
-A revisão humana do screening foi operacionalizada em 2026-05-16: o pré-filtro
-dual-LLM (Sonnet 4.6 + Haiku 4.5, κ=0,602) classificou 2605 registros; os 462
-"ambos-incluir" e 1278 "ambos-excluir" foram aceitos pela concordância dos dois
-modelos, e os 865 casos ambíguos (decisão final "incluir" não unânime — passados
-pela união conservadora por "dúvida"/divergência) foram adjudicados manualmente
-pelo revisor via planilha (`scripts/screening/revisao_export.py` →
-`revisao_ingest.py`), conforme `docs/superpowers/specs/2026-05-16-revisao-manual-duvidas-design.md`.
-Isso concretiza o compromisso de "LLM-as-judge + revisão humana" deste protocolo.
+**Emenda 2026-05-17 (protocolo v1.1).** O protocolo v1.0 previa "revisão
+humana" nesta etapa, operacionalizada em 2026-05-16 via planilha
+(`scripts/screening/revisao_export.py` → `revisao_ingest.py`). Ela foi
+**substituída** pela arbitragem por 3º LLM (Opus 4.7) descrita no item 3, em
+razão de restrição de tempo/escala (revisor único, 865 casos, prazo de um
+semestre). Ver `docs/superpowers/specs/2026-05-17-arbitragem-3o-llm-design.md`.
+Desvio declarado; mitigação e limitação reconhecida em §11. A ferramenta de
+revisão humana permanece disponível como auditoria alternativa.
 
 Diagrama PRISMA gerado automaticamente em `text/figures/prisma_flow.tex`.
 
@@ -88,7 +94,13 @@ Três camadas: (i) descritivas do corpus, (ii) síntese por janela temporal, (ii
 
 ## 11. Limitações antecipadas
 
-- Revisor único (mitigado por dupla revisão pessoal com intervalo em 10% dos casos limítrofes).
+- **Ausência de revisor humano na seleção (desvio do protocolo registrado).**
+  O protocolo v1.0 comprometia-se com revisão humana no screening; a v1.1 a
+  substituiu por arbitragem por 3º LLM (Opus 4.7). Mitigação: três modelos
+  independentes, sendo o árbitro mais capaz e não-participante do screening;
+  concordância par-a-par árbitro×triadores reportada (`arbitragem_kappa.tex`);
+  regra conservadora (na incerteza, inclui; falha técnica nunca exclui).
+  Limitação reconhecida e passível de questionamento em banca.
 - LLM-as-judge no screening (auditoria estratificada e κ reportados).
 - Corpus pós-2022 jovem (maioria working papers).
 - Sem acesso a EconLit (substituído por RePEc + busca direta em periódicos).

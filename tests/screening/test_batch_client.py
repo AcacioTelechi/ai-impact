@@ -282,3 +282,34 @@ def test_anthropic_submit_fn_logs_batch_id_and_progress(capsys):
     assert "2/2" in out               # done/total progress
     assert "coletado" in out          # collection summary
     assert "decorrido" in out         # elapsed time
+
+
+def test_build_requests_default_system_block_unchanged():
+    df = _df()
+    reqs = build_requests(df, model="claude-sonnet-4-6")
+    from scripts.screening.llm.prompt import build_system_block
+    assert reqs[0]["params"]["system"] == build_system_block()
+
+
+def test_build_requests_accepts_injected_system_block():
+    df = _df()
+    sentinel = [{"type": "text", "text": "ARBITER-X", "cache_control": {"type": "ephemeral"}}]
+    reqs = build_requests(df, model="claude-opus-4-7", system_block=sentinel)
+    assert reqs[0]["params"]["system"] == sentinel
+    assert reqs[1]["params"]["system"] == sentinel
+
+
+def test_screen_with_model_passes_system_block(tmp_path):
+    df = _df()
+    seen = {}
+
+    def fake_submit(requests):
+        seen["sys"] = requests[0]["params"]["system"]
+        return {r["custom_id"]:
+                '{"decisao":"incluir","justificativa":"k","confianca":1.0}'
+                for r in requests}
+
+    sentinel = [{"type": "text", "text": "ARB", "cache_control": {"type": "ephemeral"}}]
+    screen_with_model(df, model="claude-opus-4-7", cache_path=tmp_path / "c.json",
+                       submit_fn=fake_submit, system_block=sentinel)
+    assert seen["sys"] == sentinel
