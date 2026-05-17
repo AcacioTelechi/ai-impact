@@ -191,3 +191,63 @@ def test_resolve_nan_doi_routes_to_sem_doi(tmp_path):
                 download_fn=lambda u, d: "ok")
     assert r["status"] == "sem_doi" and r["text_source"] == "abstract"
     assert calls["n"] == 0  # NaN doi NÃO dispara Unpaywall
+
+
+import json
+from scripts.extraction import fulltext_acquire
+
+
+def test_run_writes_manifest_and_coverage(tmp_path, capsys):
+    src = tmp_path / "03_incluidos_final.csv"
+    pd.DataFrame([
+        _row("10.1/a", "A"), _row("10.1/b", "B"), _row("", "C"),
+    ]).to_csv(src, index=False)
+    m, o = _dirs(tmp_path)
+    manifest = tmp_path / "04_fulltext_manifest.csv"
+
+    def lookup(doi, email):
+        return {"pdf_url": "u"} if doi == "10.1/a" else None
+
+    def dl(url, dest):
+        Path(dest).write_bytes(b"%PDF")
+        return "ok"
+
+    fulltext_acquire.run(input=src, manifest=manifest, email="e@e",
+                         manual_dir=m, oa_dir=o, lookup_fn=lookup, download_fn=dl)
+    mf = pd.read_csv(manifest, keep_default_na=False)
+    assert len(mf) == 3
+    assert set(mf.columns) == {"id", "review_id", "doi", "title",
+                               "text_source", "fonte", "pdf_path", "status"}
+    assert (mf["id"].str.match(r"s-\d{3}")).all()
+    assert (mf["text_source"] == "pdf").sum() == 1
+    assert (mf["text_source"] == "abstract").sum() == 2
+    out = capsys.readouterr().out
+    assert "Aquisição:" in out and "de 3" in out
+
+
+def test_run_idempotent_and_incorporates_dropin(tmp_path, capsys):
+    src = tmp_path / "c.csv"
+    pd.DataFrame([_row("10.1/a", "A")]).to_csv(src, index=False)
+    m, o = _dirs(tmp_path)
+    manifest = tmp_path / "mf.csv"
+    calls = {"n": 0}
+
+    def lookup(doi, email):
+        return None  # sem OA
+
+    def dl(url, dest):
+        calls["n"] += 1
+        return "ok"
+
+    fulltext_acquire.run(input=src, manifest=manifest, email="e@e",
+                         manual_dir=m, oa_dir=o, lookup_fn=lookup, download_fn=dl)
+    mf1 = pd.read_csv(manifest, keep_default_na=False)
+    sid = mf1.iloc[0]["id"]
+    assert mf1.iloc[0]["text_source"] == "abstract"
+    (m / f"{sid}.pdf").write_bytes(b"%PDF inst")
+    fulltext_acquire.run(input=src, manifest=manifest, email="e@e",
+                         manual_dir=m, oa_dir=o, lookup_fn=lookup, download_fn=dl)
+    mf2 = pd.read_csv(manifest, keep_default_na=False)
+    assert mf2.iloc[0]["text_source"] == "pdf"
+    assert mf2.iloc[0]["fonte"] == "manual"
+    assert calls["n"] == 0

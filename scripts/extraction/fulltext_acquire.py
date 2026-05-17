@@ -17,6 +17,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from scripts.screening.llm.batch_client import cache_key, custom_id
+from scripts.screening.fetch_fulltext import _unpaywall_lookup
 
 MAX_PDF_BYTES = 32 * 1024 * 1024  # 32 MB — guard p/ limite prático da API no 4b
 
@@ -105,3 +106,49 @@ def resolve(row, id_: str, manual_dir: Path, oa_dir: Path, *, email: str,
                 "pdf_path": str(oa_pdf), "status": "ok_oa"}
     return {**base, "text_source": "abstract", "fonte": "—",
             "pdf_path": "", "status": st}  # download_falhou | oversized
+
+
+def run(input: Path, manifest: Path, email: str,
+        manual_dir: Path, oa_dir: Path,
+        lookup_fn=None, download_fn=None) -> None:
+    lookup_fn = lookup_fn if lookup_fn is not None else _unpaywall_lookup
+    download_fn = download_fn if download_fn is not None else download_pdf
+    manual_dir.mkdir(parents=True, exist_ok=True)
+    oa_dir.mkdir(parents=True, exist_ok=True)
+
+    df = pd.read_csv(input, encoding="utf-8", keep_default_na=False)
+    df = assign_ids(df)
+
+    rows: list[dict] = []
+    for _, r in df.iterrows():
+        rows.append(resolve(r, r["id"], manual_dir, oa_dir, email=email,
+                            lookup_fn=lookup_fn, download_fn=download_fn))
+    mf = pd.DataFrame(rows).sort_values("id", kind="stable").reset_index(drop=True)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    mf.to_csv(manifest, index=False, encoding="utf-8")
+
+    n = len(mf)
+    n_pdf = int((mf["text_source"] == "pdf").sum())
+    n_man = int((mf["fonte"] == "manual").sum())
+    n_oa = int((mf["fonte"] == "unpaywall").sum())
+    n_abs = int((mf["text_source"] == "abstract").sum())
+    print(f"Aquisição: {n_pdf} pdf ({n_man} manual / {n_oa} oa) | "
+          f"{n_abs} abstract — de {n}")
+    print(f"  → {manifest}")
+
+
+def _cli(argv: list[str]) -> int:
+    p = argparse.ArgumentParser(description="Plano 4a: aquisição de texto completo.")
+    p.add_argument("--input", type=Path, required=True)
+    p.add_argument("--manifest", type=Path, required=True)
+    p.add_argument("--email", default="")
+    p.add_argument("--manual-dir", type=Path, default=Path("data/raw/fulltext/manual"))
+    p.add_argument("--oa-dir", type=Path, default=Path("data/raw/fulltext/oa"))
+    a = p.parse_args(argv)
+    run(input=a.input, manifest=a.manifest, email=a.email,
+        manual_dir=a.manual_dir, oa_dir=a.oa_dir)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))
