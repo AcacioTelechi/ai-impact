@@ -2,7 +2,6 @@ import re
 
 import pandas as pd
 
-from scripts.screening.llm.batch_client import build_requests as _br
 from scripts.screening.llm.batch_client import build_requests, cache_key, custom_id, parse_response
 
 
@@ -287,7 +286,7 @@ def test_anthropic_submit_fn_logs_batch_id_and_progress(capsys):
 
 def test_build_requests_default_system_block_unchanged():
     df = _df()
-    reqs = _br(df, model="claude-sonnet-4-6")
+    reqs = build_requests(df, model="claude-sonnet-4-6")
     from scripts.screening.llm.prompt import build_system_block
     assert reqs[0]["params"]["system"] == build_system_block()
 
@@ -295,7 +294,7 @@ def test_build_requests_default_system_block_unchanged():
 def test_build_requests_accepts_injected_system_block():
     df = _df()
     sentinel = [{"type": "text", "text": "ARBITER-X", "cache_control": {"type": "ephemeral"}}]
-    reqs = _br(df, model="claude-opus-4-7", system_block=sentinel)
+    reqs = build_requests(df, model="claude-opus-4-7", system_block=sentinel)
     assert reqs[0]["params"]["system"] == sentinel
     assert reqs[1]["params"]["system"] == sentinel
 
