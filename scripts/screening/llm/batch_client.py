@@ -108,11 +108,14 @@ def _fmt_elapsed(secs: float) -> str:
 
 
 def build_requests(df, model: str, cached: dict | None = None,
-                   system_block: list[dict] | None = None) -> list[dict]:
+                   system_block: list[dict] | None = None,
+                   user_content_fn=None) -> list[dict]:
     """Um request por registro ainda não cacheado. system = bloco estável
-    (screening por default; injetável p/ árbitro via system_block)."""
+    (screening por default; injetável p/ árbitro via system_block).
+    user_content_fn(row)->str|list injetável (default: build_user_block)."""
     cached = cached or {}
     system = system_block if system_block is not None else build_system_block()
+    content_fn = user_content_fn if user_content_fn is not None else build_user_block
     out: list[dict] = []
     for _, row in df.iterrows():
         cid = custom_id(cache_key(row))
@@ -124,7 +127,7 @@ def build_requests(df, model: str, cached: dict | None = None,
                 "model": model,
                 "max_tokens": MAX_TOKENS,
                 "system": system,
-                "messages": [{"role": "user", "content": build_user_block(row)}],
+                "messages": [{"role": "user", "content": content_fn(row)}],
             },
         })
     return out
@@ -151,6 +154,8 @@ def screen_with_model(
     submit_fn=None,
     mock: bool = False,
     system_block: list[dict] | None = None,
+    user_content_fn=None,
+    parse_fn=None,
 ) -> list[dict]:
     """Rotula todos os registros do df com um modelo. Idempotente via cache.
 
@@ -166,7 +171,9 @@ def screen_with_model(
         submit_fn = anthropic_submit_fn(model)
 
     cache = _load_cache(cache_path)
-    pending = build_requests(df, model=model, cached=cache, system_block=system_block)
+    pending = build_requests(df, model=model, cached=cache,
+                             system_block=system_block,
+                             user_content_fn=user_content_fn)
     n_total = len(df)
     n_pending = len(pending)
     print(
@@ -177,7 +184,7 @@ def screen_with_model(
         raw_by_cid = submit_fn(pending)
         for req in pending:
             cid = req["custom_id"]
-            cache[cid] = parse_response(raw_by_cid.get(cid, ""))
+            cache[cid] = (parse_fn or parse_response)(raw_by_cid.get(cid, ""))
         _save_cache(cache_path, cache)
         print(f"[{label}] {n_pending} processados e gravados em cache")
     else:
