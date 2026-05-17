@@ -241,3 +241,4 @@ __pycache__/
 
 # Plan 2: manual export staging area
 data/raw/searches/manual/
+data/raw/fulltext/

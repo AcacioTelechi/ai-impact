@@ -69,6 +69,15 @@ O fechamento em 2026-06-30 coincide com a data de execução da busca.
 4. **Eligibility (texto completo)** — leitura completa, 100% manual.
 5. **Inclusion** — corpus final usado para extração.
 
+A aquisição de texto completo (2026-05-17) usa Unpaywall (OA automático) com
+suplemento institucional manual (PDFs depositados pelo revisor); o PDF é lido
+nativamente pelo LLM no Plano 4b (sem extração de texto intermediária).
+Estudos sem OA e sem suplemento manual ficam em nível de resumo (`abstract`),
+com a cobertura full-text reportada no PRISMA e nas limitações. A decisão de
+elegibilidade e a extração por LLM (com verificação humana amostral) — e o
+desvio metodológico em relação à leitura 100% manual prevista — são descritos
+e declarados no Plano 4b.
+
 **Emenda 2026-05-17 (protocolo v1.1).** O protocolo v1.0 previa "revisão
 humana" nesta etapa, operacionalizada em 2026-05-16 via planilha
 (`scripts/screening/revisao_export.py` → `revisao_ingest.py`). Ela foi

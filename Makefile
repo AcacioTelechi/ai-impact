@@ -130,6 +130,15 @@ arbitragem:
 	    --kappa-table $(TAB_DIR)/arbitragem_kappa.tex \
 	    --cache-dir $(DATA_PROC)
 
+.PHONY: fulltext-acquire
+fulltext-acquire:
+	$(PYTHON) -m scripts.extraction.fulltext_acquire \
+	    --input $(DATA_PROC)/03_incluidos_final.csv \
+	    --manifest $(DATA_PROC)/04_fulltext_manifest.csv \
+	    --email $(EMAIL) \
+	    --manual-dir data/raw/fulltext/manual \
+	    --oa-dir data/raw/fulltext/oa
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
