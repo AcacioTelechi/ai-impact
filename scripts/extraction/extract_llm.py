@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -53,3 +54,66 @@ def build_user_content(row):
              "text": "Fonte: apenas resumo. Extraia conforme as instruções "
                      "do sistema (use n/a/vazio onde o resumo não sustentar).\n"
                      + _meta_text(row)}]
+
+
+_TEXT_FIELDS = {"mec_outros", "fonte_dados", "magnitude_reportada",
+                "magnitude_normalizada", "ocupacoes_afetadas",
+                "limitacoes_declaradas", "nota_extracao", "citacoes_chave",
+                "pais_estudo", "periodo_dados"}
+
+
+def _empty_extracao(nota: str = "") -> dict:
+    d = {}
+    for f in _LLM_FIELDS:
+        d[f] = "" if f in _TEXT_FIELDS else "n/a"
+    d["nota_extracao"] = nota
+    return d
+
+
+def parse_extraction(text: str) -> dict:
+    """Tolerante. Falha irrecuperável → elegivel=incluir (conservador, nunca
+    exclui por falha técnica), confianca=0, extração n/a, nota parse_fail."""
+    fallback = {"elegivel": "incluir", "motivo_exclusao": "",
+                "confianca_extracao": 0.0,
+                "extracao": _empty_extracao("parse_fail")}
+    if not text:
+        return fallback
+    s = text.strip()
+    if s.startswith("```"):
+        s = s.strip("`")
+        if s.lstrip().lower().startswith("json"):
+            s = s.lstrip()[4:]
+        s = s.strip()
+    try:
+        obj = json.loads(s)
+    except json.JSONDecodeError:
+        m = re.search(r"\{.*\}", s, re.DOTALL)
+        if not m:
+            return fallback
+        try:
+            obj = json.loads(m.group(0))
+        except json.JSONDecodeError:
+            return fallback
+    if not isinstance(obj, dict):
+        return fallback
+
+    elegivel = obj.get("elegivel")
+    if elegivel not in ("incluir", "excluir"):
+        elegivel = "incluir"  # conservador
+    try:
+        conf = float(obj.get("confianca_extracao", 0.0))
+    except (TypeError, ValueError):
+        conf = 0.0
+    conf = max(0.0, min(1.0, conf))
+
+    raw_ex = obj.get("extracao") if isinstance(obj.get("extracao"), dict) else {}
+    ex = _empty_extracao()
+    for f in _LLM_FIELDS:
+        if f in raw_ex and raw_ex[f] not in (None, ""):
+            ex[f] = str(raw_ex[f])
+    return {
+        "elegivel": elegivel,
+        "motivo_exclusao": str(obj.get("motivo_exclusao") or ""),
+        "confianca_extracao": conf,
+        "extracao": ex,
+    }

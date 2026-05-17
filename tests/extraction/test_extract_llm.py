@@ -47,3 +47,43 @@ def test_user_content_pdf_nan_path_degrades_to_text():
     c = build_user_content(_row(id="s-004", text_source="pdf", pdf_path=np.nan))
     assert len(c) == 1 and c[0]["type"] == "text"
     assert "Resumo X" in c[0]["text"]
+
+
+from scripts.extraction.extract_llm import parse_extraction, _LLM_FIELDS
+
+
+def _good_json():
+    import json
+    ex = {f: "n/a" for f in _LLM_FIELDS}
+    ex["tipo_estudo"] = "teórico/modelo"
+    return ('{"elegivel":"incluir","motivo_exclusao":"","confianca_extracao":0.8,'
+            '"extracao":' + json.dumps(ex, ensure_ascii=False) + "}")
+
+
+def test_parse_good():
+    r = parse_extraction(_good_json())
+    assert r["elegivel"] == "incluir"
+    assert r["confianca_extracao"] == 0.8
+    assert r["extracao"]["tipo_estudo"] == "teórico/modelo"
+
+
+def test_parse_irrecoverable_is_conservative_incluir():
+    r = parse_extraction("desculpe, não consigo")
+    assert r["elegivel"] == "incluir"            # falha NUNCA exclui
+    assert r["confianca_extracao"] == 0.0
+    assert r["extracao"]["sinal_efeito"] == "n/a"
+    assert "parse_fail" in r["extracao"]["nota_extracao"]
+
+
+def test_parse_invalid_elegivel_becomes_incluir():
+    r = parse_extraction('{"elegivel":"talvez","motivo_exclusao":"",'
+                          '"confianca_extracao":0.5,"extracao":{}}')
+    assert r["elegivel"] == "incluir"
+
+
+def test_parse_clamps_confianca_and_fills_missing():
+    r = parse_extraction('{"elegivel":"excluir","motivo_exclusao":"E1",'
+                          '"confianca_extracao":9,"extracao":{}}')
+    assert r["elegivel"] == "excluir" and r["motivo_exclusao"] == "E1"
+    assert r["confianca_extracao"] == 1.0
+    assert r["extracao"]["janela"] == "n/a" and r["extracao"]["mec_outros"] == ""
