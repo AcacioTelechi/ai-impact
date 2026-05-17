@@ -93,6 +93,15 @@ Diagrama PRISMA gerado automaticamente em `text/figures/prisma_flow.tex`.
 
 Esquema em `extraction_schema.md`. Cada estudo vira uma linha em `data/processed/06_extraction.csv` com sete blocos: identificação, classificação temporal, tipo de evidência, mecanismos teóricos, achados, qualidade, notas.
 
+**Nota interina (2026-05-17, Plano 4b-i):** a decisão de elegibilidade (texto
+completo) e a extração dos campos foram operacionalizadas por LLM (Claude
+Sonnet 4.6, uma passada combinada; PDF nativo onde houver OA, resumo no
+restante — cobertura full-text 15,7%, 134/852). O bloco A bibliográfico vem
+deterministicamente do corpus (não do LLM); o LLM preenche B–G + conteúdo de
+A. A verificação humana amostral (elegibilidade + campos críticos, κ
+humano×LLM) e a emenda formal do desvio em relação à leitura/extração 100%
+manual (§7/§8/§11, versão → 1.2) são descritas e declaradas no Plano 4b-ii.
+
 ## 9. Avaliação de qualidade
 
 Rubrica 1–5 em `quality_rubric.md`, aplicada na elegibilidade e revisada na extração.
