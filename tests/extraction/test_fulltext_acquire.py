@@ -92,3 +92,85 @@ def test_http_get_bytes_retries_5xx_not_4xx(monkeypatch):
     monkeypatch.setattr(fa.requests, "get", get_404)
     assert fa._http_get_bytes("http://x/p.pdf") is None
     assert calls2["n"] == 1  # no retry on 4xx
+
+
+from scripts.extraction.fulltext_acquire import resolve
+
+
+def _dirs(tmp_path):
+    m = tmp_path / "manual"; o = tmp_path / "oa"
+    m.mkdir(); o.mkdir()
+    return m, o
+
+
+def test_resolve_manual_has_priority(tmp_path):
+    m, o = _dirs(tmp_path)
+    (m / "s-001.pdf").write_bytes(b"%PDF inst")
+    row = pd.Series(_row("10.1/x", "X"))
+    r = resolve(row, "s-001", m, o, email="e@e",
+                lookup_fn=lambda doi, email: {"pdf_url": "http://x/p.pdf"},
+                download_fn=lambda u, d: "ok")
+    assert r["text_source"] == "pdf" and r["fonte"] == "manual"
+    assert r["status"] == "ok_manual"
+    assert r["pdf_path"].endswith("manual/s-001.pdf")
+
+
+def test_resolve_no_doi(tmp_path):
+    m, o = _dirs(tmp_path)
+    row = pd.Series(_row("", "X"))
+    r = resolve(row, "s-002", m, o, email="e@e",
+                lookup_fn=lambda doi, email: None, download_fn=lambda u, d: "ok")
+    assert r["text_source"] == "abstract" and r["status"] == "sem_doi"
+    assert r["fonte"] == "—" and r["pdf_path"] == ""
+
+
+def test_resolve_not_oa(tmp_path):
+    m, o = _dirs(tmp_path)
+    row = pd.Series(_row("10.1/x", "X"))
+    r = resolve(row, "s-003", m, o, email="e@e",
+                lookup_fn=lambda doi, email: None, download_fn=lambda u, d: "ok")
+    assert r["text_source"] == "abstract" and r["status"] == "nao_oa"
+
+
+def test_resolve_oa_download_ok(tmp_path):
+    m, o = _dirs(tmp_path)
+    row = pd.Series(_row("10.1/x", "X"))
+
+    def fake_dl(url, dest):
+        Path(dest).write_bytes(b"%PDF oa")
+        return "ok"
+
+    r = resolve(row, "s-004", m, o, email="e@e",
+                lookup_fn=lambda doi, email: {"pdf_url": "http://x/p.pdf"},
+                download_fn=fake_dl)
+    assert r["text_source"] == "pdf" and r["fonte"] == "unpaywall"
+    assert r["status"] == "ok_oa" and r["pdf_path"].endswith("oa/s-004.pdf")
+
+
+def test_resolve_oa_download_failure_and_oversized(tmp_path):
+    m, o = _dirs(tmp_path)
+    row = pd.Series(_row("10.1/x", "X"))
+    r_fail = resolve(row, "s-005", m, o, email="e@e",
+                     lookup_fn=lambda doi, email: {"pdf_url": "u"},
+                     download_fn=lambda u, d: "download_falhou")
+    assert r_fail["text_source"] == "abstract" and r_fail["status"] == "download_falhou"
+    r_big = resolve(row, "s-006", m, o, email="e@e",
+                    lookup_fn=lambda doi, email: {"pdf_url": "u"},
+                    download_fn=lambda u, d: "oversized")
+    assert r_big["text_source"] == "abstract" and r_big["status"] == "oversized"
+
+
+def test_resolve_idempotent_existing_oa(tmp_path):
+    m, o = _dirs(tmp_path)
+    (o / "s-007.pdf").write_bytes(b"%PDF cached")
+    row = pd.Series(_row("10.1/x", "X"))
+    calls = {"n": 0}
+
+    def dl(u, d):
+        calls["n"] += 1
+        return "ok"
+
+    r = resolve(row, "s-007", m, o, email="e@e",
+                lookup_fn=lambda doi, email: {"pdf_url": "u"}, download_fn=dl)
+    assert r["status"] == "ok_oa" and r["fonte"] == "unpaywall"
+    assert calls["n"] == 0  # já em disco → não re-baixa

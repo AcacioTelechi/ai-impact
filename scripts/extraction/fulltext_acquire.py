@@ -65,3 +65,42 @@ def assign_ids(df: pd.DataFrame) -> pd.DataFrame:
     out = out.sort_values("review_id", kind="stable").reset_index(drop=True)
     out["id"] = [f"s-{i:03d}" for i in range(1, len(out) + 1)]
     return out
+
+
+def resolve(row, id_: str, manual_dir: Path, oa_dir: Path, *, email: str,
+            lookup_fn, download_fn) -> dict:
+    """Resolve o texto de UM registro. Precedência: manual > oa-cache >
+    unpaywall+download > abstract. Retorna a linha do manifesto.
+
+    lookup_fn(doi, email)->dict|None (default produção: _unpaywall_lookup).
+    download_fn(url, dest)->str (default produção: download_pdf).
+    """
+    doi = str(row.get("doi") or "").strip()
+    base = {"id": id_, "review_id": row.get("review_id", ""),
+            "doi": doi, "title": str(row.get("title") or "")}
+
+    manual_pdf = manual_dir / f"{id_}.pdf"
+    if manual_pdf.exists():
+        return {**base, "text_source": "pdf", "fonte": "manual",
+                "pdf_path": str(manual_pdf), "status": "ok_manual"}
+
+    oa_pdf = oa_dir / f"{id_}.pdf"
+    if oa_pdf.exists():  # idempotente: já baixado antes
+        return {**base, "text_source": "pdf", "fonte": "unpaywall",
+                "pdf_path": str(oa_pdf), "status": "ok_oa"}
+
+    if not doi:
+        return {**base, "text_source": "abstract", "fonte": "—",
+                "pdf_path": "", "status": "sem_doi"}
+
+    rec = lookup_fn(doi, email)
+    if not rec or not rec.get("pdf_url"):
+        return {**base, "text_source": "abstract", "fonte": "—",
+                "pdf_path": "", "status": "nao_oa"}
+
+    st = download_fn(rec["pdf_url"], oa_pdf)
+    if st == "ok":
+        return {**base, "text_source": "pdf", "fonte": "unpaywall",
+                "pdf_path": str(oa_pdf), "status": "ok_oa"}
+    return {**base, "text_source": "abstract", "fonte": "—",
+            "pdf_path": "", "status": st}  # download_falhou | oversized
