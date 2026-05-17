@@ -32,3 +32,28 @@ def test_user_block_contains_record_fields_only():
     assert "We study AI exposure." in u
     # o bloco do registro NÃO repete os critérios (eles vão no system cacheado)
     assert "E1" not in u and "CRITÉRIOS" not in u
+
+
+from scripts.screening.llm.prompt import build_arbiter_system_block
+
+
+def test_arbiter_block_is_cacheable_and_stable():
+    a = build_arbiter_system_block()
+    b = build_arbiter_system_block()
+    assert a == b
+    assert isinstance(a, list) and len(a) == 1
+    blk = a[0]
+    assert blk["type"] == "text"
+    assert blk["cache_control"] == {"type": "ephemeral"}
+    txt = blk["text"]
+    assert "2013-01-01" in txt and "2026-06-30" in txt
+    for code in ("E1", "E2", "E3", "E4", "E5"):
+        assert code in txt
+    assert '"incluir"' in txt and '"excluir"' in txt
+    assert '"duvida"' not in txt
+    assert "duvida" not in txt.lower().split("json")[-1] or "não" in txt.lower()
+
+
+def test_arbiter_block_differs_from_screening_block():
+    from scripts.screening.llm.prompt import build_system_block
+    assert build_arbiter_system_block()[0]["text"] != build_system_block()[0]["text"]
