@@ -85,3 +85,40 @@ def test_parse_clamps_confianca_and_fills_missing():
     assert r["elegivel"] == "excluir" and r["motivo_exclusao"] == "E1"
     assert r["confianca_extracao"] == 1.0
     assert r["extracao"]["janela"] == "n/a" and r["extracao"]["mec_outros"] == ""
+
+
+from scripts.extraction.extract_llm import fundir, OUTPUT_COLUMNS
+
+
+def test_fundir_38_columns_and_block_A_from_corpus():
+    row = _row(id="s-009", doi="10.1/z", title="Título Z", authors="X, Y",
+               year=2024, venue="JOLE", text_source="pdf")
+    parsed = {"elegivel": "incluir", "motivo_exclusao": "",
+              "confianca_extracao": 0.7,
+              "extracao": {**{f: "n/a" for f in _LLM_FIELDS},
+                           "tipo_estudo": "firma/freelancer",
+                           "mec_outros": "spillovers"}}
+    out = fundir(row, parsed)
+    assert list(out.keys()) == OUTPUT_COLUMNS
+    assert len(OUTPUT_COLUMNS) == 38  # 34 do schema (inclui revisto_humano) + 4 extras
+    # Bloco A bibliográfico do corpus, não do LLM
+    assert out["id"] == "s-009" and out["doi"] == "10.1/z"
+    assert out["titulo"] == "Título Z" and out["autores"] == "X, Y"
+    assert out["ano"] == 2024 and out["periodico"] == "JOLE"
+    # B–G do LLM
+    assert out["tipo_estudo"] == "firma/freelancer" and out["mec_outros"] == "spillovers"
+    # extras
+    assert out["elegivel"] == "incluir" and out["text_source"] == "pdf"
+    assert out["confianca_extracao"] == 0.7 and out["revisto_humano"] == "False"
+    assert out["motivo_exclusao"] == ""
+
+
+def test_fundir_excluded_keeps_metadata_and_na_fields():
+    row = _row(id="s-010", text_source="abstract")
+    parsed = {"elegivel": "excluir", "motivo_exclusao": "E1",
+              "confianca_extracao": 0.9, "extracao": {f: "n/a" for f in _LLM_FIELDS}}
+    out = fundir(row, parsed)
+    assert out["elegivel"] == "excluir" and out["motivo_exclusao"] == "E1"
+    assert out["id"] == "s-010" and out["titulo"] == "T"   # A ainda do corpus
+    assert out["sinal_efeito"] == "n/a"
+    assert out["revisto_humano"] == "False"

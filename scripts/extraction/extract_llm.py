@@ -120,3 +120,32 @@ def parse_extraction(text: str) -> dict:
         "confianca_extracao": conf,
         "extracao": ex,
     }
+
+
+# 34 do schema (já inclui revisto_humano, bloco G) + 4 extras = 38
+OUTPUT_COLUMNS = SCHEMA_COLUMNS + [
+    "elegivel", "motivo_exclusao", "text_source", "confianca_extracao",
+]
+
+
+def fundir(row, parsed: dict) -> dict:
+    """Monta a linha de OUTPUT_COLUMNS: bloco A bibliográfico do corpus/join,
+    B–G + A-conteúdo do LLM, + elegivel/motivo/text_source/confianca;
+    revisto_humano=False (o 4b-ii marca True no que verificar)."""
+    ex = parsed.get("extracao", {})
+    out: dict = {}
+    for col in SCHEMA_COLUMNS:
+        out[col] = ex.get(col, "")
+    # Bloco A bibliográfico — determinístico do corpus (não do LLM)
+    out["id"] = row.get("id", "")
+    out["doi"] = str(row.get("doi") or "")
+    out["titulo"] = str(row.get("title") or "")
+    out["autores"] = str(row.get("authors") or "")
+    out["ano"] = row.get("year", "")
+    out["periodico"] = str(row.get("venue") or "")
+    out["revisto_humano"] = "False"
+    out["elegivel"] = parsed.get("elegivel", "incluir")
+    out["motivo_exclusao"] = parsed.get("motivo_exclusao", "")
+    out["text_source"] = row.get("text_source", "")
+    out["confianca_extracao"] = parsed.get("confianca_extracao", 0.0)
+    return {c: out.get(c, "") for c in OUTPUT_COLUMNS}
