@@ -1,4 +1,4 @@
-"""Blocos de prompt do screening dual-LLM.
+"""Blocos de prompt do screening dual-LLM e da arbitragem (3º LLM).
 
 O bloco de sistema é estável (idêntico em todas as chamadas) → marcado
 para prompt caching. O bloco do usuário carrega só os dados do registro.

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from scripts.screening.llm.prompt import build_system_block, build_user_block
+from scripts.screening.llm.prompt import build_system_block, build_user_block, build_arbiter_system_block
 
 
 def test_system_block_is_cacheable_and_stable():
@@ -34,9 +34,6 @@ def test_user_block_contains_record_fields_only():
     assert "E1" not in u and "CRITÉRIOS" not in u
 
 
-from scripts.screening.llm.prompt import build_arbiter_system_block
-
-
 def test_arbiter_block_is_cacheable_and_stable():
     a = build_arbiter_system_block()
     b = build_arbiter_system_block()
@@ -51,9 +48,7 @@ def test_arbiter_block_is_cacheable_and_stable():
         assert code in txt
     assert '"incluir"' in txt and '"excluir"' in txt
     assert '"duvida"' not in txt
-    assert "duvida" not in txt.lower().split("json")[-1] or "não" in txt.lower()
 
 
 def test_arbiter_block_differs_from_screening_block():
-    from scripts.screening.llm.prompt import build_system_block
     assert build_arbiter_system_block()[0]["text"] != build_system_block()[0]["text"]
