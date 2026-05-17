@@ -107,6 +107,20 @@ screening-kappa:
 	    --input $(DATA_PROC)/03_screening_ta.csv \
 	    --output-table $(TAB_DIR)/kappa_screening.tex
 
+.PHONY: revisao-export
+revisao-export:
+	$(PYTHON) -m scripts.screening.revisao_export \
+	    --screening $(DATA_PROC)/03_screening_ta.csv \
+	    --sheet $(DATA_PROC)/03_revisao_duvidas.csv
+
+.PHONY: revisao-ingest
+revisao-ingest:
+	$(PYTHON) -m scripts.screening.revisao_ingest \
+	    --screening $(DATA_PROC)/03_screening_ta.csv \
+	    --sheet $(DATA_PROC)/03_revisao_duvidas.csv \
+	    --revisado $(DATA_PROC)/03_screening_revisado.csv \
+	    --incluidos $(DATA_PROC)/03_incluidos_final.csv
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
