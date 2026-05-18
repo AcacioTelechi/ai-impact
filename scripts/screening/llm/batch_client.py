@@ -274,21 +274,26 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INT
             if time.monotonic() >= deadline:
                 raise TimeoutError(f"Batch {batch.id} excedeu 24h")
             time.sleep(poll_interval)
-        out: dict[str, str] = {}
-        n_ok = 0
+        out: dict[str, str | None] = {}
+        n_ok = n_err = n_empty = 0
         for entry in client.messages.batches.results(batch.id):
             if getattr(entry.result, "type", None) == "succeeded":
                 blocks = entry.result.message.content
-                out[entry.custom_id] = next(
+                txt = next(
                     (b.text for b in blocks if getattr(b, "type", None) == "text"),
                     "",
                 )
-                n_ok += 1
+                out[entry.custom_id] = txt
+                if txt:
+                    n_ok += 1
+                else:
+                    n_empty += 1
             else:
-                out[entry.custom_id] = ""  # → parse_fail → duvida/0
+                out[entry.custom_id] = None  # API-errored → não cacheia (RC2)
+                n_err += 1
         print(
             f"  [{_label(model)}] coletado: {n_ok} sucesso, "
-            f"{total - n_ok} sem resposta (→ duvida/0)",
+            f"{n_err} erro (não cacheados), {n_empty} sem texto",
             flush=True,
         )
         return out

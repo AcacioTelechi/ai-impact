@@ -430,3 +430,48 @@ def test_regressao_mock_str_inalterado(tmp_path):
     assert out[0]["decisao"] == "excluir"
     assert out[0]["criterio"] == "C1"
     assert abs(out[0]["confianca"] - 0.7) < 1e-9
+
+
+def test_anthropic_submit_fn_errored_vira_none():
+    import types
+    from scripts.screening.llm import batch_client as BC
+
+    def mk(cid, kind, text=""):
+        r = types.SimpleNamespace()
+        r.custom_id = cid
+        if kind == "succeeded":
+            blk = types.SimpleNamespace(type="text", text=text)
+            r.result = types.SimpleNamespace(
+                type="succeeded",
+                message=types.SimpleNamespace(content=[blk]))
+        else:
+            r.result = types.SimpleNamespace(type="errored", error=None)
+        return r
+
+    class FakeBatch:
+        id = "msgbatch_x"
+        processing_status = "ended"
+        request_counts = types.SimpleNamespace(
+            succeeded=1, errored=1, processing=0, canceled=0, expired=0)
+
+    class FakeClient:
+        class messages:
+            class batches:
+                @staticmethod
+                def create(requests):
+                    return FakeBatch()
+
+                @staticmethod
+                def retrieve(_id):
+                    return FakeBatch()
+
+                @staticmethod
+                def results(_id):
+                    return [mk("rOK", "succeeded", '{"decisao":"incluir"}'),
+                            mk("rERR", "errored")]
+
+    fn = BC.anthropic_submit_fn("claude-haiku-4-5-20251001",
+                                client=FakeClient(), poll_interval=0)
+    out = fn([{"custom_id": "rOK"}, {"custom_id": "rERR"}])
+    assert out["rOK"] == '{"decisao":"incluir"}'
+    assert out["rERR"] is None
