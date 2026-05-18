@@ -16,6 +16,7 @@ import pandas as pd
 
 from scripts.extraction.extract import SCHEMA_COLUMNS
 from scripts.extraction.llm_extract_prompt import build_extract_system_block
+from scripts.extraction.pdf_validity import pdf_is_extractable
 from scripts.screening.llm.batch_client import (
     cache_key, custom_id, screen_with_model,
 )
@@ -41,7 +42,7 @@ def build_user_content(row):
     texto (abstract+metadados). Sempre retorna list[dict]."""
     if row.get("text_source") == "pdf":
         p = Path(str(row.get("pdf_path") or ""))
-        if p.is_file():
+        if p.is_file() and pdf_is_extractable(p):
             data = base64.standard_b64encode(p.read_bytes()).decode("ascii")
             return [
                 {"type": "document",

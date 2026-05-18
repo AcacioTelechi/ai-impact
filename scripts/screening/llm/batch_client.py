@@ -163,6 +163,10 @@ def screen_with_model(
 
     mock=True → usa _mock_judge (sem API). Caso contrário, submit_fn(requests)
     deve devolver {custom_id: texto_bruto}. Ordem do retorno segue o df.
+    submit_fn deve devolver None p/ um custom_id cujo request errou na API
+    (não cacheado → reprocessado numa nova execução); qualquer string,
+    inclusive "", é resposta da API e vira fallback terminal cacheado. O
+    anthropic_submit_fn real passa a emitir esse None numa etapa seguinte.
     """
     label = _label(model)
     if mock:
@@ -185,15 +189,30 @@ def screen_with_model(
     )
     if pending:
         raw_by_cid = submit_fn(pending)
+        n_skipped = 0
         for req in pending:
             cid = req["custom_id"]
-            cache[cid] = (parse_fn or parse_response)(raw_by_cid.get(cid, ""))
+            v = raw_by_cid.get(cid)            # None = API-errored / ausente
+            if v is None:
+                n_skipped += 1
+                continue                       # NÃO cacheia → re-rodada reprocessa
+            cache[cid] = (parse_fn or parse_response)(v)
         _save_cache(cache_path, cache)
-        print(f"[{label}] {n_pending} processados e gravados em cache")
+        print(f"[{label}] {n_pending - n_skipped} processados e gravados em cache")
+        if n_skipped:
+            print(
+                f"[{label}] {n_skipped} requests erraram na API e NÃO foram "
+                f"cacheados — re-rode após resolver a causa (ex.: crédito)"
+            )
     else:
         print(f"[{label}] nada a fazer → pulando (0 chamadas, $0)")
 
-    return [cache[custom_id(cache_key(row))] for _, row in df.iterrows()]
+    _fallback = parse_fn or parse_response
+    out: list[dict] = []
+    for _, row in df.iterrows():
+        cid = custom_id(cache_key(row))
+        out.append(cache[cid] if cid in cache else _fallback(""))
+    return out
 
 
 POLL_INTERVAL_S = 15
@@ -201,10 +220,12 @@ POLL_TIMEOUT_S = 24 * 3600
 
 
 def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INTERVAL_S):
-    """Devolve submit_fn(requests)->{custom_id:texto} via Message Batches API.
+    """Devolve submit_fn(requests)->{custom_id: str|None} via Message Batches API.
 
     client injetável para teste; em produção usa anthropic.Anthropic()
     (ANTHROPIC_API_KEY via .env). Retry/backoff na submissão.
+    custom_id cujo request errou na API → None (não cacheado, reprocessado);
+    sucesso → texto (string, podendo ser "").
     """
     if client is None:
         from anthropic import Anthropic
@@ -215,7 +236,7 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INT
     def _create(requests):
         return client.messages.batches.create(requests=requests)
 
-    def submit_fn(requests: list[dict]) -> dict[str, str]:
+    def submit_fn(requests: list[dict]) -> dict[str, str | None]:
         total = len(requests)
         batch = _create(requests)
         print(
@@ -255,21 +276,26 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INT
             if time.monotonic() >= deadline:
                 raise TimeoutError(f"Batch {batch.id} excedeu 24h")
             time.sleep(poll_interval)
-        out: dict[str, str] = {}
-        n_ok = 0
+        out: dict[str, str | None] = {}
+        n_ok = n_err = n_empty = 0
         for entry in client.messages.batches.results(batch.id):
             if getattr(entry.result, "type", None) == "succeeded":
                 blocks = entry.result.message.content
-                out[entry.custom_id] = next(
+                txt = next(
                     (b.text for b in blocks if getattr(b, "type", None) == "text"),
                     "",
                 )
-                n_ok += 1
+                out[entry.custom_id] = txt
+                if txt:
+                    n_ok += 1
+                else:
+                    n_empty += 1
             else:
-                out[entry.custom_id] = ""  # → parse_fail → duvida/0
+                out[entry.custom_id] = None  # API-errored → não cacheia (RC2)
+                n_err += 1
         print(
             f"  [{_label(model)}] coletado: {n_ok} sucesso, "
-            f"{total - n_ok} sem resposta (→ duvida/0)",
+            f"{n_err} erro (não cacheados), {n_empty} sem texto",
             flush=True,
         )
         return out

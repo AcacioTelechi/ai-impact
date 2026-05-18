@@ -4,8 +4,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from pypdf import PdfWriter
 
 from scripts.extraction import extract_llm
+from scripts.extraction import extract_llm as _E
 from scripts.extraction.extract_llm import build_user_content, parse_extraction, _LLM_FIELDS, fundir, OUTPUT_COLUMNS
 from scripts.screening.llm.batch_client import cache_key, custom_id
 
@@ -27,14 +29,19 @@ def test_user_content_abstract_is_text_only():
 
 def test_user_content_pdf_has_document_block(tmp_path: Path):
     pdf = tmp_path / "s-002.pdf"
-    pdf.write_bytes(b"%PDF-1.4 fake")
+    w = PdfWriter()
+    w.add_blank_page(width=72, height=72)
+    with open(pdf, "wb") as f:
+        w.write(f)
+    raw = pdf.read_bytes()
     c = build_user_content(_row(id="s-002", text_source="pdf", pdf_path=str(pdf)))
     assert isinstance(c, list) and len(c) == 2
     doc = c[0]
     assert doc["type"] == "document"
     assert doc["source"]["type"] == "base64"
     assert doc["source"]["media_type"] == "application/pdf"
-    assert base64.b64decode(doc["source"]["data"]) == b"%PDF-1.4 fake"
+    assert base64.b64decode(doc["source"]["data"]) == raw
+    assert raw.startswith(b"%PDF-")
     assert c[1]["type"] == "text" and "s-002" in c[1]["text"]
 
 
@@ -197,3 +204,33 @@ def test_run_aborts_if_manifest_drops_corpus_rows(tmp_path):
     with pytest.raises(AssertionError, match="perdeu linhas"):
         extract_llm.run(corpus=corpus, manifest=man, output=tmp_path/"o.csv",
                         cache=tmp_path/"k.json", submit_fn=lambda r: {})
+
+
+def _make_valid_pdf(p):
+    w = PdfWriter()
+    w.add_blank_page(width=72, height=72)
+    with open(p, "wb") as f:
+        w.write(f)
+    return p
+
+
+def test_build_user_content_pdf_invalido_cai_para_abstract(tmp_path):
+    bad = tmp_path / "bad.pdf"
+    bad.write_bytes(b"<html>paywall</html>")
+    row = {"text_source": "pdf", "pdf_path": str(bad), "title": "T",
+           "abstract": "resumo", "authors": "A", "year": 2024,
+           "venue": "V", "id": "s-001"}
+    content = _E.build_user_content(row)
+    assert len(content) == 1
+    assert content[0]["type"] == "text"
+    assert "apenas resumo" in content[0]["text"]
+
+
+def test_build_user_content_pdf_valido_usa_document(tmp_path):
+    good = _make_valid_pdf(tmp_path / "ok.pdf")
+    row = {"text_source": "pdf", "pdf_path": str(good), "title": "T",
+           "abstract": "resumo", "authors": "A", "year": 2024,
+           "venue": "V", "id": "s-002"}
+    content = _E.build_user_content(row)
+    assert content[0]["type"] == "document"
+    assert content[0]["source"]["media_type"] == "application/pdf"
