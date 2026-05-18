@@ -110,9 +110,11 @@ o defeito que cacheava respostas-de-erro como resultado terminal (o cache agora
 só persiste respostas efetivamente devolvidas pela API; requests com erro são
 reprocessados numa nova execução) e passou-se a validar o PDF antes do envio
 (inválido/protegido → nível de resumo, registrado no manifesto). A cobertura
-*full-text* real é 121/852 (14,2%), não 134/852. A reextração dos 61 depende de
-recarga de crédito e está pendente; enquanto não ocorrer, esses registros
-permanecem sem extração e são declarados como tal.
+*full-text* real é 121/852 (14,2%), não 134/852. A reextração dos 61 *restantes*
+— o caso de JSON malformado recebeu resposta da API (não é erro de request,
+logo não foi recacheado como erro) e será tratado à parte na verificação humana
+— depende de recarga de crédito e está pendente; enquanto não ocorrer, esses
+registros permanecem sem extração e são declarados como tal.
 
 ## 9. Avaliação de qualidade
 
@@ -135,9 +137,11 @@ Três camadas: (i) descritivas do corpus, (ii) síntese por janela temporal, (ii
 - Corpus pós-2022 jovem (maioria working papers).
 - Sem acesso a EconLit (substituído por RePEc + busca direta em periódicos).
 - Janela exclui antecedentes seminais pré-2013 (tratados no referencial teórico).
-- Reextração pendente de 61 registros da 1ª rodada (48 por crédito esgotado,
-  13 por PDF não-extraível): documentada e sanável por nova execução
-  idempotente após recarga; cobertura full-text efetiva 14,2%.
+- Reextração pendente de 61 dos 62 registros sem extração da 1ª rodada (48 por
+  crédito esgotado, 13 por PDF não-extraível; o 1 de JSON malformado recebeu
+  resposta da API e é tratado à parte na verificação humana): documentada e
+  sanável por nova execução idempotente após recarga; cobertura full-text
+  efetiva 14,2%.
 
 ## 12. Reprodutibilidade
 
