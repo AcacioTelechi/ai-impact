@@ -220,10 +220,12 @@ POLL_TIMEOUT_S = 24 * 3600
 
 
 def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INTERVAL_S):
-    """Devolve submit_fn(requests)->{custom_id:texto} via Message Batches API.
+    """Devolve submit_fn(requests)->{custom_id: str|None} via Message Batches API.
 
     client injetável para teste; em produção usa anthropic.Anthropic()
     (ANTHROPIC_API_KEY via .env). Retry/backoff na submissão.
+    custom_id cujo request errou na API → None (não cacheado, reprocessado);
+    sucesso → texto (string, podendo ser "").
     """
     if client is None:
         from anthropic import Anthropic
@@ -234,7 +236,7 @@ def anthropic_submit_fn(model: str, client=None, poll_interval: float = POLL_INT
     def _create(requests):
         return client.messages.batches.create(requests=requests)
 
-    def submit_fn(requests: list[dict]) -> dict[str, str]:
+    def submit_fn(requests: list[dict]) -> dict[str, str | None]:
         total = len(requests)
         batch = _create(requests)
         print(
