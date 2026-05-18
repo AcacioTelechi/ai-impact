@@ -4,8 +4,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from pypdf import PdfWriter
 
 from scripts.extraction import extract_llm
+from scripts.extraction import extract_llm as _E
 from scripts.extraction.extract_llm import build_user_content, parse_extraction, _LLM_FIELDS, fundir, OUTPUT_COLUMNS
 from scripts.screening.llm.batch_client import cache_key, custom_id
 
@@ -26,7 +28,6 @@ def test_user_content_abstract_is_text_only():
 
 
 def test_user_content_pdf_has_document_block(tmp_path: Path):
-    from pypdf import PdfWriter
     pdf = tmp_path / "s-002.pdf"
     w = PdfWriter()
     w.add_blank_page(width=72, height=72)
@@ -203,11 +204,6 @@ def test_run_aborts_if_manifest_drops_corpus_rows(tmp_path):
     with pytest.raises(AssertionError, match="perdeu linhas"):
         extract_llm.run(corpus=corpus, manifest=man, output=tmp_path/"o.csv",
                         cache=tmp_path/"k.json", submit_fn=lambda r: {})
-
-
-from pypdf import PdfWriter
-
-from scripts.extraction import extract_llm as _E
 
 
 def _make_valid_pdf(p):
