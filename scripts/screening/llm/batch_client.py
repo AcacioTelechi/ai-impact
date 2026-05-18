@@ -163,6 +163,10 @@ def screen_with_model(
 
     mock=True → usa _mock_judge (sem API). Caso contrário, submit_fn(requests)
     deve devolver {custom_id: texto_bruto}. Ordem do retorno segue o df.
+    submit_fn deve devolver None p/ um custom_id cujo request errou na API
+    (não cacheado → reprocessado numa nova execução); qualquer string,
+    inclusive "", é resposta da API e vira fallback terminal cacheado. O
+    anthropic_submit_fn real passa a emitir esse None numa etapa seguinte.
     """
     label = _label(model)
     if mock:
@@ -203,11 +207,12 @@ def screen_with_model(
     else:
         print(f"[{label}] nada a fazer → pulando (0 chamadas, $0)")
 
-    _miss = (parse_fn or parse_response)("")
-    return [
-        cache.get(custom_id(cache_key(row)), _miss)
-        for _, row in df.iterrows()
-    ]
+    _fallback = parse_fn or parse_response
+    out: list[dict] = []
+    for _, row in df.iterrows():
+        cid = custom_id(cache_key(row))
+        out.append(cache[cid] if cid in cache else _fallback(""))
+    return out
 
 
 POLL_INTERVAL_S = 15

@@ -392,6 +392,8 @@ def test_errored_none_nao_cacheia_e_reprocessa(tmp_path):
                                 cache_path=cache, submit_fn=submit_ok_none)
     assert len(calls) == 2
     assert len(calls[1]) == 1  # só o pendente (o errored) reenviado
+    assert res2[0]["decisao"] == "incluir"          # veio do cache (run 1)
+    assert res2[1]["decisao"] == "incluir"          # row b é index 0 na 2ª chamada → JSON válido, não None
 
 
 def test_resposta_vazia_cacheia_fallback_terminal(tmp_path):
