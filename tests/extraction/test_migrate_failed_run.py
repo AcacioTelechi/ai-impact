@@ -1,5 +1,6 @@
 import json
 import types
+from pathlib import Path
 
 import pandas as pd
 
@@ -45,7 +46,7 @@ def _setup(tmp_path):
          "status": "oa"},
     ])
     mp = tmp_path / "man.csv"
-    man.to_csv(mp, index=False)
+    man.to_csv(mp, index=False, encoding="utf-8")
     return cp, mp
 
 
@@ -70,6 +71,9 @@ def test_dry_run_nao_altera(tmp_path):
     assert rep["cache_removed"] == 2
     assert rep["manifest_changed"] == 1
     assert rep["pdf_before"] == 2 and rep["pdf_after"] == 1
+    # dry-run must create zero files including zero .bak files
+    assert rep["backups"] == []
+    assert list(tmp_path.glob("*.bak-*")) == []
 
 
 def test_apply_e_idempotente(tmp_path):
@@ -88,3 +92,39 @@ def test_apply_e_idempotente(tmp_path):
     assert row["text_source"] == "abstract" and row["status"] == "pdf_invalido"
     rep2 = M.run(_fake_client(entries), "b", cp, mp, dry_run=False)
     assert rep2["cache_removed"] == 0 and rep2["manifest_changed"] == 0
+
+
+def test_outro_pdf_nao_altera_manifesto(tmp_path):
+    """Erro classificado como 'outro' não deve alterar text_source nem status no
+    manifesto — mesmo quando a linha tem text_source='pdf'.  O cache deve ser
+    limpo (entrada errored → reprocessar), mas o manifesto fica intacto.
+    Também verifica que backups .bak-<ts> são criados e listados no relatório."""
+    cp, mp = _setup(tmp_path)
+    # rOK está no cache com text_source=pdf no manifesto (via _setup: s-3)
+    # Usamos rOK como o review_id "outro" para ter entrada no cache
+    cli = _fake_client([
+        ("rOK", "errored", "weird unknown error"),
+    ])
+    man_before = pd.read_csv(mp, keep_default_na=False)
+    row_before = man_before[man_before["review_id"] == "rOK"].iloc[0]
+
+    rep = M.run(cli, "b", cp, mp, dry_run=False)
+
+    # cache: rOK deve ter sido removido (errored → reprocessar)
+    cache_after = json.loads(cp.read_text())
+    assert "rOK" not in cache_after
+
+    # manifesto: text_source e status de rOK devem estar inalterados
+    man_after = pd.read_csv(mp, keep_default_na=False)
+    row_after = man_after[man_after["review_id"] == "rOK"].iloc[0]
+    assert row_after["text_source"] == row_before["text_source"]
+    assert row_after["status"] == row_before["status"]
+
+    # relatório: nenhuma linha do manifesto foi alterada
+    assert rep["manifest_changed"] == 0
+    assert rep["by_category"] == {"outro": 1}
+
+    # backups devem ter sido criados
+    assert isinstance(rep["backups"], list) and len(rep["backups"]) > 0
+    for bak_path in rep["backups"]:
+        assert Path(bak_path).exists(), f"backup não encontrado: {bak_path}"

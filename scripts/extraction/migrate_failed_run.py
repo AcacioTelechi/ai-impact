@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -26,6 +28,9 @@ def _err_message(result) -> str:
     return str(getattr(inner, "message", "") or "")
 
 
+# Substrings abaixo são as mensagens de erro observadas empiricamente no batch
+# msgbatch_01Bye7bKuBLg9xjQ3pt3W9Er (saldo insuficiente / PDF protegido / PDF inválido);
+# qualquer outra mensagem → "outro".
 def classify(msg: str) -> str:
     m = msg.lower()
     if "credit balance" in m:
@@ -75,8 +80,15 @@ def run(client, batch_id: str, cache_path: Path, manifest_path: Path,
         "pdf_after": pdf_after,
         "by_category": {c: sum(1 for v in errored.values() if v == c)
                         for c in sorted(set(errored.values()))},
+        "backups": [],
     }
     if not dry_run:
+        ts = datetime.now().strftime("%Y%m%dT%H%M%S")
+        for f in (Path(cache_path), Path(manifest_path)):
+            if f.exists():
+                bak = f.with_suffix(f.suffix + f".bak-{ts}")
+                shutil.copy2(f, bak)
+                report["backups"].append(str(bak))
         for cid in to_remove:
             del cache[cid]
         Path(cache_path).write_text(
@@ -104,6 +116,7 @@ def _cli(argv) -> int:
           f"mantidos={rep['cache_kept']}")
     print(f"{tag}manifesto: linhas alteradas={rep['manifest_changed']} | "
           f"text_source=pdf {rep['pdf_before']} → {rep['pdf_after']}")
+    print(f"backups: {rep['backups']}")
     return 0
 
 
