@@ -185,15 +185,29 @@ def screen_with_model(
     )
     if pending:
         raw_by_cid = submit_fn(pending)
+        n_skipped = 0
         for req in pending:
             cid = req["custom_id"]
-            cache[cid] = (parse_fn or parse_response)(raw_by_cid.get(cid, ""))
+            v = raw_by_cid.get(cid)            # None = API-errored / ausente
+            if v is None:
+                n_skipped += 1
+                continue                       # NÃO cacheia → re-rodada reprocessa
+            cache[cid] = (parse_fn or parse_response)(v)
         _save_cache(cache_path, cache)
-        print(f"[{label}] {n_pending} processados e gravados em cache")
+        print(f"[{label}] {n_pending - n_skipped} processados e gravados em cache")
+        if n_skipped:
+            print(
+                f"[{label}] {n_skipped} requests erraram na API e NÃO foram "
+                f"cacheados — re-rode após resolver a causa (ex.: crédito)"
+            )
     else:
         print(f"[{label}] nada a fazer → pulando (0 chamadas, $0)")
 
-    return [cache[custom_id(cache_key(row))] for _, row in df.iterrows()]
+    _miss = (parse_fn or parse_response)("")
+    return [
+        cache.get(custom_id(cache_key(row)), _miss)
+        for _, row in df.iterrows()
+    ]
 
 
 POLL_INTERVAL_S = 15

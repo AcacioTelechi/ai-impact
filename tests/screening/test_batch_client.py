@@ -365,3 +365,66 @@ def test_screen_with_model_threads_max_tokens(tmp_path):
                        submit_fn=fake_submit, parse_fn=lambda raw: {"r": raw},
                        max_tokens=4096)
     assert seen["mt"] == 4096
+
+
+def test_errored_none_nao_cacheia_e_reprocessa(tmp_path):
+    from scripts.screening.llm import batch_client as BC
+    df = pd.DataFrame([
+        {"doi": "10.1/a", "title": "A", "year": 2020, "abstract": "x"},
+        {"doi": "10.1/b", "title": "B", "year": 2021, "abstract": "y"},
+    ])
+    cache = tmp_path / "c.json"
+    calls = []
+
+    def submit_ok_none(reqs):
+        calls.append([r["custom_id"] for r in reqs])
+        out = {}
+        for i, r in enumerate(reqs):
+            out[r["custom_id"]] = (
+                '{"decisao":"incluir","confianca":0.9}' if i == 0 else None
+            )
+        return out
+
+    res1 = BC.screen_with_model(df, model="claude-haiku-4-5-20251001",
+                                cache_path=cache, submit_fn=submit_ok_none)
+    assert res1[0]["decisao"] == "incluir"
+    res2 = BC.screen_with_model(df, model="claude-haiku-4-5-20251001",
+                                cache_path=cache, submit_fn=submit_ok_none)
+    assert len(calls) == 2
+    assert len(calls[1]) == 1  # só o pendente (o errored) reenviado
+
+
+def test_resposta_vazia_cacheia_fallback_terminal(tmp_path):
+    from scripts.screening.llm import batch_client as BC
+    df = pd.DataFrame([{"doi": "10.1/z", "title": "Z", "year": 2022,
+                        "abstract": "w"}])
+    cache = tmp_path / "c.json"
+    calls = []
+
+    def submit_empty(reqs):
+        calls.append(1)
+        return {r["custom_id"]: "" for r in reqs}
+
+    r1 = BC.screen_with_model(df, model="claude-haiku-4-5-20251001",
+                              cache_path=cache, submit_fn=submit_empty)
+    assert r1[0]["justificativa"] == "parse_fail"
+    BC.screen_with_model(df, model="claude-haiku-4-5-20251001",
+                         cache_path=cache, submit_fn=submit_empty)
+    assert len(calls) == 1
+
+
+def test_regressao_mock_str_inalterado(tmp_path):
+    from scripts.screening.llm import batch_client as BC
+    df = pd.DataFrame([{"doi": "10.1/r", "title": "R", "year": 2019,
+                        "abstract": "v"}])
+    cache = tmp_path / "c.json"
+
+    def submit_str(reqs):
+        return {r["custom_id"]: '{"decisao":"excluir","confianca":0.7,'
+                                '"criterio":"C1"}' for r in reqs}
+
+    out = BC.screen_with_model(df, model="claude-haiku-4-5-20251001",
+                               cache_path=cache, submit_fn=submit_str)
+    assert out[0]["decisao"] == "excluir"
+    assert out[0]["criterio"] == "C1"
+    assert abs(out[0]["confianca"] - 0.7) < 1e-9
