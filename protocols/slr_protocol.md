@@ -102,6 +102,18 @@ A. A verificação humana amostral (elegibilidade + campos críticos, κ
 humano×LLM) e a emenda formal do desvio em relação à leitura/extração 100%
 manual (§7/§8/§11, versão → 1.2) são descritas e declaradas no Plano 4b-ii.
 
+**Incidente da 1ª rodada (2026-05-17) e correção.** A 1ª execução real teve
+62/852 sem extração: 48 por esgotamento de crédito da API no meio do lote, 13
+por PDF inválido/protegido baixado na aquisição (4a) e 1 por JSON malformado.
+Diagnóstico por evidência (resultados do *batch*, retidos ~29 dias). Corrigiu-se
+o defeito que cacheava respostas-de-erro como resultado terminal (o cache agora
+só persiste respostas efetivamente devolvidas pela API; requests com erro são
+reprocessados numa nova execução) e passou-se a validar o PDF antes do envio
+(inválido/protegido → nível de resumo, registrado no manifesto). A cobertura
+*full-text* real é 121/852 (14,2%), não 134/852. A reextração dos 61 depende de
+recarga de crédito e está pendente; enquanto não ocorrer, esses registros
+permanecem sem extração e são declarados como tal.
+
 ## 9. Avaliação de qualidade
 
 Rubrica 1–5 em `quality_rubric.md`, aplicada na elegibilidade e revisada na extração.
@@ -123,6 +135,9 @@ Três camadas: (i) descritivas do corpus, (ii) síntese por janela temporal, (ii
 - Corpus pós-2022 jovem (maioria working papers).
 - Sem acesso a EconLit (substituído por RePEc + busca direta em periódicos).
 - Janela exclui antecedentes seminais pré-2013 (tratados no referencial teórico).
+- Reextração pendente de 61 registros da 1ª rodada (48 por crédito esgotado,
+  13 por PDF não-extraível): documentada e sanável por nova execução
+  idempotente após recarga; cobertura full-text efetiva 14,2%.
 
 ## 12. Reprodutibilidade
 
