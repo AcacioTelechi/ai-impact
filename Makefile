@@ -147,6 +147,13 @@ extract-llm:
 	    --output $(DATA_PROC)/06_extraction.csv \
 	    --cache $(DATA_PROC)/06_cache_extract.json
 
+.PHONY: verify-sample
+verify-sample:
+	$(PYTHON) -m scripts.extraction.verify_sample \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --frame $(DATA_PROC)/07_amostra_frame.csv \
+	    --sample $(DATA_PROC)/07_amostra_verificacao.csv
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
