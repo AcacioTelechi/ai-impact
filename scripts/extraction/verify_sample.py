@@ -43,13 +43,10 @@ def _build_frame(extraction_csv: Path) -> pd.DataFrame:
     return df[_FRAME_COLS].reset_index(drop=True)
 
 
-_INCLUIDO_VALUES = {"sim", "incluir"}
-
-
 def _stratify_inclusoes(frame: pd.DataFrame, rng: np.random.Generator,
                         fracao: float = 0.10) -> pd.DataFrame:
     inc = frame[
-        frame["elegivel"].isin(_INCLUIDO_VALUES)
+        (frame["elegivel"] == "incluir")
         & (frame["motivo_exclusao"] == "")
     ].copy()
     inc["confianca_bin"] = inc["confianca_extracao"].apply(_conf_bin)
@@ -70,7 +67,7 @@ def _stratify_inclusoes(frame: pd.DataFrame, rng: np.random.Generator,
 
 def _all_exclusoes(frame: pd.DataFrame) -> pd.DataFrame:
     excl = frame[
-        ~frame["elegivel"].isin(_INCLUIDO_VALUES)
+        (frame["elegivel"] != "incluir")
         | (frame["motivo_exclusao"] != "")
     ]
     out = pd.DataFrame({

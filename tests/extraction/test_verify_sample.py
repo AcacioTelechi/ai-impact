@@ -42,15 +42,15 @@ def _mk_extraction(n_inc_pdf_alta=20, n_inc_pdf_baixa=10,
         })
 
     for _ in range(n_inc_pdf_alta):
-        add("sim", "", "pdf", 0.90, "")
+        add("incluir", "", "pdf", 0.90, "")
     for _ in range(n_inc_pdf_baixa):
-        add("sim", "", "pdf", 0.40, "")
+        add("incluir", "", "pdf", 0.40, "")
     for _ in range(n_inc_abs_media):
-        add("sim", "", "abstract", 0.70, "")
+        add("incluir", "", "abstract", 0.70, "")
     for _ in range(n_excl):
-        add("nao", "fora do escopo", "abstract", 0.80, "")
+        add("excluir", "fora do escopo", "abstract", 0.80, "")
     for _ in range(n_parse_fail):
-        add("sim", "", "abstract", 0.0, "parse_fail")
+        add("incluir", "", "abstract", 0.0, "parse_fail")
 
     p = (tmp_path or Path("/tmp")) / "06_extraction.csv"
     pd.DataFrame(rows).to_csv(p, index=False, encoding="utf-8")
@@ -106,20 +106,24 @@ def test_amostra_inclusoes_estratificada_com_piso(tmp_path):
 
 
 def test_idempotencia_snapshot(tmp_path):
-    """Se frame/sample já existem, nova chamada não muda nada."""
+    """Se frame/sample já existem, nova chamada não recomputa nem do extraction mudado."""
     from scripts.extraction import verify_sample as V
     ext = _mk_extraction(tmp_path=tmp_path)
     frame = tmp_path / "frame.csv"
     sample = tmp_path / "sample.csv"
     V.run(extraction=ext, frame=frame, sample=sample, seed=42)
     h1 = frame.read_bytes(), sample.read_bytes()
-    # Simula re-rodada do extract: muda nota_extracao em 2 linhas
+    n_frame_inicial = len(pd.read_csv(frame, encoding="utf-8", keep_default_na=False))
+    # Simula re-rodada do extract: 3 ex-parse_fail viram extração real.
+    # Se o frame NÃO fosse snapshot, ele aumentaria de 65 para 68 na 2ª chamada.
     df = pd.read_csv(ext, encoding="utf-8", keep_default_na=False)
     df.loc[df["nota_extracao"] == "parse_fail", "nota_extracao"] = ""
     df.to_csv(ext, index=False, encoding="utf-8")
     V.run(extraction=ext, frame=frame, sample=sample, seed=42)
     h2 = frame.read_bytes(), sample.read_bytes()
-    assert h1 == h2  # byte-idêntico
+    assert h1 == h2  # snapshot preservou bytes
+    n_frame_final = len(pd.read_csv(frame, encoding="utf-8", keep_default_na=False))
+    assert n_frame_final == n_frame_inicial == 65  # frame ficou nos 65, não foi para 68
 
 
 def test_seed_determinismo(tmp_path):
