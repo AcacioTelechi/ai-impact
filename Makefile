@@ -147,6 +147,36 @@ extract-llm:
 	    --output $(DATA_PROC)/06_extraction.csv \
 	    --cache $(DATA_PROC)/06_cache_extract.json
 
+.PHONY: verify-sample
+verify-sample:
+	$(PYTHON) -m scripts.extraction.verify_sample \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --frame $(DATA_PROC)/07_amostra_frame.csv \
+	    --sample $(DATA_PROC)/07_amostra_verificacao.csv
+
+.PHONY: verify-export
+verify-export: verify-sample
+	$(PYTHON) -m scripts.extraction.verify_export \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --corpus $(DATA_PROC)/03_incluidos_final.csv \
+	    --sample $(DATA_PROC)/07_amostra_verificacao.csv \
+	    --sheet-eleg $(DATA_PROC)/07_eleg_cega.csv \
+	    --sheet-aud $(DATA_PROC)/07_auditoria_campos.csv
+
+.PHONY: verify-ingest
+verify-ingest:
+	$(PYTHON) -m scripts.extraction.verify_ingest \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --sheet-eleg $(DATA_PROC)/07_eleg_cega.csv \
+	    --sheet-aud $(DATA_PROC)/07_auditoria_campos.csv \
+	    --kappa-table $(TAB_DIR)/verificacao_kappa.tex \
+	    --acuracia-table $(TAB_DIR)/verificacao_acuracia.tex \
+	    --annotated $(DATA_PROC)/07_verificacao_anotada.csv
+
+.PHONY: verify
+verify: verify-sample verify-export
+	@echo "Planilhas geradas em data/processed/07_*.csv. Preencha-as e rode 'make verify-ingest'."
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
@@ -161,6 +191,7 @@ prisma:
 	    --dedup-log $(DATA_PROC)/02_dedup_decisions.csv \
 	    --screening $(DATA_PROC)/03_screening_ta.csv \
 	    --eligibility $(DATA_PROC)/04_eligibility.csv \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
 	    --output $(FIG_DIR)/prisma_flow.tex
 
 .PHONY: screen
