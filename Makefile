@@ -154,6 +154,15 @@ verify-sample:
 	    --frame $(DATA_PROC)/07_amostra_frame.csv \
 	    --sample $(DATA_PROC)/07_amostra_verificacao.csv
 
+.PHONY: verify-export
+verify-export: verify-sample
+	$(PYTHON) -m scripts.extraction.verify_export \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --corpus $(DATA_PROC)/03_incluidos_final.csv \
+	    --sample $(DATA_PROC)/07_amostra_verificacao.csv \
+	    --sheet-eleg $(DATA_PROC)/07_eleg_cega.csv \
+	    --sheet-aud $(DATA_PROC)/07_auditoria_campos.csv
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
