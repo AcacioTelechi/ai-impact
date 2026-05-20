@@ -163,6 +163,20 @@ verify-export: verify-sample
 	    --sheet-eleg $(DATA_PROC)/07_eleg_cega.csv \
 	    --sheet-aud $(DATA_PROC)/07_auditoria_campos.csv
 
+.PHONY: verify-ingest
+verify-ingest:
+	$(PYTHON) -m scripts.extraction.verify_ingest \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --sheet-eleg $(DATA_PROC)/07_eleg_cega.csv \
+	    --sheet-aud $(DATA_PROC)/07_auditoria_campos.csv \
+	    --kappa-table $(TAB_DIR)/verificacao_kappa.tex \
+	    --acuracia-table $(TAB_DIR)/verificacao_acuracia.tex \
+	    --annotated $(DATA_PROC)/07_verificacao_anotada.csv
+
+.PHONY: verify
+verify: verify-sample verify-export
+	@echo "Planilhas geradas em data/processed/07_*.csv. Preencha-as e rode 'make verify-ingest'."
+
 .PHONY: fetch
 fetch:
 	$(PYTHON) -m scripts.screening.fetch_fulltext \
