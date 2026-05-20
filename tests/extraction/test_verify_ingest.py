@@ -1,6 +1,7 @@
 """Testes do verify_ingest: κ + acurácia + erros."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -96,8 +97,11 @@ def test_kappa_negativo_quando_humano_discorda(tmp_path):
     V.run(extraction=extr_p, sheet_eleg=eleg_p, sheet_aud=aud_p,
           kappa_table=kappa_t, acuracia_table=acur_t, annotated=ann)
     txt = kappa_t.read_text(encoding="utf-8")
-    # κ < 0 (com sinal negativo no LaTeX)
-    assert "-" in txt or "$-$" in txt
+    # κ negativo aparece como "= -<num>" no caption (não basta procurar "-",
+    # pois \label{tab:verificacao-kappa} também contém hífen).
+    m = re.search(r"\$\\kappa\$ de Cohen = (-?\d+\.\d{3})", txt)
+    assert m is not None, f"caption sem κ no formato esperado: {txt[:200]}"
+    assert float(m.group(1)) < 0, f"esperado κ<0, achei κ={m.group(1)}"
 
 
 def test_aborta_pendencias_eleg(tmp_path):

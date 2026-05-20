@@ -13,13 +13,10 @@ from pathlib import Path
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score, confusion_matrix
 
+from scripts.extraction.verify_export import CAMPOS_CRITICOS
 from scripts.screening.llm.batch_client import cache_key, custom_id
 from scripts.screening.revisao_ingest import normalize_decisao
 
-CAMPOS_CRITICOS = (
-    "pre_pos_chatgpt", "janela", "sinal_efeito",
-    "tipo_estudo", "polarizacao", "score_qualidade",
-)
 _LABELS = ["incluir", "excluir"]
 _VALID_AUD = {"ok", "erro"}
 
