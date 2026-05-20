@@ -191,6 +191,7 @@ prisma:
 	    --dedup-log $(DATA_PROC)/02_dedup_decisions.csv \
 	    --screening $(DATA_PROC)/03_screening_ta.csv \
 	    --eligibility $(DATA_PROC)/04_eligibility.csv \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
 	    --output $(FIG_DIR)/prisma_flow.tex
 
 .PHONY: screen
