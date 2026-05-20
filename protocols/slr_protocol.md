@@ -6,7 +6,7 @@
 **Autor:** Acacio
 **Orientador:** [a preencher]
 **Instituição:** [a preencher]
-**Versão do protocolo:** 1.1 (emenda 2026-05-17 — ver §7 e §11)
+**Versão do protocolo:** 1.2 (emenda 2026-05-19 — ver §7, §8 e §11)
 **Data do registro:** 2026-05-13
 
 ---
@@ -87,6 +87,13 @@ semestre). Ver `docs/superpowers/specs/2026-05-17-arbitragem-3o-llm-design.md`.
 Desvio declarado; mitigação e limitação reconhecida em §11. A ferramenta de
 revisão humana permanece disponível como auditoria alternativa.
 
+**Emenda 2026-05-19 (protocolo v1.2).** A etapa de elegibilidade (texto
+completo) e a extração dos 33 campos passaram a ser executadas pelo LLM
+(Claude Sonnet 4.6) — ver §8. A verificação humana amostral (κ humano×LLM
+para a elegibilidade, auditoria de acurácia por campo crítico) é descrita
+na nova subseção "Verificação humana amostral" de §8 e na limitação
+correspondente em §11.
+
 Diagrama PRISMA gerado automaticamente em `text/figures/prisma_flow.tex`.
 
 ## 8. Extração de dados
@@ -116,6 +123,25 @@ logo não foi recacheado como erro) e será tratado à parte na verificação hu
 — depende de recarga de crédito e está pendente; enquanto não ocorrer, esses
 registros permanecem sem extração e são declarados como tal.
 
+**Verificação humana amostral (Plano 4b-ii, 2026-05-19).** Uma amostra
+estratificada de aproximadamente 110 estudos dos 790 com extração real é
+verificada manualmente: **100% das exclusões** (≈ 34) e **~10% das inclusões**
+(≈ 76) estratificado por `text_source` × faixa de `confianca_extracao` (seed
+fixa 42, snapshot do quadro amostral em `07_amostra_frame.csv`). A
+elegibilidade é decidida **cega** (o revisor não vê a decisão do LLM) e
+produz **κ de Cohen humano×LLM** + concordância com IC Wilson 95%
+(`text/tables/verificacao_kappa.tex`). Os campos analiticamente centrais
+(`pre_pos_chatgpt`, `janela`, `sinal_efeito`, `tipo_estudo`, `polarizacao`,
+`score_qualidade`) são **auditados** (o revisor vê valor do LLM + fonte e
+marca ok/erro) e produzem **acurácia por campo** + IC Wilson 95%
+(`text/tables/verificacao_acuracia.tex`). Scripts em `scripts/extraction/
+verify_{sample,export,ingest}.py`. Por desenho, a verificação é **definitiva
+sobre os 790**: a re-rodada idempotente que recuperar os 61 estudos sem
+extração da 1ª rodada **não altera** as métricas reportadas (decisão
+declarada do protocolo; a amostra não é re-sorteada nem suplementada). O
+PRISMA permanece em modo interino enquanto houver pendentes de reextração e
+se torna definitivo automaticamente quando essa pendência for zerada.
+
 ## 9. Avaliação de qualidade
 
 Rubrica 1–5 em `quality_rubric.md`, aplicada na elegibilidade e revisada na extração.
@@ -142,6 +168,15 @@ Três camadas: (i) descritivas do corpus, (ii) síntese por janela temporal, (ii
   resposta da API e é tratado à parte na verificação humana): documentada e
   sanável por nova execução idempotente após recarga; cobertura full-text
   efetiva 14,2%.
+- **Verificação humana amostral, revisor único.** A validação foi feita por
+  um único revisor sobre ~110 estudos (100% das exclusões + ~10% das
+  inclusões estratificado). Mitigações: cegueira na elegibilidade (κ
+  legítimo); intervalos de confiança Wilson 95% reportados para concordância
+  e acurácia por campo; auditoria com fonte explícita (o revisor vê o que o
+  LLM viu). Limitação: estratos pequenos podem produzir ICs largos; a
+  auditoria de campos não é cega (mostra o valor do LLM antes da
+  classificação), o que pode ancorar o revisor — escolha consciente para
+  viabilizar a taxa de revisão em prazo.
 
 ## 12. Reprodutibilidade
 
