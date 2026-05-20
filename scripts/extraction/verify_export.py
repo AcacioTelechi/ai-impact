@@ -54,6 +54,13 @@ def _merge_preserve(fresh: pd.DataFrame, sheet: Path,
     if not sheet.exists():
         return fresh.reset_index(drop=True)
     prev = pd.read_csv(sheet, encoding="utf-8", keep_default_na=False)
+    _ids = prev["review_id"].astype(str).str.strip()
+    _dups = sorted(_ids[(_ids != "") & _ids.duplicated()].unique())
+    if _dups:
+        raise ValueError(
+            f"review_id duplicado em {sheet.name} — corrija no LibreOffice "
+            f"(cada linha deve ter um review_id único): {_dups}"
+        )
     prev_idx = prev.set_index("review_id")
     out = fresh.copy()
     for col in human_cols:
@@ -64,6 +71,33 @@ def _merge_preserve(fresh: pd.DataFrame, sheet: Path,
             return ""
         out[col] = out["review_id"].map(_prev)
     return out.reset_index(drop=True)
+
+
+def _load_prior_decided(sheet: Path) -> set[str]:
+    sp = _state_path(sheet)
+    if not sp.exists():
+        return set()
+    try:
+        data = json.loads(sp.read_text(encoding="utf-8"))
+        return set(data.get("decided_review_ids", []))
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"  ⚠ Aviso: estado anterior inválido em {sp} ({e}); "
+              f"detecção de perda ignorada nesta execução.")
+        return set()
+
+
+def _decided_eleg(df: pd.DataFrame) -> set[str]:
+    mask = df["decisao_humana"].astype(str).str.strip() != ""
+    return set(df.loc[mask, "review_id"].astype(str))
+
+
+def _decided_aud(df: pd.DataFrame) -> set[str]:
+    cols = [f"{c}_auditoria" for c in CAMPOS_CRITICOS]
+    mask = pd.Series(False, index=df.index)
+    for c in cols:
+        if c in df.columns:
+            mask = mask | (df[c].astype(str).str.strip() != "")
+    return set(df.loc[mask, "review_id"].astype(str))
 
 
 def _build_eleg_sheet(corpus: pd.DataFrame, extraction: pd.DataFrame,
@@ -163,8 +197,16 @@ def run(extraction: Path, corpus: Path, sample: Path,
         + [f"{c}_correto" for c in CAMPOS_CRITICOS] \
         + ["nota_auditoria"]
 
+    prior_e = _load_prior_decided(sheet_eleg)
+    prior_a = _load_prior_decided(sheet_aud)
+
     merged_eleg = _merge_preserve(fresh_eleg, sheet_eleg, eleg_human_cols)
     merged_aud = _merge_preserve(fresh_aud, sheet_aud, aud_human_cols)
+
+    cur_e = _decided_eleg(merged_eleg)
+    cur_a = _decided_aud(merged_aud)
+    lost_e = sorted(prior_e - cur_e)
+    lost_a = sorted(prior_a - cur_a)
 
     _backup(sheet_eleg, ts)
     _backup(sheet_aud, ts)
@@ -174,13 +216,19 @@ def run(extraction: Path, corpus: Path, sample: Path,
     merged_aud.to_csv(sheet_aud, index=False, encoding="utf-8")
 
     _state_path(sheet_eleg).write_text(
-        json.dumps({"exportado_em": ts, "n_linhas": len(merged_eleg)},
-                   ensure_ascii=False, indent=2),
+        json.dumps({
+            "exportado_em": ts,
+            "n_linhas": len(merged_eleg),
+            "decided_review_ids": sorted(cur_e),
+        }, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     _state_path(sheet_aud).write_text(
-        json.dumps({"exportado_em": ts, "n_linhas": len(merged_aud)},
-                   ensure_ascii=False, indent=2),
+        json.dumps({
+            "exportado_em": ts,
+            "n_linhas": len(merged_aud),
+            "decided_review_ids": sorted(cur_a),
+        }, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
@@ -188,6 +236,17 @@ def run(extraction: Path, corpus: Path, sample: Path,
     print(f"  → {sheet_eleg}\n  → {sheet_aud}")
     print("Instruções: auditoria ∈ {ok, erro}; vazio = pendente; "
           "correto = valor que deveria estar; nota_auditoria = comentário livre.")
+    if lost_e:
+        print(f"  ⚠ ATENÇÃO: {len(lost_e)} decisão(ões) de elegibilidade "
+              f"registradas no último export sumiram da planilha "
+              f"(review_id: {lost_e[:5]}{' …' if len(lost_e) > 5 else ''}). "
+              f"Backups em {sheet_eleg.parent}/{sheet_eleg.stem}.bak-*.csv — "
+              f"recupere de um anterior ao sumiço e re-exporte.")
+    if lost_a:
+        print(f"  ⚠ ATENÇÃO: {len(lost_a)} auditoria(s) de campos sumiram "
+              f"da planilha (review_id: {lost_a[:5]}{' …' if len(lost_a) > 5 else ''}). "
+              f"Backups em {sheet_aud.parent}/{sheet_aud.stem}.bak-*.csv — "
+              f"recupere de um anterior ao sumiço e re-exporte.")
 
 
 def _cli(argv: list[str]) -> int:

@@ -125,10 +125,17 @@ def test_merge_preserva_input_humano(tmp_path):
 
     df_e2 = pd.read_csv(eleg, encoding="utf-8", keep_default_na=False)
     df_a2 = pd.read_csv(aud, encoding="utf-8", keep_default_na=False)
-    assert df_e2.loc[df_e2["review_id"] == df_e.loc[0, "review_id"],
-                     "decisao_humana"].iloc[0] == "incluir"
-    assert df_a2.loc[df_a2["review_id"] == df_a.loc[0, "review_id"],
-                     "sinal_efeito_correto"].iloc[0] == "positivo"
+    # eleg: ambas colunas preservadas
+    rid_e = df_e.loc[0, "review_id"]
+    row_e2 = df_e2.loc[df_e2["review_id"] == rid_e].iloc[0]
+    assert row_e2["decisao_humana"] == "incluir"
+    assert row_e2["nota_humana"] == "comentário"
+    # aud: três colunas preservadas
+    rid_a = df_a.loc[0, "review_id"]
+    row_a2 = df_a2.loc[df_a2["review_id"] == rid_a].iloc[0]
+    assert row_a2["pre_pos_chatgpt_auditoria"] == "ok"
+    assert row_a2["sinal_efeito_auditoria"] == "erro"
+    assert row_a2["sinal_efeito_correto"] == "positivo"
 
 
 def test_backup_criado_em_re_export(tmp_path):
@@ -143,3 +150,48 @@ def test_backup_criado_em_re_export(tmp_path):
     backups_e = list(tmp_path.glob("eleg.bak-*.csv"))
     backups_a = list(tmp_path.glob("aud.bak-*.csv"))
     assert backups_e and backups_a
+
+
+def test_aborta_em_review_id_duplicado(tmp_path):
+    """Se a planilha prévia tem review_id duplicado, levanta ValueError listando."""
+    from scripts.extraction import verify_export as V
+    corpus, extr, sample = _mk_inputs(tmp_path)
+    eleg = tmp_path / "eleg.csv"
+    aud = tmp_path / "aud.csv"
+    V.run(extraction=extr, corpus=corpus, sample=sample,
+          sheet_eleg=eleg, sheet_aud=aud)
+    df_e = pd.read_csv(eleg, encoding="utf-8", keep_default_na=False)
+    # Simula edição que duplicou um review_id (acidente comum no LibreOffice).
+    dup = df_e.iloc[[0]].copy()
+    df_e2 = pd.concat([df_e, dup], ignore_index=True)
+    df_e2.to_csv(eleg, index=False, encoding="utf-8")
+    with pytest.raises(ValueError, match="review_id duplicado"):
+        V.run(extraction=extr, corpus=corpus, sample=sample,
+              sheet_eleg=eleg, sheet_aud=aud)
+
+
+def test_warning_quando_decisao_humana_some(tmp_path, capsys):
+    """Se uma decisao registrada no .state.json sumir da planilha, avisa."""
+    from scripts.extraction import verify_export as V
+    corpus, extr, sample = _mk_inputs(tmp_path)
+    eleg = tmp_path / "eleg.csv"
+    aud = tmp_path / "aud.csv"
+    V.run(extraction=extr, corpus=corpus, sample=sample,
+          sheet_eleg=eleg, sheet_aud=aud)
+    # Humano preenche 1 decisao na eleg.
+    df_e = pd.read_csv(eleg, encoding="utf-8", keep_default_na=False)
+    df_e.loc[0, "decisao_humana"] = "incluir"
+    df_e.to_csv(eleg, index=False, encoding="utf-8")
+    # Re-export para que .state.json registre a decisão.
+    V.run(extraction=extr, corpus=corpus, sample=sample,
+          sheet_eleg=eleg, sheet_aud=aud)
+    # Humano apaga a decisão acidentalmente.
+    df_e = pd.read_csv(eleg, encoding="utf-8", keep_default_na=False)
+    df_e.loc[0, "decisao_humana"] = ""
+    df_e.to_csv(eleg, index=False, encoding="utf-8")
+    # Re-export deve avisar.
+    V.run(extraction=extr, corpus=corpus, sample=sample,
+          sheet_eleg=eleg, sheet_aud=aud)
+    out = capsys.readouterr().out
+    assert "ATENÇÃO" in out
+    assert "elegibilidade" in out
