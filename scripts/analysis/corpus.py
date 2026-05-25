@@ -8,6 +8,9 @@ inteiro (não sobre o df filtrado) e NÃO formam uma partição disjunta com ``n
 ``n_pendentes`` = estudos ``incluir`` ainda sem extração (parse_fail, pendentes de
 re-rodada). Não mutar ``.df``: ele é compartilhado por referência entre os módulos
 de análise.
+
+``load_corpus`` também normaliza a coluna ``horizonte``, colapsando o drift de
+extração do LLM: "médio" → "médio prazo" e "longo" → "longo prazo".
 """
 from __future__ import annotations
 
@@ -19,6 +22,10 @@ import pandas as pd
 INCLUIDO = "incluir"
 PARSE_FAIL = "parse_fail"
 _NUMERICAS = ("score_qualidade", "magnitude_normalizada")
+
+# Drift de extração: o LLM emitiu "médio"/"longo" e "médio prazo"/"longo prazo"
+# para o mesmo horizonte. Colapsa nas formas com "prazo" (ver CANON em texkit).
+_HORIZONTE_NORM = {"médio": "médio prazo", "longo": "longo prazo"}
 
 
 @dataclass(frozen=True)
@@ -37,6 +44,10 @@ def load_corpus(path: Path) -> CorpusAnalise:
     for col in _NUMERICAS:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").astype("float64")
+    if "horizonte" in df.columns:
+        df["horizonte"] = (
+            df["horizonte"].astype(str).str.strip().replace(_HORIZONTE_NORM)
+        )
     return CorpusAnalise(
         df=df.reset_index(drop=True),
         n=int(len(df)),

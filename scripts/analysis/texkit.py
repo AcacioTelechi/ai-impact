@@ -14,8 +14,9 @@ CANON: dict[str, list[str]] = {
         "firma/freelancer",
         "teórico/modelo",
         "survey/revisão",
+        "indivíduo",
     ],
-    "horizonte": ["curto prazo", "médio", "longo", "projeção"],
+    "horizonte": ["curto prazo", "médio prazo", "longo prazo", "projeção"],
     "tecnologia_focada": [
         "automação",
         "ML/preditiva",
@@ -73,5 +74,5 @@ def tabela_booktabs(
     lines.append(r"\end{tabular}")
     if notas:
         for n in notas:
-            lines.append(r"\par\footnotesize{} " + n)
+            lines.append(r"\par{\footnotesize " + n + "}")
     return "\n".join(lines) + "\n"
