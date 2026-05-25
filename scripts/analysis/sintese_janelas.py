@@ -42,6 +42,7 @@ def _modal(df: pd.DataFrame, jan: str, col: str) -> str:
     classif = _classificados(df[df["janela"] == jan][col])
     if classif.empty:
         return "—"
+    # empate: idxmax devolve a 1ª categoria por ordem de ocorrência (CSV fixo => estável)
     return str(classif.value_counts().idxmax())
 
 
@@ -74,7 +75,7 @@ def _tabela(df: pd.DataFrame) -> str:
     rows.append(["Polarização predominante"] + [escape(_modal(df, j, "polarizacao")) for j in JANELAS])
     for mec, rotulo in MECANISMOS.items():
         pj = _pct_mec_por_janela(df, mec)
-        rows.append([f"% {rotulo}"] + [fmt_pct(pj[j]) for j in JANELAS])
+        rows.append([f"{rotulo} (\\%)"] + [fmt_pct(pj[j]) for j in JANELAS])
     return tabela_booktabs(
         "l" + "c" * len(JANELAS),
         header,

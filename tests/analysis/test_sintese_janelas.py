@@ -28,6 +28,10 @@ def test_tabela_tem_3_janelas_e_N(tmp_path):
     tex = out_tab.read_text(encoding="utf-8")
     assert "2013-2017" in tex and "2018-2022" in tex and "2022-2026" in tex
     assert "n=2" in tex  # janela 1 tem 2 estudos
+    # mecanismos devem RENDERIZAR (não começar a linha com %, que é comentário LaTeX)
+    assert "Deslocamento" in tex and "Complementaridade" in tex
+    for linha in tex.splitlines():
+        assert not linha.lstrip().startswith("%"), f"linha vira comentário LaTeX: {linha!r}"
     assert out_fig.exists() and out_fig.stat().st_size > 0
 
 
