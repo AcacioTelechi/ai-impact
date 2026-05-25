@@ -19,6 +19,9 @@ def _csv(tmp_path: Path) -> Path:
         # excluir -> fora
         {"elegivel": "excluir", "nota_extracao": "ok", "score_qualidade": "2",
          "magnitude_normalizada": "", "pre_pos_chatgpt": "pre"},
+        # excluir E parse_fail -> conta como excluído, NÃO como pendente
+        {"elegivel": "excluir", "nota_extracao": "parse_fail", "score_qualidade": "",
+         "magnitude_normalizada": "", "pre_pos_chatgpt": "pos"},
     ]
     p = tmp_path / "06_extraction.csv"
     pd.DataFrame(rows).to_csv(p, index=False, encoding="utf-8")
@@ -29,7 +32,7 @@ def test_filtra_incluidos_extraidos(tmp_path):
     c = load_corpus(_csv(tmp_path))
     assert c.n == 2
     assert c.n_pendentes == 1
-    assert c.n_excluidos == 1
+    assert c.n_excluidos == 2
     assert set(c.df["elegivel"]) == {"incluir"}
     assert "parse_fail" not in set(c.df["nota_extracao"])
 

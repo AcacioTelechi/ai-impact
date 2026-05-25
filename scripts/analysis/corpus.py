@@ -2,6 +2,12 @@
 
 Filtra 06_extraction.csv para os incluídos-e-extraídos:
 `elegivel == "incluir"` e `nota_extracao != "parse_fail"`.
+
+Os contadores ``n_pendentes`` e ``n_excluidos`` são calculados sobre o arquivo
+inteiro (não sobre o df filtrado) e NÃO formam uma partição disjunta com ``n``.
+``n_pendentes`` = estudos ``incluir`` ainda sem extração (parse_fail, pendentes de
+re-rodada). Não mutar ``.df``: ele é compartilhado por referência entre os módulos
+de análise.
 """
 from __future__ import annotations
 
@@ -34,6 +40,6 @@ def load_corpus(path: Path) -> CorpusAnalise:
     return CorpusAnalise(
         df=df.reset_index(drop=True),
         n=int(len(df)),
-        n_pendentes=int(parse_fail.sum()),
+        n_pendentes=int((incluidos & parse_fail).sum()),
         n_excluidos=int((raw["elegivel"] != INCLUIDO).sum()),
     )
