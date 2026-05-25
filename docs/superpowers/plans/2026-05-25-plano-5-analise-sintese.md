@@ -19,12 +19,15 @@
 - `scripts/analysis/stats.py` — `prop_por_periodo`, `assoc_chi2`, `assoc_fisher_2x2`, `wilson95`, `RESSALVA`, `NA_VALORES`.
 - `scripts/analysis/texkit.py` — `CANON`, `escape`, `fmt_pct`, `fmt_p`, `fmt_ci`, `tabela_booktabs`.
 - `scripts/analysis/sintese_janelas.py` — Cap 05 (figura + tabela).
-- `tests/analysis/__init__.py`
-- `tests/analysis/test_corpus.py`, `test_stats.py`, `test_texkit.py`, `test_descritivas.py`, `test_sintese_janelas.py`, `test_comparacao_pre_pos.py`
+- `tests/analysis/test_stats.py`, `test_texkit.py`, `test_sintese_janelas.py` (novos).
+- `tests/analysis/test_corpus.py` (novo, já criado na Task 1).
+- `tests/analysis/__init__.py` já existe (vazio, versionado) — não recriar.
 
 **Modificar (reescrever):**
 - `scripts/analysis/descritivas_corpus.py` — Cap 04 (4 figuras + 1 tabela), sobre corpus filtrado.
 - `scripts/analysis/comparacao_pre_pos.py` — Cap 06 (4 tabelas).
+- `tests/analysis/test_descritivas_corpus.py` — **já existe** testando a assinatura antiga `run(input, output_dir)`; será **sobrescrito** (Task 4) com os testes da nova assinatura. O teste antigo é descartado de propósito.
+- `tests/analysis/test_comparacao_pre_pos.py` — **já existe** testando `run(input, output_table)` e `compute(df)`; será **sobrescrito** (Task 6). `compute()` é removido com seus testes de propósito.
 - `Makefile` — `analysis` + `analysis-descritivas`/`analysis-janelas`/`analysis-prepos`.
 - `text/chapters/04_resultados_descritivas.tex`, `05_resultados_janelas.tex`, `06_comparacao_pre_pos.tex` — fiação dos novos artefatos.
 
@@ -561,12 +564,14 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 **Files:**
 - Modify (reescrever): `scripts/analysis/descritivas_corpus.py`
-- Test: `tests/analysis/test_descritivas.py`
+- Test (SOBRESCREVER conteúdo existente): `tests/analysis/test_descritivas_corpus.py`
+
+> Este arquivo de teste **já existe** com testes da assinatura antiga (`run(input, output_dir)`). Substitua TODO o conteúdo pelo abaixo (os testes antigos são descartados de propósito; a assinatura mudou).
 
 - [ ] **Step 1: Escrever os testes que falham**
 
 ```python
-# tests/analysis/test_descritivas.py
+# tests/analysis/test_descritivas_corpus.py
 import pandas as pd
 
 from scripts.analysis.descritivas_corpus import run
@@ -624,7 +629,7 @@ def test_determinismo_tex(tmp_path):
 
 - [ ] **Step 2: Rodar e ver falhar**
 
-Run: `source .venv/bin/activate && python -m pytest tests/analysis/test_descritivas.py -v`
+Run: `source .venv/bin/activate && python -m pytest tests/analysis/test_descritivas_corpus.py -v`
 Expected: FAIL — `TypeError`/assinatura antiga de `run` (a versão atual recebe `output_dir`, não a tabela) ou `ImportError`.
 
 - [ ] **Step 3: Reescrever `descritivas_corpus.py`**
@@ -740,13 +745,13 @@ if __name__ == "__main__":
 
 - [ ] **Step 4: Rodar e ver passar**
 
-Run: `source .venv/bin/activate && python -m pytest tests/analysis/test_descritivas.py -v`
+Run: `source .venv/bin/activate && python -m pytest tests/analysis/test_descritivas_corpus.py -v`
 Expected: PASS (2 passed)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add scripts/analysis/descritivas_corpus.py tests/analysis/test_descritivas.py
+git add scripts/analysis/descritivas_corpus.py tests/analysis/test_descritivas_corpus.py
 git commit -m "feat(plano-5): descritivas_corpus — Cap 04 sobre corpus filtrado (4 figs + tabela)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -942,7 +947,9 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 **Files:**
 - Modify (reescrever): `scripts/analysis/comparacao_pre_pos.py`
-- Test: `tests/analysis/test_comparacao_pre_pos.py`
+- Test (SOBRESCREVER conteúdo existente): `tests/analysis/test_comparacao_pre_pos.py`
+
+> Este arquivo de teste **já existe** com testes da assinatura antiga (`run(input, output_table)`) e da função `compute(df)`. Substitua TODO o conteúdo pelo abaixo. A função `compute()` é removida do módulo de propósito (era do stub) — não a reintroduza.
 
 - [ ] **Step 1: Escrever os testes que falham**
 
@@ -1363,7 +1370,7 @@ Expected: `OK` para os 6 (tabelas byte-idênticas entre rodadas).
 - [ ] **Step 8: Rodar a suíte completa**
 
 Run: `source .venv/bin/activate && python -m pytest -q`
-Expected: todos verdes (225 anteriores + ~21 novos de `tests/analysis/`).
+Expected: todos verdes. `tests/analysis/` passa de 3 testes antigos (descritivas+comparacao stubs, substituídos) para ~21 (corpus 2, stats 5, texkit 6, descritivas 2, sintese 2, comparacao 4); total da suíte ≈ 243.
 
 - [ ] **Step 9: Commit**
 
