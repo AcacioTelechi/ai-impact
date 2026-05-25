@@ -39,7 +39,7 @@ def test_gera_4_figuras_e_tabela(tmp_path):
     tex = (tabdir / "descritivas_corpus.tex").read_text(encoding="utf-8")
     assert r"\toprule" in tex
     # N descritivo = 3 incluídos-extraídos (exclui o excluir e o parse_fail)
-    assert "3" in tex
+    assert "N=3" in tex
     # ano de estudo excluído não vaza para a tabela
     assert "1999" not in tex
 

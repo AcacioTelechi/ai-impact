@@ -58,20 +58,24 @@ def _linha_freq(rotulo: str, n: int, total: int) -> list[str]:
 def _tabela_estrutural(df: pd.DataFrame, total: int) -> str:
     rows: list[list[str]] = []
     for col in ("tipo_pub", "revisado_por_pares", "metodo_empirico"):
-        ordem = CANON.get(col)
-        cats = ordem if ordem else df[col].value_counts().index.tolist()
-        for cat in cats:
-            n = int((df[col] == cat).sum())
+        vals = df[col].fillna("").astype(str).str.strip()
+        for cat in CANON[col]:
+            n = int((vals == cat).sum())
             if n:
                 rows.append(_linha_freq(f"{col}: {cat}", n, total))
-    top_pais = df["pais_estudo"].replace("", pd.NA).dropna().value_counts().head(5)
+        n_na = int((vals == "").sum())
+        if n_na:
+            rows.append(_linha_freq(f"{col}: (não especificado)", n_na, total))
+    top_pais = df["pais_estudo"].fillna("").astype(str).str.strip()
+    top_pais = top_pais[top_pais != ""].value_counts().head(5)
     for pais, n in top_pais.items():
         rows.append(_linha_freq(f"país: {pais}", int(n), total))
     return tabela_booktabs(
         "lrr",
         ["Atributo", "n", r"\%"],
         rows,
-        notas=[f"Corpus de análise: N={total} estudos incluídos e extraídos."],
+        notas=[f"Corpus de análise: N={total} estudos incluídos e extraídos. "
+               "Percentuais sobre N."],
     )
 
 

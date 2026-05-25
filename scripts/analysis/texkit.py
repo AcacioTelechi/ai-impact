@@ -17,6 +17,10 @@ CANON: dict[str, list[str]] = {
         "indivíduo",
     ],
     "horizonte": ["curto prazo", "médio prazo", "longo prazo", "projeção"],
+    "metodo_empirico": [
+        "OLS", "IV", "DiD", "RDD", "evento-estudo", "estrutural",
+        "ML", "experimento/survey experimental", "modelo teórico", "descritivo",
+    ],
     "tecnologia_focada": [
         "automação",
         "ML/preditiva",
