@@ -72,3 +72,28 @@ def test_wilson95_valor_conhecido():
 def test_ressalva_menciona_nao_amostra():
     assert "amostra" in RESSALVA.lower()
     assert "explorat" in RESSALVA.lower()
+
+
+def test_chi2_low_expected_em_celulas_pequenas():
+    df = pd.DataFrame(
+        {
+            "pre_pos_chatgpt": ["pre", "pre", "pre", "pos", "pos", "pos"],
+            "polarizacao": [
+                "baixa-quali em risco", "baixa-quali em risco", "alta-quali em risco",
+                "baixa-quali em risco", "alta-quali em risco", "alta-quali em risco",
+            ],
+        }
+    )
+    res = assoc_chi2(prop_por_periodo(df, "polarizacao"))
+    assert res.low_expected is True
+
+
+def test_chi2_periodo_sem_classificados_levanta():
+    df = pd.DataFrame(
+        {
+            "pre_pos_chatgpt": ["pre", "pre", "pos"],
+            "polarizacao": ["n/a", "n/a", "baixa-quali em risco"],
+        }
+    )
+    with pytest.raises(ValueError, match="sem linhas classificadas"):
+        assoc_chi2(prop_por_periodo(df, "polarizacao"))

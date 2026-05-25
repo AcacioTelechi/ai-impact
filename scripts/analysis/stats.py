@@ -16,6 +16,7 @@ RESSALVA = (
     "O corpus é o censo dos estudos incluídos, não uma amostra aleatória; "
     "os testes de associação devem ser lidos como exploratórios."
 )
+_Z95 = 1.959963984540054  # scipy.stats.norm.ppf(0.975)
 
 
 def _norm(serie: pd.Series) -> pd.Series:
@@ -64,9 +65,16 @@ class ChiResult:
 
 
 def assoc_chi2(prop: PropResult) -> ChiResult:
+    vazios = [per for per, n in prop.n_classif.items() if n == 0]
+    if vazios:
+        raise ValueError(
+            f"assoc_chi2: período(s) sem linhas classificadas: {vazios}. "
+            "Toda categoria foi n/a; não há tabela de contingência."
+        )
     cats = sorted({c for per in prop.counts for c in prop.counts[per]})
     table = [[prop.counts[per].get(c, 0) for c in cats] for per in prop.counts]
-    # remove colunas inteiramente nulas (categorias ausentes nos dois períodos)
+    # remove categorias ausentes nos dois períodos (defensivo: value_counts não
+    # gera zeros, mas PropResult pode ser construído manualmente)
     table = [list(col) for col in zip(*table)]               # transpõe -> cats x periodos
     table = [row for row in table if sum(row) > 0]
     table = [list(col) for col in zip(*table)]               # volta -> periodos x cats
@@ -108,8 +116,8 @@ def assoc_fisher_2x2(
 
 def wilson95(k: int, n: int) -> tuple[float, float]:
     if n == 0:
-        return (0.0, 0.0)
-    z = 1.959963984540054
+        return (0.0, 0.0)  # indefinido: denominador zero
+    z = _Z95
     phat = k / n
     denom = 1 + z * z / n
     centre = phat + z * z / (2 * n)
