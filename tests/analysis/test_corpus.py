@@ -43,3 +43,18 @@ def test_coage_numericos(tmp_path):
     # vazio vira NaN
     assert c.df["magnitude_normalizada"].isna().sum() == 1
     assert pytest.approx(c.df["magnitude_normalizada"].dropna().iloc[0]) == 0.12
+
+
+def test_normaliza_horizonte(tmp_path):
+    rows = [
+        {"elegivel": "incluir", "nota_extracao": "ok", "horizonte": "médio",
+         "score_qualidade": "3", "magnitude_normalizada": ""},
+        {"elegivel": "incluir", "nota_extracao": "ok", "horizonte": "longo",
+         "score_qualidade": "3", "magnitude_normalizada": ""},
+        {"elegivel": "incluir", "nota_extracao": "ok", "horizonte": "curto prazo",
+         "score_qualidade": "3", "magnitude_normalizada": ""},
+    ]
+    p = tmp_path / "06_extraction.csv"
+    pd.DataFrame(rows).to_csv(p, index=False, encoding="utf-8")
+    h = set(load_corpus(p).df["horizonte"])
+    assert h == {"médio prazo", "longo prazo", "curto prazo"}

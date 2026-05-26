@@ -42,9 +42,10 @@ DIM_LABEL = {
 def _linhas_dim(df: pd.DataFrame, dim: str) -> list[list[str]]:
     prop = prop_por_periodo(df, dim)
     chi = assoc_chi2(prop)
+    chi2_str = f"{chi.chi2:.2f}".replace(".", "{,}")
     cab = [
         DIM_LABEL[dim]
-        + f" — $\\chi^2={chi.chi2:.2f}$, $\\mathrm{{gl}}={chi.dof}$, " + fmt_p(chi.p)
+        + f" — $\\chi^2={chi2_str}$, $\\mathrm{{gl}}={chi.dof}$, " + fmt_p(chi.p)
         + (" (células esperadas <5)" if chi.low_expected else ""),
         "", "",
     ]
@@ -96,7 +97,7 @@ def _tabela_polarizacao(df: pd.DataFrame) -> str:
         "lcc",
         ["Polarização", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
         rows,
-        notas=[f"Fisher exato: razão de chances $={f.odds_ratio:.2f}$, " + fmt_p(f.p)
+        notas=[f"Fisher exato: razão de chances $={f.odds_ratio:.2f}$".replace(".", "{,}") + ", " + fmt_p(f.p)
                + "; IC Wilson 95\\% entre colchetes.", RESSALVA],
     )
 

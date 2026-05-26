@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 
 from scripts.analysis.comparacao_pre_pos import run
@@ -40,6 +42,8 @@ def test_tabela_central_tem_p_e_ressalva(tmp_path):
     assert "$p" in tex                  # algum p-valor
     assert "amostra" in tex.lower()     # ressalva injetada
     _no_comment_lines(tex)
+    # χ² em vírgula pt-BR (não ponto) dentro de math mode
+    assert not re.search(r"\\chi\^2=\d+\.\d", tex)
 
 
 def test_polarizacao_2x2_com_fisher_e_wilson(tmp_path):
@@ -48,6 +52,8 @@ def test_polarizacao_2x2_com_fisher_e_wilson(tmp_path):
     assert "Fisher" in tex
     assert "[" in tex and ";" in tex    # IC Wilson formatado
     _no_comment_lines(tex)
+    # razão de chances em vírgula pt-BR
+    assert not re.search(r"razão de chances \$=\d+\.\d", tex)
 
 
 def test_robustez_usa_score_ge_4(tmp_path):
