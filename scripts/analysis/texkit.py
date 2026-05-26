@@ -53,7 +53,7 @@ def fmt_pct(x: float) -> str:
 def fmt_p(p: float) -> str:
     if p < 0.001:
         return r"$p<0{,}001$"
-    return ("$p=" + f"{p:.3f}".replace(".", "{,}") + "$")
+    return ("$p=" + f"{p:.4f}".replace(".", "{,}") + "$")
 
 
 def fmt_ci(low: float, high: float) -> str:

@@ -18,7 +18,7 @@ def test_fmt_pct_virgula_pt_br():
 
 def test_fmt_p_ramos():
     assert fmt_p(0.0004) == r"$p<0{,}001$"
-    assert fmt_p(0.042) == r"$p=0{,}042$"
+    assert fmt_p(0.042) == r"$p=0{,}0420$"
 
 
 def test_fmt_ci():

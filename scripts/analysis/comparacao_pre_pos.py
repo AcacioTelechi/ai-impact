@@ -14,7 +14,6 @@ import pandas as pd
 from scripts.analysis.corpus import load_corpus
 from scripts.analysis.stats import (
     RESSALVA,
-    _classificados,
     assoc_chi2,
     assoc_fisher_2x2,
     prop_por_periodo,
@@ -45,7 +44,7 @@ def _linhas_dim(df: pd.DataFrame, dim: str) -> list[list[str]]:
     chi = assoc_chi2(prop)
     cab = [
         DIM_LABEL[dim]
-        + f" — $\\chi^2={chi.chi2:.2f}$, gl$={chi.dof}$, " + fmt_p(chi.p)
+        + f" — $\\chi^2={chi.chi2:.2f}$, $\\mathrm{{gl}}={chi.dof}$, " + fmt_p(chi.p)
         + (" (células esperadas <5)" if chi.low_expected else ""),
         "", "",
     ]
@@ -77,7 +76,7 @@ def _tabela_central(df: pd.DataFrame, n_pre: int, n_pos: int) -> str:
         "lcc",
         ["Dimensão / categoria", f"Pré (n={n_pre})", f"Pós (n={n_pos})"],
         rows,
-        notas=[RESSALVA, "Proporções calculadas sobre os estudos que classificaram cada dimensão (n/a fora do denominador)."],
+        notas=[RESSALVA, "Proporções calculadas sobre os estudos que classificaram cada dimensão (n/a fora do denominador); o denominador varia por linha."],
     )
 
 
@@ -118,6 +117,7 @@ def _tabela_robustez(df: pd.DataFrame) -> str:
         ["Polarização (score$\\geq$4)", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
         rows,
         notas=[f"Subconjunto de robustez: estudos com score de qualidade $\\geq 4$. "
+               f"$n$ é o número com polarização classificada nesse subconjunto (n/a fora). "
                f"Fisher exato: " + fmt_p(f.p) + ". Células pequenas; leitura cautelosa.",
                RESSALVA],
     )

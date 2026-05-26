@@ -53,6 +53,7 @@ def test_polarizacao_2x2_com_fisher_e_wilson(tmp_path):
 def test_robustez_usa_score_ge_4(tmp_path):
     tex = (_run(tmp_path) / "robustez_qualidade.tex").read_text(encoding="utf-8")
     assert "score" in tex.lower() and "4" in tex
+    assert "n=12" in tex  # 2 linhas pré com score 3 foram excluídas (senão n=14)
     _no_comment_lines(tex)
 
 
