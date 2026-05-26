@@ -207,14 +207,25 @@ extract:
 validate:
 	$(PYTHON) -m scripts.extraction.validate $(DATA_PROC)/06_extraction.csv
 
-.PHONY: analysis
-analysis:
+.PHONY: analysis analysis-descritivas analysis-janelas analysis-prepos
+analysis: analysis-descritivas analysis-janelas analysis-prepos
+
+analysis-descritivas:
 	$(PYTHON) -m scripts.analysis.descritivas_corpus \
 	    --input $(DATA_PROC)/06_extraction.csv \
-	    --output-dir $(FIG_DIR)
+	    --output-dir $(FIG_DIR) \
+	    --output-table $(TAB_DIR)/descritivas_corpus.tex
+
+analysis-janelas:
+	$(PYTHON) -m scripts.analysis.sintese_janelas \
+	    --input $(DATA_PROC)/06_extraction.csv \
+	    --output-table $(TAB_DIR)/sintese_janelas.tex \
+	    --output-fig $(FIG_DIR)/mecanismos_janela.pdf
+
+analysis-prepos:
 	$(PYTHON) -m scripts.analysis.comparacao_pre_pos \
 	    --input $(DATA_PROC)/06_extraction.csv \
-	    --output-table $(TAB_DIR)/comparacao_pre_pos.tex
+	    --output-dir $(TAB_DIR)
 
 # ============ LaTeX ============
 
