@@ -74,7 +74,7 @@ def _tabela_central(df: pd.DataFrame, n_pre: int, n_pos: int) -> str:
             fmt_pct(f.k_pos / f.n_pos if f.n_pos else 0.0),
         ])
     return tabela_booktabs(
-        "lcc",
+        "p{8.4cm}cc",
         ["Dimensão / categoria", f"Pré (n={n_pre})", f"Pós (n={n_pos})"],
         rows,
         notas=[RESSALVA, "Proporções calculadas sobre os estudos que classificaram cada dimensão (n/a fora do denominador); o denominador varia por linha."],

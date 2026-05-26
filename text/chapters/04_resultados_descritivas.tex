@@ -1,8 +1,29 @@
 \section{Resultados I --- Descritivas do corpus}\label{cap:descritivas}
 
+Este capítulo caracteriza o corpus de análise antes de passar à síntese
+substantiva. Das 852 entradas que percorreram a extração estruturada, 756
+constituem o conjunto efetivamente analisável --- estudos marcados como
+elegíveis e com extração bem-sucedida. Excluem-se 34 registros inelegíveis e 62
+cujo conteúdo não pôde ser extraído na primeira rodada (\textit{parse fail}),
+dos quais 61 aguardam reextração e são reportados como limitação no capítulo de
+considerações finais. Salvo indicação em contrário, os percentuais deste e dos
+próximos capítulos têm como base esse $N = 756$, e as proporções de cada
+dimensão são calculadas apenas sobre os estudos que a classificaram (valores
+não informados ficam fora do denominador).
+
 \subsection{Volume e evolução temporal}
 
-\begin{figure}[h]
+A Figura~\ref{fig:corpus_anos} mostra que o corpus se concentra fortemente no
+período recente: 587 dos 756 estudos (77,6\%) foram publicados a partir de
+2022, com pico em 2025 (240 estudos) e em 2024 (124); os 113 registros de 2026
+correspondem a publicações em \textit{early access}. A produção anterior a 2018
+é residual (o estudo mais antigo do corpus é de 2015). Esse perfil é, em si, um
+primeiro achado: o interesse econômico pela relação entre inteligência
+artificial e emprego acelera acentuadamente após a difusão dos modelos
+generativos, refletindo tanto o aumento de submissões quanto a janela de busca
+estendida a meados de 2026.
+
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/corpus_anos.pdf}
 \caption{Distribuição do corpus por ano de publicação.}
@@ -11,7 +32,16 @@
 
 \subsection{Distribuição por janela temporal}
 
-\begin{figure}[h]
+Agrupando os estudos nas três janelas de interesse
+(Figura~\ref{fig:corpus_janelas}), observam-se 25 estudos na janela da
+automação (\janelaUm{}), 288 na janela de \textit{machine learning} e
+\textit{deep learning} (\janelaDois{}) e 443 na janela da IA generativa
+(\janelaTres{}). Esta última concentra 58,6\% do corpus, o que condiciona a
+leitura comparativa dos capítulos seguintes: o peso da evidência recente é
+grande, e a comparação pré/pós-ChatGPT deve ser interpretada à luz desse
+desbalanceamento amostral.
+
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\linewidth]{figures/corpus_janelas.pdf}
 \caption{Corpus por janela temporal.}
@@ -20,7 +50,16 @@
 
 \subsection{Tipos de estudo}
 
-\begin{figure}[h]
+Quanto ao tipo de evidência (Figura~\ref{fig:corpus_tipos}), predominam os
+estudos de evidência macro/setorial (202) e as revisões e \textit{surveys}
+(178), seguidos por trabalhos teóricos e de modelagem (137), estudos de
+exposição ocupacional (119) e análises de firma ou de plataformas de
+\textit{freelancers} (114). A heterogeneidade de desenhos --- de exercícios de
+exposição baseados em medidas como o índice de Felten a estudos de plataformas
+de trabalho \textit{online} --- justifica a opção metodológica por uma síntese
+narrativo-estruturada, e não meta-analítica.
+
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/corpus_tipo_estudo.pdf}
 \caption{Tipos de estudo no corpus.}
@@ -29,7 +68,17 @@
 
 \subsection{Tecnologia de IA focada}
 
-\begin{figure}[h]
+A Figura~\ref{fig:corpus_tecnologia} distribui o corpus pela tecnologia de IA em
+foco. A maior parte dos estudos trata a IA de forma genérica (294) ou foca a
+automação clássica (229) e a combinação de robôs e IA (153). A IA generativa e
+os \textit{LLMs} aparecem explicitamente em 52 estudos, e as abordagens
+preditivas de \textit{machine learning} em 25. Vale notar que a presença ainda
+modesta da rotulagem ``IA generativa'' não contradiz a concentração temporal
+recente: muitos estudos publicados após 2022 seguem analisando a automação e a
+IA de modo amplo, e apenas uma fração nomeia diretamente os modelos generativos
+como objeto.
+
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/corpus_tecnologia.pdf}
 \caption{Distribuição do corpus por tecnologia de IA focada.}
@@ -38,7 +87,20 @@
 
 \subsection{Atributos estruturais}
 
-\begin{table}[h]
+A Tabela~\ref{tab:descritivas_estrutural} resume atributos estruturais do
+corpus. A maior parte são artigos de periódico (77,1\%) e 86,1\% são revisados
+por pares, o que sustenta a qualidade editorial mínima do conjunto. Quanto à
+estratégia empírica, predomina a análise descritiva (44,6\%), seguida de
+regressões por MQO (14,4\%), modelos estruturais (9,9\%), modelos teóricos
+(9,8\%) e variáveis instrumentais (9,3\%); desenhos quasi-experimentais mais
+exigentes em identificação causal (diferenças-em-diferenças, RDD, estudo de
+evento) somam menos de 5\%. Geograficamente, quase metade dos estudos é
+multipaís (46,4\%), com a China (14,4\%) e os Estados Unidos à frente entre os
+países isolados. Esse predomínio do descritivo sobre o identificado deve ser
+mantido em vista na leitura dos achados de magnitude
+(Seção~\ref{cap:comparacao}) e reaparece na análise de robustez por qualidade.
+
+\begin{table}[htbp]
 \centering
 \caption{Atributos estruturais do corpus de análise.}
 \label{tab:descritivas_estrutural}

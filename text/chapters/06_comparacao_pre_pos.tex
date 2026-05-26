@@ -1,6 +1,19 @@
 \section{Resultados III --- Comparação pré/pós-ChatGPT}\label{cap:comparacao}
 
-\begin{table}[h]
+Este é o capítulo central da revisão. Ele compara, dimensão a dimensão, os 329
+estudos publicados antes do lançamento do ChatGPT (pivô em 30 de novembro de
+2022) com os 427 estudos posteriores, conforme a Tabela~\ref{tab:comparacao}. A
+hipótese de trabalho sustenta que a literatura pré-ChatGPT convergia para a
+polarização com risco em tarefas rotineiras de baixa qualificação, ao passo que
+a literatura pós-ChatGPT deslocaria o risco para tarefas cognitivas de alta
+qualificação. Antes de discutir os eixos, é preciso fixar a natureza dos testes:
+o corpus é o \emph{censo} dos estudos incluídos, não uma amostra aleatória de
+uma população; os valores-$p$ de associação ($\chi^2$ e Fisher exato) são, por
+isso, lidos como medidas exploratórias de associação, e não como inferência
+populacional. Todas as proporções excluem do denominador os estudos que não
+classificaram a dimensão.
+
+\begin{table}[htbp]
 \centering
 \caption{Comparação pareada de dimensões pré e pós-ChatGPT.}
 \label{tab:comparacao}
@@ -9,14 +22,35 @@
 
 \subsection{Eixo 1: Quem está em risco}
 
-\begin{table}[h]
+O eixo que testa diretamente a hipótese é a polarização
+(Tabela~\ref{tab:polarizacao_prepos}). A participação de estudos que situam o
+risco nas ocupações de \emph{alta} qualificação quase dobra entre os períodos:
+de 7,1\% (IC Wilson 95\%: [4,3; 11,3]) no pré para 12,9\% ([9,4; 17,4]) no pós,
+com razão de chances de Fisher de 0,52 e $p = 0{,}0496$. A direção é a prevista
+pela hipótese, e o resultado tangencia o limiar convencional de 5\%.
+
+Dois qualificadores, porém, impõem cautela. Primeiro, considerada a distribuição
+\emph{completa} da polarização (Tabela~\ref{tab:comparacao}), a associação com o
+período não é significativa ($\chi^2 = 4{,}37$, $p = 0{,}2242$): a categoria
+modal continua sendo o risco para a \emph{baixa} qualificação nos dois períodos
+(58,5\% no pré, 55,5\% no pós), e a categoria ``ambos'' mantém peso elevado
+(33,0\% e 30,1\%). Segundo, quando se restringe a análise aos estudos de maior
+qualidade metodológica (\textit{score} $\geq 4$, Tabela~\ref{tab:robustez_qualidade}),
+a elevação do risco para alta qualificação persiste em direção (7,0\% para
+11,3\%), mas perde significância ($p = 0{,}5172$, com células pequenas). A
+leitura honesta é, portanto, de \emph{ruptura parcial}: o enquadramento do risco
+para tarefas cognitivas de alta qualificação cresce de forma perceptível após o
+ChatGPT, mas não desloca o diagnóstico de polarização herdado, e o sinal
+enfraquece justamente entre os trabalhos mais bem identificados.
+
+\begin{table}[htbp]
 \centering
 \caption{Foco da hipótese: risco para alta qualificação, pré vs.\ pós-ChatGPT.}
 \label{tab:polarizacao_prepos}
 \input{tables/polarizacao_pre_pos.tex}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \caption{Robustez: polarização restrita a estudos de alta qualidade (score $\geq$ 4).}
 \label{tab:robustez_qualidade}
@@ -24,9 +58,42 @@
 \end{table}
 
 \subsection{Eixo 2: Qual o mecanismo}
+
+Entre os quatro mecanismos do arcabouço de Acemoglu e Restrepo, apenas um exibe
+deslocamento estatisticamente claro entre os períodos: a
+\emph{complementaridade}, que sobe de 60,4\% para 74,4\% dos estudos
+($p < 0{,}001$). O \emph{deslocamento} permanece o mecanismo mais invocado em
+ambos os períodos (89,7\% e 86,4\%), com variação não significativa
+($p = 0{,}1805$), e tampouco a reinstalação ($p = 0{,}3348$) ou a demanda
+agregada ($p = 0{,}1076$) mudam de forma robusta. A leitura é convergente com a
+síntese por janela (Capítulo~\ref{cap:janelas}): a literatura pós-ChatGPT não
+abandona a tese da substituição, mas passa a enfatizar com mais frequência a
+complementaridade entre humanos e IA --- a ideia de que a tecnologia amplia
+capacidades e cria novas tarefas, e não apenas elimina as existentes.
+
 \subsection{Eixo 3: Como se mede}
 
-\begin{table}[h]
+A forma de medir o efeito também se transforma. O tipo de evidência muda de
+maneira marcada ($\chi^2 = 47{,}16$, $p < 0{,}001$, Tabela~\ref{tab:comparacao}):
+recuam os estudos de exposição ocupacional (21,3\% para 11,5\%) e de evidência
+macro/setorial (31,9\% para 22,7\%), enquanto crescem as revisões e
+\textit{surveys} (15,5\% para 29,7\%) e os estudos de firma e de plataformas de
+\textit{freelancers} (9,7\% para 19,2\%). A nova onda de evidência empírica
+sobre IA generativa apoia-se fortemente em experimentos e dados de firmas e
+mercados de trabalho \textit{online}.
+
+A magnitude dos efeitos, contudo, permanece pouco comparável
+(Tabela~\ref{tab:magnitude_cobertura}). Apenas 14,6\% dos estudos do pré e
+12,2\% do pós reportam um efeito normalizável; entre esses, a mediana da
+magnitude normalizada passa de 0,123 para 0,187, mas as faixas são amplas e as
+unidades, heterogêneas. Coerentemente com o desenho narrativo-estruturado e não
+meta-analítico, não se agregam (\textit{pooling}) essas magnitudes nem se aplica
+teste de hipótese sobre elas; o sinal qualitativo permanece o eixo principal de
+síntese. Essa baixa cobertura, somada ao predomínio de desenhos descritivos
+documentado no Capítulo~\ref{cap:descritivas}, é uma limitação substantiva do
+estado atual da literatura, não apenas desta revisão.
+
+\begin{table}[htbp]
 \centering
 \caption{Cobertura e descritivo da magnitude normalizada, pré vs.\ pós-ChatGPT.}
 \label{tab:magnitude_cobertura}
@@ -34,5 +101,40 @@
 \end{table}
 
 \subsection{Eixo 4: O que se sabe vs. o que se projeta}
+
+O horizonte dos achados se encurta após o ChatGPT ($\chi^2 = 11{,}07$,
+$p = 0{,}0114$): os estudos de curto prazo dobram de participação (5,2\% para
+10,1\%) e as projeções de longo alcance recuam (de 6,7\% para 3,8\%, e o longo
+prazo de 34,3\% para 28,7\%). A literatura recente é, nesse sentido, menos
+especulativa e mais ancorada em efeitos observáveis no presente. No mesmo
+sentido aponta o sinal sobre o emprego ($\chi^2 = 8{,}14$, $p = 0{,}0432$): o
+sinal ``negativo'' recua (29,1\% para 20,8\%) e o ``ambíguo'' avança (57,2\%
+para 63,4\%). Em vez de um veredito mais alarmista, a evidência pós-ChatGPT é,
+no agregado, \emph{mais ambivalente} quanto ao saldo de empregos.
+
 \subsection{Continuidades}
+
+Quatro elementos não se alteram de forma significativa e constituem o núcleo de
+continuidade entre os dois períodos: (i) o sinal predominante sobre o emprego é
+ambíguo antes e depois; (ii) a categoria modal de polarização continua sendo o
+risco para a baixa qualificação; (iii) o deslocamento permanece o mecanismo mais
+mobilizado; e (iv) a participação do risco para alta qualificação, embora cresça,
+não se torna dominante e perde robustez no subconjunto de maior qualidade. A tese
+da polarização e a centralidade do efeito-substituição, herdadas da era da
+automação, sobrevivem à chegada da IA generativa.
+
 \subsection{Rupturas}
+
+As rupturas, todas estatisticamente sustentadas no nível exploratório adotado,
+são de \emph{ênfase} mais do que de \emph{veredito}: cresce a complementaridade
+entre humanos e IA como mecanismo ($p < 0{,}001$); o tipo de evidência migra da
+exposição ocupacional e da macroeconomia para \textit{surveys} e estudos de
+firma/\textit{freelancer} ($p < 0{,}001$); o horizonte se encurta
+($p = 0{,}0114$); e o sinal torna-se mais ambivalente, com menos achados
+abertamente negativos ($p = 0{,}0432$). Some-se a essas a elevação --- no limiar
+da significância --- do risco atribuído à alta qualificação. O retrato que emerge
+não é o de uma inversão do consenso anterior, mas o de um \emph{deslocamento
+parcial de foco}: a IA generativa amplia o conjunto de ocupações sob escrutínio
+e desloca o tom da discussão da substituição para a complementaridade e a
+ambivalência, sem revogar o diagnóstico de polarização que a literatura vinha
+construindo desde a era da automação.
