@@ -228,6 +228,30 @@ analysis-prepos:
 	    --input $(DATA_PROC)/06_extraction.csv \
 	    --output-dir $(TAB_DIR)
 
+.PHONY: biblio biblio-refs biblio-networks biblio-report
+biblio: biblio-refs biblio-networks biblio-report
+
+biblio-refs:
+	$(PYTHON) -m scripts.biblio.refs_acquire \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --wos-dir $(DATA_RAW)/manual/wos \
+	    --out $(DATA_PROC)/08_paper_refs.csv \
+	    --cache-refs $(DATA_PROC)/08_refs_cache.json \
+	    --cache-idmap $(DATA_PROC)/08_openalex_idmap.json \
+	    --mailto zeca@nexxasolucoes.com.br
+
+biblio-networks:
+	$(PYTHON) -m scripts.biblio.networks \
+	    --refs $(DATA_PROC)/08_paper_refs.csv \
+	    --out-dir reports/biblio \
+	    --k 3 --top-n 300 --min-shared 2
+
+biblio-report:
+	$(PYTHON) -m scripts.biblio.report \
+	    --net-dir reports/biblio \
+	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --out-dir reports/biblio
+
 # ============ LaTeX ============
 
 .PHONY: pdf
