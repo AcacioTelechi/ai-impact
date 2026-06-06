@@ -1,7 +1,123 @@
 \section{Introdução}\label{cap:intro}
 
 \subsection{Motivação e contexto}
+
+O receio de que as máquinas tornem o trabalho humano dispensável é recorrente na
+história econômica, mas poucas vezes voltou ao centro do debate público com a
+intensidade observada após o lançamento do ChatGPT, em 30 de novembro de 2022. A
+difusão acelerada dos modelos generativos de linguagem reabriu uma pergunta
+antiga sob uma forma nova: se as ondas anteriores de automação atingiam
+sobretudo tarefas rotineiras e manuais, a inteligência artificial (IA)
+contemporânea avança sobre tarefas \emph{cognitivas} --- redigir, programar,
+analisar, sintetizar --- antes tidas como reduto seguro do trabalho qualificado.
+Estimativas de que parcela expressiva das ocupações é tecnicamente suscetível à
+computadorização \parencite{frey2017} e, mais recentemente, de que os grandes
+modelos de linguagem têm potencial de afetar tarefas de \emph{muitas} ocupações,
+inclusive as de alta remuneração \parencite{eloundou2024}, deram a essa
+inquietação um lastro empírico e a transformaram em objeto de uma literatura
+econômica em expansão explosiva.
+
+Essa literatura, contudo, não fala a uma só voz. De um lado, a tradição da
+economia do trabalho construída desde os anos 2000 --- a abordagem de tarefas e o
+arcabouço de \textcite{acemogluRestrepo2019} --- ensina que o efeito de uma
+tecnologia sobre o emprego não é um veredito fixo, mas o saldo entre forças
+opostas: o deslocamento de tarefas, a criação de novas tarefas, a
+complementaridade que amplia a produtividade e a expansão da demanda agregada.
+De outro, a evidência empírica inicial sobre a IA generativa é heterogênea e por
+vezes surpreendente --- experimentos que encontram ganhos de produtividade
+concentrados nos trabalhadores \emph{menos} experientes
+\parencite{noyZhang2023, brynjolfssonLiRaymond2025}, sugerindo complementaridade
+onde se temia substituição. O resultado é um campo vasto, disperso e de
+diagnósticos não convergentes, em que coexistem a tese da polarização herdada da
+era da automação e a conjectura de que a IA generativa deslocaria o risco para o
+topo da distribuição de qualificações. É essa tensão que motiva a presente
+revisão.
+
 \subsection{Pergunta de pesquisa}
+
+A pergunta central que organiza este trabalho é: \emph{o diagnóstico da literatura
+econômica sobre o impacto da inteligência artificial no mercado de trabalho mudou
+com a chegada da IA generativa?} Mais especificamente, a revisão examina se a
+literatura publicada antes do lançamento do ChatGPT, que tendia a situar o risco
+da automação nas tarefas rotineiras de \emph{baixa} qualificação, foi sucedida
+por uma literatura que desloca esse risco para as tarefas cognitivas de
+\emph{alta} qualificação --- uma hipótese de \emph{ruptura} no enquadramento do
+problema. Subordinam-se a ela perguntas auxiliares sobre quais mecanismos
+teóricos a literatura mobiliza, como mede os efeitos, em que horizonte temporal
+se situa e qual o sinal predominante que atribui ao saldo de empregos, e sobre se
+esses traços se alteram de forma sistemática entre os dois períodos.
+
 \subsection{Objetivos}
+
+O objetivo geral é \textbf{mapear e sintetizar sistematicamente a literatura
+econômica sobre os impactos da inteligência artificial no mercado de trabalho
+publicada entre 2013 e 2025, comparando o enquadramento do problema antes e
+depois da difusão da IA generativa}. Desse objetivo decorrem os seguintes
+objetivos específicos:
+
+\begin{enumerate}
+  \item caracterizar o corpus de estudos quanto a volume, evolução temporal,
+    tipo de evidência, tecnologia de IA em foco e atributos metodológicos;
+  \item ler o corpus longitudinalmente em três janelas tecnológicas --- a da
+    automação (\janelaUm{}), a do aprendizado de máquina e \textit{deep learning}
+    (\janelaDois{}) e a da IA generativa (\janelaTres{}) ---, identificando como
+    variam os mecanismos teóricos invocados;
+  \item comparar, dimensão a dimensão, os estudos anteriores e posteriores ao
+    lançamento do ChatGPT, testando a hipótese de deslocamento do risco para a
+    alta qualificação;
+  \item distinguir continuidades e rupturas entre os dois períodos e avaliar a
+    robustez dos achados ao se restringir a análise aos estudos de maior
+    qualidade metodológica;
+  \item discutir as implicações dos achados para uma economia em
+    desenvolvimento como a brasileira.
+\end{enumerate}
+
 \subsection{Justificativa}
+
+A justificativa do trabalho é tripla. Em primeiro lugar, há uma lacuna de
+\emph{síntese}. A produção sobre IA e trabalho cresceu de forma acelerada e
+fragmentada, com desenhos empíricos heterogêneos --- exercícios de exposição
+ocupacional, estudos macro e setoriais, experimentos, análises de firmas e de
+plataformas de trabalho \textit{online} --- e vereditos que não convergem. Falta
+uma revisão sistemática que organize esse material sob uma lente teórica única e
+verifique, com método explícito e replicável, se o diagnóstico do campo
+efetivamente se transformou com a IA generativa ou se a moldura herdada da era da
+automação sobreviveu à transição. Esta revisão se propõe a preencher essa lacuna.
+
+Em segundo lugar, há uma contribuição \emph{metodológica}. Diante de um corpus de
+centenas de estudos e de uma extração padronizada de múltiplas dimensões por
+trabalho, a revisão adota um desenho narrativo-estruturado --- e não
+meta-analítico ---, justificado pela heterogeneidade de desenhos e pela baixa
+comparabilidade das magnitudes reportadas. A comparação pareada pré/pós-ChatGPT,
+ancorada nos quatro mecanismos do arcabouço de tarefas, oferece um protocolo
+transparente para distinguir mudança de \emph{ênfase} de mudança de
+\emph{veredito}.
+
+Em terceiro lugar, há a \emph{relevância} do tema para o Brasil. As projeções e
+os achados que dominam a literatura provêm majoritariamente de economias
+avançadas, mas seus efeitos sobre uma economia em desenvolvimento --- com
+estrutura ocupacional, informalidade e inserção em plataformas digitais
+próprias --- não são imediatamente transponíveis. Sistematizar o que se sabe é
+condição para discutir, com a devida cautela, o que esses achados podem
+significar no contexto brasileiro, tema retomado no
+Capítulo~\ref{cap:brasil}.
+
 \subsection{Estrutura do trabalho}
+
+Além desta introdução, o trabalho organiza-se em sete capítulos. O
+Capítulo~\ref{cap:refteo} constrói o referencial teórico, percorrendo o caminho
+que vai da mudança técnica enviesada por qualificação à abordagem de tarefas e ao
+arcabouço de Acemoglu e Restrepo, cujos quatro mecanismos --- deslocamento,
+reinstalação, complementaridade e demanda agregada --- estruturam toda a análise.
+O Capítulo~\ref{cap:metodologia} detalha o desenho da revisão sistemática: os
+critérios de inclusão, a estratégia de busca, o processo de seleção segundo o
+protocolo PRISMA, o esquema de extração de dados e a avaliação de qualidade.
+
+Os três capítulos seguintes apresentam os resultados. O
+Capítulo~\ref{cap:descritivas} caracteriza o corpus; o
+Capítulo~\ref{cap:janelas} faz a leitura longitudinal por janela tecnológica; e o
+Capítulo~\ref{cap:comparacao}, núcleo do trabalho, conduz a comparação pareada
+entre os períodos anterior e posterior ao ChatGPT, distinguindo continuidades e
+rupturas. O Capítulo~\ref{cap:brasil} discute as implicações para o Brasil,
+e o Capítulo~\ref{cap:fim} retoma os principais achados, reconhece as
+limitações da revisão e aponta direções para pesquisa futura.

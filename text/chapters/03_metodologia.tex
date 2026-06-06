@@ -1,9 +1,41 @@
 \section{Metodologia}\label{cap:metodologia}
 
+Este capítulo descreve o desenho e a execução da revisão sistemática que sustenta
+os achados dos Capítulos~\ref{cap:descritivas} a~\ref{cap:comparacao}. A revisão
+seguiu um protocolo registrado em controle de versão \emph{antes} da execução da
+busca --- o \textit{hash} do \textit{commit} de registro funciona como carimbo
+temporal e torna pública a sequência de decisões ---, e cada etapa do
+processamento foi implementada como código determinístico e idempotente,
+orquestrado por um \texttt{Makefile} único. Onde a execução divergiu do protocolo
+original, o desvio é declarado e justificado, e a versão correspondente do
+protocolo (v1.0 → v1.2) documenta a emenda. O objetivo desta seção é, portanto,
+duplo: descrever o método e expor com transparência suas escolhas e limitações,
+de modo que a revisão seja auditável e reproduzível.
+
 \subsection{Desenho da revisão sistemática}
-\subsection{Critérios de inclusão e exclusão}
-\subsection{Estratégia de busca}
-\subsection{Processo de seleção}
+
+A revisão é \emph{sistemática}, no sentido de partir de um protocolo explícito,
+de critérios de elegibilidade pré-registrados e de um processo de seleção
+rastreável, e \emph{narrativo-estruturada} na síntese, e não meta-analítica. A
+opção por não conduzir meta-análise decorre da heterogeneidade do corpus
+(Seção~\ref{cap:descritivas}): convivem exercícios de exposição ocupacional
+baseados em índices como o de Felten, estudos de plataformas de trabalho
+\textit{online}, evidência macro e setorial, modelos teóricos e \textit{surveys},
+sem uma medida de efeito comum que justifique o agrupamento estatístico de
+tamanhos de efeito. Em lugar disso, a extração organiza cada estudo em campos
+fixos e a síntese compara distribuições de classificações entre janelas
+temporais e entre os períodos pré- e pós-ChatGPT.
+
+O relato segue as diretrizes PRISMA 2020 para a identificação, triagem,
+elegibilidade e inclusão de estudos, sumarizadas no diagrama da
+Figura~\ref{fig:prisma}. Uma característica distintiva deste desenho é o uso
+intensivo de modelos de linguagem (\textit{large language models}, LLMs) como
+instrumentos de triagem, arbitragem e extração. Essa escolha é metodologicamente
+consequente --- substitui, em parte, o trabalho de revisores humanos previsto no
+protocolo v1.0 --- e por isso é tratada explicitamente: cada etapa assistida por
+LLM tem sua confiabilidade reportada (concordância inter-modelo, $\kappa$ de
+Cohen, verificação humana amostral) e suas limitações reconhecidas na
+Seção~\ref{sec:limitacoes}.
 
 \begin{figure}[h]
 \centering
@@ -12,6 +44,302 @@
 \label{fig:prisma}
 \end{figure}
 
+\subsection{Critérios de inclusão e exclusão}
+
+Foram considerados elegíveis estudos publicados entre 1º de janeiro de 2013 e 30
+de junho de 2026, em inglês, português, espanhol ou francês, que tratassem do
+efeito de alguma tecnologia de inteligência artificial --- aprendizado de máquina
+supervisionado ou não-supervisionado, \textit{deep learning}, processamento de
+linguagem natural, visão computacional, LLMs e IA generativa, ou robôs com
+componente de IA --- sobre o emprego, entendido em sentido amplo: nível de
+emprego, criação ou destruição de postos, exposição ocupacional ou demanda por
+trabalho. Quanto ao tipo de publicação, admitiram-se artigos em periódicos
+revisados por pares, \textit{working papers} de instituições reconhecidas (NBER,
+IZA, CEPR, BIS, OECD, IPEA, BCB, FGV) e capítulos indexados, sem restrição de
+foco geográfico.
+
+A exclusão obedeceu a cinco códigos: \textbf{E1}, tema fora do escopo
+(produtividade individual sem ligação com emprego; IA em educação, saúde, ética
+ou governança sem conexão com o mercado de trabalho); \textbf{E2}, tecnologia
+fora do escopo (robótica industrial pré-IA, automação puramente mecânica,
+sistemas especialistas legados sem aprendizado); \textbf{E3}, tipo de documento
+inválido (editorial, resenha, opinião, \textit{post} de \textit{blog},
+\textit{white paper} sem metodologia, tese não publicada); \textbf{E4}, texto
+completo inacessível; e \textbf{E5}, qualidade insuficiente (sem metodologia
+descrita ou sem evidência verificável). O código E4 não se aplica à triagem por
+título e resumo, sendo reservado à etapa de texto completo.
+
+O recorte temporal inicia em 2013 por quatro razões registradas no protocolo: a
+inflexão tecnológica marcada por AlexNet/ImageNet (dezembro de 2012), que abre o
+ciclo prático do \textit{deep learning}; a inflexão metodológica em economia do
+trabalho associada a Frey e Osborne (2013) e a Autor (2013), que fornecem o
+\textit{template} analítico da literatura subsequente; o crescimento exponencial
+de publicações no nexo IA--trabalho a partir daquele ano; e a necessidade de uma
+janela pré-2022 longa (cerca de uma década) para tornar coerente a comparação
+pré/pós-ChatGPT. Antecedentes seminais anteriores a 2013 não entram no corpus
+sistemático, mas são discutidos no referencial teórico
+(Capítulo~\ref{cap:refteo}). O limite superior, originalmente 31 de dezembro de
+2025, foi estendido para 30 de junho de 2026 (emenda de 2026-05-16): as bases
+retornaram centenas de registros datados de 2026 em regime de \textit{early
+access} --- disponibilizados \textit{online} ainda em 2025, mas vinculados a
+fascículos de 2026 ---, que constituem a evidência pós-ChatGPT mais recente e
+cujo descarte por mero carimbo editorial empobreceria a comparação central da
+revisão.
+
+\subsection{Estratégia de busca}
+
+A busca foi conduzida na Web of Science e na Scopus, complementadas por
+referência a periódicos-chave de economia. As \textit{strings} de busca, fixadas
+em quatro idiomas (\texttt{en}, \texttt{pt}, \texttt{es}, \texttt{fr}) e
+versionadas no protocolo, combinam três blocos por conjunção lógica: termos de
+tecnologia de IA, termos de mercado de trabalho e termos de efeito ou impacto,
+cada bloco internamente disjuntivo. A produção indexada pela SciELO é coberta
+pela Scopus, que incorpora o \textit{SciELO Citation Index}; optou-se por não
+consultar a SciELO como base autônoma para evitar duplicação e manter um único
+\textit{pipeline} de exportação em formato BibTeX (decisão de 2026-05-16).
+
+A base OpenAlex, inicialmente prevista como fonte complementar via API, foi
+descartada em 2026-05-13 após teste empírico: seu parâmetro \texttt{search} não
+suporta operadores booleanos AND/OR no lado do servidor, apenas correspondência
+\textit{full-text} difusa, de modo que a \textit{query} retornava milhões de
+registros mesmo com filtros de conceito --- volume inviável de pós-filtrar com a
+precisão exigida. A Web of Science e a Scopus, por oferecerem booleano nativo e
+curadoria temática, foram consideradas suficientes para o escopo. A
+Tabela~\ref{tab:searches} resume o volume obtido em cada base; cada execução
+gravou, ao lado do arquivo de resultados, um \textit{sidecar} de metadados com a
+versão da \textit{string}, as datas-limite, o número de registros e o
+\textit{hash} SHA-256 do arquivo exportado.
+
+\begin{table}[htbp]
+\centering
+\caption{Volume de registros recuperados por base.}
+\label{tab:searches}
+\input{tables/searches_summary.tex}
+\end{table}
+
+\subsection{Processo de seleção}
+
+\subsubsection*{Deduplicação}
+
+Os 3.118 registros consolidados das duas bases passaram por deduplicação em três
+passes sucessivos: correspondência exata de DOI normalizado; correspondência por
+chave composta (sobrenome do primeiro autor, ano e título normalizado), para
+registros sem DOI; e, por fim, similaridade de \textit{embeddings} de título
+(\textit{cosine similarity} acima de limiar) sobre os remanescentes sem DOI. Cada
+remoção foi registrada em \textit{log} com a regra aplicada e o registro mantido.
+A deduplicação reduziu o conjunto de 3.118 para 2.605 registros únicos.
+
+\subsubsection*{Triagem por título e resumo (tri-LLM)}
+
+A triagem dos 2.605 registros foi realizada por dois avaliadores automáticos
+independentes --- Claude Sonnet 4.6 e Claude Haiku 4.5 ---, cada qual recebendo o
+mesmo bloco de critérios (estável e marcado para \textit{prompt caching}) e os
+dados do registro, e devolvendo uma decisão estruturada (\texttt{incluir},
+\texttt{excluir} ou \texttt{duvida}), uma justificativa, um grau de confiança e,
+quando aplicável, o código de exclusão. As chamadas foram submetidas pela
+\textit{Message Batches API} da Anthropic, com cache por registro que torna a
+etapa idempotente.
+
+As decisões dos dois modelos foram combinadas por \textbf{união conservadora}: um
+registro só é excluído na triagem quando \emph{ambos} os modelos o excluem; em
+qualquer outra configuração (incluindo dúvidas), o registro segue adiante. A
+regra prioriza a sensibilidade sobre a especificidade --- erra para o lado da
+inclusão ---, coerente com o princípio de que a incerteza se resolve na leitura
+de texto completo, nunca por exclusão precoce. A concordância inter-modelo é
+reportada na Tabela~\ref{tab:kappa-screening}: $\kappa$ de Cohen de 0,602
+(concordância em 1.992 dos 2.605 casos, 76,5\%), valor moderado que evidencia
+tanto a convergência substantiva dos modelos quanto a existência de uma zona
+cinzenta relevante. Pela união conservadora, 1.278 registros foram excluídos (os
+dois modelos concordaram em excluir) e 1.327 seguiram como incluídos, dos quais
+462 por inclusão unânime.
+
+\input{tables/kappa_screening.tex}
+
+\subsubsection*{Arbitragem por terceiro modelo}
+
+Os 865 registros incluídos de forma \emph{não unânime} (decisão final
+\texttt{incluir} sem que ambos os triadores tenham votado \texttt{incluir}) ---
+os \textit{soft-includes} --- foram encaminhados a um terceiro avaliador, mais
+capaz e independente: Claude Opus 4.7, operando \emph{cego} (sem acesso aos
+pareceres dos triadores) e forçado a uma decisão binária (manter ou excluir). O
+árbitro mant\^eve 390 e excluiu 475 desses 865 casos. A
+Tabela~\ref{tab:arbitragem-kappa} reporta a concordância par-a-par entre o
+árbitro e cada triador nos casos efetivamente arbitrados; a baixa concordância
+com o Haiku ($\kappa \approx 0$) é esperada e informativa, pois a arbitragem
+incide justamente sobre os casos em que os triadores divergiam ou hesitavam.
+
+Esta arbitragem por LLM substitui a revisão humana prevista no protocolo v1.0
+(emenda v1.1, 2026-05-17). O desvio decorre de restrição de tempo e escala
+--- revisor único, 865 casos limítrofes, prazo de um semestre --- e é mitigado
+por três salvaguardas: três modelos independentes, sendo o árbitro o mais capaz
+e não participante da triagem; a regra conservadora (na incerteza, inclui; falha
+técnica nunca exclui); e o relato explícito da concordância. A ferramenta de
+revisão humana permanece disponível como auditoria alternativa. Ao final da
+triagem e arbitragem, 852 estudos compõem o corpus encaminhado à etapa de texto
+completo --- os 462 de inclusão unânime mais os 390 mantidos pelo árbitro.
+
+\input{tables/arbitragem_kappa.tex}
+
+\subsection{Aquisição de texto completo}
+
+Para os 852 estudos, procurou-se obter o PDF de texto completo (2026-05-17) por
+duas vias: resolução automática de acesso aberto via Unpaywall e suplemento
+manual --- PDFs depositados pelo revisor a partir de acesso institucional. Os
+PDFs foram armazenados em formato nativo, sem extração intermediária de texto: na
+etapa seguinte o próprio LLM lê o documento nativamente. Estudos sem acesso
+aberto e sem suplemento manual permaneceram em nível de resumo (\texttt{abstract}).
+A cobertura efetiva de texto completo foi de 14,2\% (121 de 852); o restante foi
+processado a partir do resumo, com a cobertura registrada no manifesto, no PRISMA
+e nas limitações. Esse desvio em relação à leitura de texto completo prevista no
+protocolo v1.0 é declarado e tratado na Seção~\ref{sec:limitacoes}.
+
+\subsection{Elegibilidade e extração por LLM}
+
+A decisão de elegibilidade (aplicação dos códigos E1–E5 ao texto completo, ou ao
+resumo quando este era a única fonte) e a extração dos campos do esquema foram
+operacionalizadas em uma passada combinada por Claude Sonnet 4.6 (emenda v1.2,
+2026-05-19), lendo o PDF nativo onde disponível e o resumo no restante. O bloco
+bibliográfico de identificação (bloco~A) é preenchido deterministicamente a
+partir do corpus, não pelo modelo; ao LLM cabe decidir a elegibilidade e
+preencher os blocos substantivos. O resultado é \texttt{06\_extraction.csv}, com
+uma linha por estudo.
+
+Dos 852 estudos, 818 foram julgados elegíveis e 34 excluídos por E1–E5. A
+primeira execução real apresentou 62 estudos sem extração: 48 por esgotamento de
+crédito da API no meio do lote, 13 por PDF inválido ou protegido baixado na
+aquisição, e 1 por JSON malformado. O diagnóstico foi feito por evidência (os
+resultados do \textit{batch} ficam retidos cerca de 29 dias). Corrigiu-se, então,
+um defeito que cacheava respostas-de-erro como resultado terminal --- o cache
+passou a persistir apenas respostas efetivamente devolvidas pela API, de modo que
+\textit{requests} com erro são reprocessados em nova execução --- e passou-se a
+validar o PDF antes do envio. A reextração dos 61 estudos remanescentes depende
+de recarga de crédito e permanece pendente; enquanto não ocorrer, esses registros
+são declarados sem extração. O corpus efetivamente analisável é, portanto, de 756
+estudos: os 818 elegíveis menos os 62 sem extração bem-sucedida. É sobre esse
+$N = 756$ que se calculam os percentuais dos capítulos de resultados.
+
 \subsection{Esquema de extração de dados}
+
+Cada estudo foi codificado segundo um esquema fixo, registrado antes da extração,
+organizado em sete blocos. O \textbf{bloco~A} (identificação) reúne DOI, título,
+autores, ano, periódico, tipo de publicação, país-foco e período dos dados
+empíricos. O \textbf{bloco~B} (classificação temporal) atribui a janela
+(\janelaUm{}, \janelaDois{} ou \janelaTres{}), a posição pré/pós-ChatGPT (pivô em
+30 de novembro de 2022) e a tecnologia de IA em foco. O \textbf{bloco~C} (tipo de
+evidência) registra o tipo de estudo, o método empírico, a unidade de análise e a
+fonte de dados. O \textbf{bloco~D} (mecanismos teóricos) marca, conforme o
+arcabouço de tarefas de Acemoglu e Restrepo, a presença de deslocamento,
+reinstalação, complementaridade e demanda agregada. O \textbf{bloco~E} (achados),
+analiticamente central, codifica o sinal do efeito sobre o emprego, a magnitude
+reportada e normalizada, as ocupações afetadas, o padrão de polarização e o
+horizonte temporal. O \textbf{bloco~F} (qualidade e robustez) registra o
+\textit{score} de qualidade, as limitações declaradas, a replicabilidade e a
+revisão por pares. O \textbf{bloco~G} (notas) guarda observações livres do
+extrator e referências cruzadas. Os valores não informados são mantidos
+explicitamente como tais e ficam fora do denominador das proporções calculadas na
+síntese.
+
 \subsection{Avaliação de qualidade}
-\subsection{Limitações metodológicas}
+
+A qualidade metodológica de cada estudo foi avaliada por uma rubrica de 1 a 5,
+preliminar na elegibilidade e revisada na extração. A rubrica combina prestígio
+do veículo, força da estratégia de identificação, presença de testes de robustez
+e replicabilidade, com um princípio orientador: o \textit{score} reflete o
+\emph{rigor} do estudo, não a \emph{direção} de seus achados. Um estudo com
+achado nulo pode receber 5, e um estudo com efeito grande mas identificação fraca
+pode receber 2. Estudos teóricos são avaliados pela clareza do modelo, pela
+transparência das premissas e pelo alinhamento com a literatura, segundo rubrica
+adaptada. O \textit{score} de qualidade sustenta a análise de robustez do
+Capítulo~\ref{cap:comparacao}, que verifica se os achados centrais se mantêm ao
+restringir o corpus aos estudos de maior rigor (\textit{score} $\geq 4$).
+
+\subsection{Verificação humana amostral}
+
+Para aferir a confiabilidade da elegibilidade e da extração por LLM, uma amostra
+estratificada de aproximadamente 110 estudos --- dos 790 com extração real --- é
+submetida a verificação humana, compreendendo 100\% das exclusões (cerca de 34) e
+cerca de 10\% das inclusões (cerca de 76), estratificadas por fonte de texto
+(\texttt{text\_source}) e faixa de confiança da extração. A amostragem é
+determinística (semente fixa, com \textit{snapshot} do quadro amostral
+preservado), de modo que a recuperação futura dos 61 estudos pendentes não altera
+a amostra nem as métricas reportadas. A verificação tem dois componentes: a
+\emph{elegibilidade} é decidida de forma \textbf{cega} (o revisor não vê a decisão
+do LLM), produzindo um $\kappa$ de Cohen humano×LLM legítimo, com concordância e
+intervalo de confiança Wilson de 95\%; e os campos analiticamente centrais
+(\texttt{pre\_pos\_chatgpt}, \texttt{janela}, \texttt{sinal\_efeito},
+\texttt{tipo\_estudo}, \texttt{polarizacao}, \texttt{score\_qualidade}) são
+\textbf{auditados} --- o revisor vê o valor atribuído pelo LLM e a fonte e marca
+acerto ou erro ---, gerando uma acurácia por campo com intervalo de Wilson de
+95\%. As planilhas de verificação foram exportadas; a ingestão e o cálculo das
+métricas ($\kappa$ humano×LLM e acurácia por campo) ficam pendentes do
+preenchimento manual e são reportados quando concluídos.
+
+\subsection{Síntese e análise estatística}
+
+A síntese opera sobre o corpus analisável ($N = 756$), definido pelo filtro
+canônico ``elegível e com extração bem-sucedida'', e se organiza em três camadas,
+correspondentes aos três capítulos de resultados: descritivas do corpus
+(Capítulo~\ref{cap:descritivas}), síntese por janela temporal
+(Capítulo~\ref{cap:janelas}) e comparação pareada pré/pós-ChatGPT
+(Capítulo~\ref{cap:comparacao}). Todas as figuras e tabelas são geradas por
+\textit{scripts} a partir do CSV de extração, sem edição manual.
+
+As proporções de cada dimensão são calculadas apenas sobre os estudos que a
+classificaram --- valores não informados ficam fora do denominador. As
+associações entre período (ou janela) e variáveis categóricas são testadas pelo
+$\chi^2$ de independência; em tabelas $2\times2$ com contagens pequenas, recorre-se
+ao teste exato de Fisher e à razão de chances. Proporções de interesse acompanham
+intervalo de confiança de 95\% calculado pelo método de Wilson. O pivô da
+comparação pré/pós é 30 de novembro de 2022 (lançamento do ChatGPT). As saídas em
+LaTeX adotam vírgula decimal, conforme a convenção tipográfica de língua
+portuguesa.
+
+\subsection{Reprodutibilidade e ferramentas}
+
+Todo o \textit{pipeline} --- busca, deduplicação, triagem, arbitragem, aquisição
+de texto, elegibilidade, extração e análise --- é implementado em Python 3.12,
+com dependências fixadas por \textit{lockfile} (\texttt{uv}) e etapas
+encadeadas por um \texttt{Makefile} com alvos explícitos. Os \textit{scripts} são
+determinísticos e idempotentes: reexecuções não duplicam trabalho nem alteram
+resultados já calculados, e a recuperação dos estudos pendentes apenas atualiza os
+números afetados. As fronteiras de entrada e saída de rede (chamadas às bases e à
+API de LLM) são isoladas atrás de \textit{callables} injetáveis, exercitados por
+clientes falsos em testes automatizados, de modo que a lógica do \textit{pipeline}
+é verificável sem custo de API. As chamadas a LLM usam a \textit{Batch API} com
+\textit{prompt caching} no bloco estável de critérios, e cada resposta é cacheada
+por registro. Exportações brutas têm \textit{hash} SHA-256 registrado, e cada
+etapa grava \textit{logs} em \texttt{data/processed/}.
+
+\subsection{Limitações metodológicas}\label{sec:limitacoes}
+
+As principais limitações desta revisão decorrem das próprias escolhas de
+viabilização e são declaradas aqui para apreciação crítica.
+
+\textbf{Ausência de revisor humano na seleção.} O protocolo v1.0 comprometia-se
+com revisão humana na triagem; a v1.1 a substituiu por arbitragem por terceiro
+LLM. Mitiga-se com três modelos independentes, regra conservadora e relato de
+concordância par-a-par, mas a limitação é real e passível de questionamento.
+
+\textbf{LLM como juiz e extrator.} A triagem, a arbitragem, a elegibilidade e a
+extração são executadas por modelos de linguagem. A confiabilidade é aferida por
+$\kappa$ inter-modelo e pela verificação humana amostral; ainda assim, erros
+sistemáticos correlacionados entre etapas não podem ser inteiramente descartados.
+
+\textbf{Cobertura de texto completo.} Apenas 14,2\% dos estudos foram lidos em
+texto completo; o restante foi avaliado a partir do resumo, o que pode subdimensionar
+nuances de método e magnitude --- limitação que reaparece na escassez de magnitudes
+normalizadas discutida no Capítulo~\ref{cap:comparacao}.
+
+\textbf{Reextração pendente.} 61 dos 62 estudos sem extração da primeira rodada
+aguardam reprocessamento; a lacuna é documentada e sanável por nova execução
+idempotente.
+
+\textbf{Verificação por revisor único.} A validação amostral é feita por um único
+revisor; mitiga-se com cegueira na elegibilidade e intervalos de Wilson, mas
+estratos pequenos podem gerar intervalos largos e a auditoria de campos, por
+mostrar o valor do LLM, pode ancorar o revisor.
+
+\textbf{Demais limitações.} O corpus pós-2022 é jovem, com predominância de
+\textit{working papers}; a base EconLit não foi acessada (suprida por busca direta
+em periódicos); e antecedentes seminais anteriores a 2013 ficam fora do corpus
+sistemático, sendo tratados no referencial teórico.

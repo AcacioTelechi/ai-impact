@@ -190,8 +190,9 @@ prisma:
 	    --bruto $(DATA_PROC)/01_corpus_bruto.csv \
 	    --dedup-log $(DATA_PROC)/02_dedup_decisions.csv \
 	    --screening $(DATA_PROC)/03_screening_ta.csv \
-	    --eligibility $(DATA_PROC)/04_eligibility.csv \
+	    --incluidos-final $(DATA_PROC)/03_incluidos_final.csv \
 	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --manifest $(DATA_PROC)/04_fulltext_manifest.csv \
 	    --output $(FIG_DIR)/prisma_flow.tex
 
 .PHONY: screen

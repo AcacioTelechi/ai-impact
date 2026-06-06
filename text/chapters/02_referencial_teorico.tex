@@ -1,6 +1,259 @@
 \section{Referencial teórico}\label{cap:refteo}
 
-\subsection{Tecnologia e emprego: do SBTC ao task approach}
-\subsection{O framework Acemoglu--Restrepo de tarefas}
-\subsection{Antecedentes pré-2013}
-\subsection{Conceitos centrais: deslocamento, reinstalação, complementaridade}
+Este capítulo constrói a lente analítica com que a revisão lê o corpus. O
+percurso é cumulativo: parte do debate de longa duração sobre máquinas e
+emprego, passa pelo paradigma da mudança técnica enviesada por qualificação e
+por seu limite empírico --- a polarização do trabalho ---, chega ao arcabouço de
+tarefas de \textcite{acemogluRestrepo2019}, cujos quatro mecanismos estruturam a
+codificação dos estudos, e termina situando a literatura específica da
+inteligência artificial e a virada generativa. O objetivo não é esgotar a teoria
+econômica do progresso técnico, mas fixar com precisão os conceitos
+--- deslocamento, reinstalação, complementaridade e demanda agregada --- que
+reaparecem, já operacionalizados, nos Capítulos \ref{cap:janelas} e
+\ref{cap:comparacao}, e explicitar a lacuna que a revisão se propõe a examinar.
+
+\subsection{Tecnologia e emprego: um debate de longa duração}
+
+A preocupação de que as máquinas suprimam o trabalho humano é mais antiga do que
+a economia como disciplina formal, mas foi \textcite{keynes1930} quem lhe deu o
+rótulo que ainda hoje organiza o debate: o \emph{desemprego tecnológico}, isto
+é, o desemprego decorrente de que a economia descobre como economizar mão de
+obra num ritmo mais rápido do que o da abertura de novos usos para o trabalho.
+Keynes tratava o fenômeno como uma disfunção transitória de um processo, no
+fundo, benigno --- a elevação secular do padrão de vida ---, e essa tensão entre
+um efeito-deslocamento de curto prazo e um efeito-compensação de prazo mais
+longo atravessa toda a literatura posterior.
+
+A versão mais célebre do alarme veio de \textcite{leontief1983}, para quem o
+papel do trabalho humano tenderia a encolher como encolhera o papel do cavalo na
+agricultura: uma analogia que condensa a hipótese de que, a partir de certo
+ponto, a substituição deixaria de ser compensada. A história econômica, contudo,
+não confirmou a previsão pessimista. Como sintetiza \textcite{autor2015}, ao
+longo do século XX a automação eliminou tarefas em larga escala sem produzir
+desemprego tecnológico persistente, porque operou em paralelo a forças que
+ampliaram a demanda por trabalho --- a complementaridade entre máquinas e
+trabalhadores nas tarefas não automatizadas, o aumento de produtividade e renda
+e a criação de novas ocupações. O problema teórico relevante, portanto, nunca
+foi se a tecnologia destrói postos, mas qual o \emph{saldo} entre destruição e
+criação e como ele se distribui entre os trabalhadores. É essa indeterminação
+que o restante do capítulo procura organizar conceitualmente, e que os
+resultados encontram, no agregado, como um sinal predominantemente
+\emph{ambíguo} sobre o emprego (Capítulo~\ref{cap:janelas}).
+
+\subsection{Mudança técnica enviesada por qualificação e seu limite empírico}
+
+A primeira resposta sistemática da economia do trabalho a essa indeterminação
+foi a hipótese da \emph{mudança técnica enviesada por qualificação}
+(\textit{skill-biased technical change}, SBTC). Sua intuição remonta à ideia,
+formalizada por \textcite{tinbergen1974, tinbergen1975}, de uma ``corrida entre
+educação e tecnologia'': o progresso técnico elevaria continuamente a demanda
+relativa por trabalhadores qualificados, e o prêmio salarial da qualificação
+dependeria de a oferta de trabalhadores instruídos acompanhar ou não esse ritmo.
+\textcite{katzMurphy1992} deram à tese sua forma empírica canônica, explicando a
+elevação do prêmio universitário nos Estados Unidos a partir dos anos 1980 pela
+interação entre uma demanda relativa em alta --- atribuída à tecnologia, em
+especial à informática --- e oscilações na oferta de formados. \textcite{acemoglu2002}
+consolidou o arcabouço teórico, e \textcite{goldinKatz2008} estenderam a
+narrativa da ``corrida'' a todo o século XX da economia americana.
+
+O poder explicativo do SBTC, porém, esbarrou num fato estilizado que ele não
+acomoda bem. A partir dos anos 1990, a estrutura ocupacional de diversas
+economias desenvolvidas não se deslocou de forma monotônica em favor da alta
+qualificação, e sim se \emph{polarizou}: cresceram simultaneamente as ocupações
+de alta remuneração e as de baixa remuneração, enquanto encolhiam as ocupações
+de remuneração intermediária. \textcite{autorKatzKearney2006, autorKatzKearney2008}
+documentaram esse padrão para os Estados Unidos e \textcite{goosManning2007}
+para o Reino Unido --- os ``\textit{lousy and lovely jobs}''. Um modelo em que a
+tecnologia simplesmente favorece ``mais qualificação'' não prevê o
+esvaziamento do \emph{meio} da distribuição; era preciso uma teoria que
+distinguisse não trabalhadores por nível de instrução, mas \emph{tarefas} por
+seu conteúdo.
+
+\subsection{A abordagem de tarefas e a polarização do trabalho}
+
+Essa teoria veio com a \emph{abordagem de tarefas}. \textcite{autorLevyMurnane2003}
+propuseram deslocar a unidade de análise do trabalhador para a tarefa e
+classificaram as tarefas segundo serem ou não \emph{rotineiras}, isto é,
+passíveis de descrição por regras explícitas. A tecnologia computacional, nessa
+leitura, substitui de forma barata as tarefas rotineiras --- tanto manuais
+quanto cognitivas --- e \emph{complementa} as tarefas não rotineiras, sejam as
+analíticas e interativas de alta qualificação, sejam as manuais não rotineiras
+de baixa qualificação, difíceis de codificar. Como as tarefas rotineiras se
+concentravam justamente nas ocupações de remuneração intermediária, a hipótese
+da \emph{mudança técnica enviesada por rotina} (\textit{routine-biased technological
+change}, RBTC) explicava de uma só vez por que o meio se esvazia e as duas
+pontas crescem.
+
+A evidência empírica subsequente sustentou amplamente o mecanismo.
+\textcite{autorDorn2013} mostraram que as áreas dos Estados Unidos historicamente
+mais intensivas em tarefas rotineiras foram as que mais se polarizaram, com
+expansão de empregos de serviços de baixa qualificação, e \textcite{goosManningSalomons2014}
+estenderam o resultado a dezesseis países europeus, atribuindo a polarização à
+combinação de RBTC e \textit{offshoring}. A síntese de referência do programa é
+\textcite{acemogluAutor2011}, que formaliza o ``\textit{task framework}'' e
+articula qualificações, tarefas e tecnologias num mesmo modelo de oferta e
+demanda. É dessa tradição que provém o conceito de \emph{polarização} tal como a
+revisão o codifica: a tese de que o risco da automação recai de forma desigual,
+concentrando-se nas tarefas rotineiras de menor qualificação. Como mostram os
+Capítulos \ref{cap:janelas} e \ref{cap:comparacao}, essa continua a ser a
+categoria modal de polarização no corpus, antes e depois da IA generativa.
+
+\subsection{O arcabouço Acemoglu--Restrepo: deslocamento, reinstalação e a corrida entre tarefas}
+
+A abordagem de tarefas ganhou sua formulação dinâmica mais influente na série de
+trabalhos de Daron Acemoglu e Pascual Restrepo, que constitui a espinha dorsal
+analítica desta revisão. O ponto de partida é distinguir, dentro do progresso
+técnico, forças com sinais opostos sobre a demanda por trabalho
+\parencite{acemogluRestrepo2018, acemogluRestrepo2019}. São quatro os mecanismos
+que a revisão extrai desse arcabouço e codifica em cada estudo:
+
+\begin{description}
+  \item[Deslocamento (\textit{displacement}).] O efeito direto da automação:
+    quando o capital passa a executar tarefas antes realizadas por
+    trabalhadores, reduz-se a demanda por trabalho e a participação do trabalho
+    na renda. É o canal que captura a ``substituição'' no sentido clássico e,
+    como mostram os resultados, o mecanismo mais invocado pela literatura em
+    todas as janelas.
+  \item[Reinstalação (\textit{reinstatement}).] A força contrária de mesma
+    natureza: a criação de \emph{novas} tarefas em que o trabalho tem vantagem
+    comparativa. Para \textcite{acemogluRestrepo2019}, é sobretudo o surgimento
+    de novas tarefas --- e não apenas o barateamento das antigas --- que sustenta
+    a demanda por trabalho no longo prazo. A ``corrida'' do título de
+    \textcite{acemogluRestrepo2018} é precisamente entre deslocamento e
+    reinstalação.
+  \item[Complementaridade e produtividade.] Mesmo nas tarefas que automatiza, a
+    tecnologia pode baratear a produção, elevar a produtividade e, por essa via,
+    expandir a demanda por trabalho nas tarefas não automatizadas. É o canal pelo
+    qual a IA ``amplia capacidades'' em vez de apenas substituir, e o que mais
+    cresce na literatura recente (Capítulo~\ref{cap:comparacao}).
+  \item[Demanda agregada.] O efeito de renda em nível macroeconômico: ganhos de
+    produtividade que se convertem em maior renda e gasto e, por aí, em demanda
+    por trabalho em toda a economia, inclusive em setores não diretamente
+    afetados pela tecnologia. \textcite{bessen2018} ressalta que a elasticidade
+    da demanda do setor é decisiva nesse canal: onde a demanda é elástica, a
+    automação que barateia a produção pode \emph{elevar} o emprego setorial, e
+    apenas onde a demanda já está saturada o efeito-deslocamento prevalece.
+\end{description}
+
+A virtude do arcabouço é tornar o saldo sobre o emprego uma questão
+\emph{empírica} sobre a magnitude relativa dessas forças, e não um veredito
+teórico fixo. Quando o deslocamento supera a reinstalação e os efeitos de
+produtividade, a participação do trabalho cai e o emprego se contrai; no caso
+oposto, a tecnologia é trabalho-amistosa. \textcite{acemogluRestrepo2020robots}
+estimam, para a robótica industrial nos Estados Unidos, um efeito líquido
+negativo sobre emprego e salários locais, ilustrando que o deslocamento pode, de
+fato, predominar; \textcite{acemogluRestrepo2022} mostram que boa parte do
+aumento da desigualdade salarial americana nas últimas décadas é compatível com
+um deslocamento de tarefas pouco compensado por reinstalação. Acemoglu e
+Restrepo advertem, por fim, que a \emph{direção} do progresso técnico é
+endógena: uma automação que apenas corta custos de mão de obra sem criar tarefas
+--- o que chamam de ``\textit{so-so automation}'' --- gera o pior dos mundos para
+o trabalho, deslocando sem reinstalar nem elevar muito a produtividade
+\parencite{acemogluRestrepo2020wrongai}. Essa moldura --- quatro forças cujo
+balanço determina o resultado --- é a que a revisão aplica, estudo a estudo, para
+classificar como a literatura concebe o efeito da IA sobre o trabalho.
+
+\subsection{Antecedentes pré-2013 e a fronteira da revisão}
+
+A revisão fixa o início de sua janela de busca em 2013, e a escolha tem
+justificativa teórica e empírica. Às vésperas desse marco, a economia do
+trabalho havia consolidado o arcabouço de tarefas como linguagem dominante e
+acumulado evidência robusta sobre a automação \emph{clássica} --- a informática e
+a robótica industrial. \textcite{graetzMichaels2018}, analisando dados de
+dezessete países, estimaram que os robôs industriais elevaram a produtividade
+sem reduzir o emprego agregado, ao passo que \textcite{acemogluRestrepo2020robots}
+chegaram a um saldo local negativo nos Estados Unidos; a coexistência dessas duas
+leituras define bem o estado da arte herdado. No plano da síntese de amplo
+alcance, \textcite{brynjolfssonMcafee2014} popularizaram a tese de uma ``segunda
+era das máquinas'' em que a digitalização passaria a afetar também o trabalho
+cognitivo, e \textcite{autor2015} ofereceu o contraponto cauteloso, lembrando a
+persistência histórica do emprego e o papel da complementaridade.
+
+O ano de 2013 marca, ainda, a fronteira a partir da qual o objeto da revisão
+deixa de ser a automação genérica e passa a incluir a \emph{inteligência
+artificial} como categoria própria de tecnologia. Não por acaso, é de 2013 a
+primeira circulação do estudo de Frey e Osborne sobre a suscetibilidade das
+ocupações à computadorização, discutido adiante. A janela 2013--2025, portanto,
+não é arbitrária: ela cobre o período em que a IA --- primeiro o aprendizado de
+máquina e o \textit{deep learning}, depois os modelos generativos --- se torna o
+foco explícito da literatura, sem perder de vista o estoque conceitual herdado da
+era da automação. A justificativa operacional desse recorte é detalhada na
+metodologia (Capítulo~\ref{cap:metodologia}); aqui importa registrar que a
+fronteira temporal acompanha uma fronteira tecnológica.
+
+\subsection{Da automação à inteligência artificial: exposição ocupacional e a virada generativa}
+
+A transposição do arcabouço de tarefas para a inteligência artificial enfrenta
+uma dificuldade específica: ao contrário da automação clássica, cujas tarefas-alvo
+eram visivelmente rotineiras, a IA contemporânea avança sobre tarefas
+\emph{não rotineiras} e cognitivas que se supunham protegidas. O esforço de
+medir essa exposição organiza boa parte da literatura empírica do período. O
+marco inaugural é \textcite{frey2017}, que estimou serem cerca de 47\% dos
+empregos nos Estados Unidos de alto risco de computadorização nas duas décadas
+seguintes --- número amplamente debatido e criticado por tratar ocupações
+inteiras, e não tarefas, como unidade de risco. As medidas posteriores
+refinaram justamente esse ponto. \textcite{brynjolfssonMitchellRock2018}
+propuseram avaliar a ``\textit{suitability for machine learning}'' tarefa a
+tarefa; \textcite{felten2018, felten2021} construíram o índice de exposição
+ocupacional à IA que os capítulos descritivos identificam no corpus, ligando
+avanços em capacidades de IA a habilidades ocupacionais; e \textcite{webb2020}
+usou o texto de patentes para mapear quais tarefas a IA, ao contrário de
+softwares e robôs anteriores, tende a atingir.
+
+Um achado recorrente dessa geração de estudos é que o perfil de exposição da IA
+difere do da automação clássica: enquanto robôs e softwares atingiam tarefas
+rotineiras de qualificação intermediária e baixa, a exposição à IA preditiva
+tende a alcançar tarefas de qualificação mais alta, invertendo parcialmente o
+gradiente da RBTC \parencite{webb2020, felten2021}. Em evidência de demanda por
+trabalho, \textcite{acemogluVacancies2022} examinaram vagas \textit{online} e
+encontraram, nos estabelecimentos mais expostos à IA, recomposição de tarefas e
+reformulação de requisitos, sem efeito agregado nítido sobre o emprego até então
+--- um padrão coerente com a ambivalência que a revisão documenta.
+
+A virada decisiva, contudo, é a da \emph{IA generativa}, cuja difusão a partir do
+lançamento público do ChatGPT em novembro de 2022 organiza a comparação central
+desta revisão (Capítulo~\ref{cap:comparacao}). Diferentemente das ondas
+anteriores, a evidência inicial sobre os modelos generativos é fortemente
+\emph{experimental} e centrada em produtividade. \textcite{noyZhang2023}, em
+experimento controlado de tarefas de escrita profissional, e
+\textcite{brynjolfssonLiRaymond2025}, com dados de atendimento ao cliente em
+firma real, encontraram ganhos de produtividade concentrados nos trabalhadores
+\emph{menos} experientes ou de menor desempenho inicial --- um efeito de
+\emph{compressão} que sugere complementaridade, e não apenas substituição.
+\textcite{eloundou2024}, por sua vez, estimaram que os grandes modelos de
+linguagem têm potencial de afetar parcela substancial das tarefas de
+\emph{muitas} ocupações, inclusive as de alta remuneração e escolaridade,
+tratando os \textit{LLMs} como uma tecnologia de propósito geral. Trabalhos como
+o de \textcite{korinek2023} ilustram, do lado da própria pesquisa econômica, essa
+penetração da IA em tarefas cognitivas qualificadas. É essa migração do risco
+--- da tarefa rotineira de baixa qualificação para a tarefa cognitiva de alta
+qualificação --- que constitui a hipótese substantiva examinada pela revisão.
+
+\subsection{Síntese e lacuna: a hipótese da revisão}
+
+O percurso teórico deste capítulo pode ser resumido em três movimentos. O SBTC
+explicou o prêmio da qualificação mas não a polarização; a abordagem de tarefas
+explicou a polarização ao deslocar o foco do trabalhador para a tarefa rotineira;
+e o arcabouço Acemoglu--Restrepo tornou o saldo sobre o emprego uma questão do
+balanço entre deslocamento, reinstalação, complementaridade e demanda agregada.
+Sobre esse acúmulo, a literatura específica da IA acrescentou uma conjectura
+nova e empiricamente aberta: a de que a inteligência artificial --- e,
+sobretudo, a generativa --- romperia o padrão herdado da automação ao deslocar o
+risco para as tarefas cognitivas de \emph{alta} qualificação, antes tidas como
+complementares à máquina.
+
+Daí decorre a lacuna que a revisão se propõe a examinar. A literatura econômica
+sobre IA e trabalho cresceu de forma explosiva e dispersa, com desenhos
+heterogêneos e vereditos não convergentes; falta uma síntese sistemática que
+verifique se o diagnóstico mudou \emph{de fato} com a chegada da IA generativa ou
+se a moldura da polarização e do efeito-substituição, herdada da era da
+automação, sobreviveu à transição. Em termos operacionais, a hipótese de
+trabalho sustenta que a literatura pré-ChatGPT convergia para a polarização com
+risco concentrado nas tarefas rotineiras de baixa qualificação, ao passo que a
+literatura pós-ChatGPT deslocaria esse risco para as tarefas cognitivas de alta
+qualificação --- uma hipótese de \emph{ruptura} testada, dimensão a dimensão, nos
+capítulos de resultados. Os quatro mecanismos definidos na
+Seção~\ref{cap:refteo} fornecem as categorias dessa codificação; a comparação
+pareada pré/pós-ChatGPT (Capítulo~\ref{cap:comparacao}) fornece o teste. O que se
+verificará é menos uma inversão do consenso anterior do que um deslocamento
+parcial de foco, cuja natureza e cujos limites os próximos capítulos detalham.

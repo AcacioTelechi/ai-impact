@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    every node/.style={draw, rectangle, rounded corners, align=center, minimum width=5cm, minimum height=0.9cm, font=\small},
+    arr/.style={-{Stealth[length=2mm]}, thick}
+]
+\node (id)   {Registros identificados nas bases\\(\textbf{N = 3118})};
+\node (dup) [below=of id] {Duplicatas removidas\\(N = 513)};
+\node (scr) [below=of dup] {Registros para triagem TA\\(N = 2605)};
+\node (exta)[right=2cm of scr] {Excluídos na triagem TA\\(N = 1753)};
+\node (elig)[below=of scr] {Candidatos a texto completo\\(N = 852)};
+\node (exft)[right=2cm of elig] {Excluídos na elegibilidade\\(N = 34)};
+\node (inc) [below=of elig, fill=blue!10] {Estudos incluídos na síntese\\(\textbf{N = 756})};
+\node (nota) [below=of inc, draw=red!60, fill=red!5, font=\footnotesize, align=center] {Reextração pendente: 62 (cobertura full-text efetiva 14,2\%)};
+
+\draw[arr] (id)  -- (dup);
+\draw[arr] (dup) -- (scr);
+\draw[arr] (scr) -- (elig);
+\draw[arr] (scr) -- (exta);
+\draw[arr] (elig)-- (inc);
+\draw[arr] (elig)-- (exft);
+\end{tikzpicture}
