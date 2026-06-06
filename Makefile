@@ -250,6 +250,7 @@ biblio-report:
 	$(PYTHON) -m scripts.biblio.report \
 	    --net-dir reports/biblio \
 	    --extraction $(DATA_PROC)/06_extraction.csv \
+	    --wos-dir $(DATA_RAW)/manual/wos \
 	    --out-dir reports/biblio
 
 # ============ LaTeX ============
