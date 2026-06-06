@@ -316,11 +316,11 @@ def test_resolve_ids_to_dois_batches():
 
     def get(url):
         calls.append(url)
-        return {"results": [{"id": "https://openalex.org/W1", "doi": "https://doi.org/10.1/A"},
+        return {"results": [{"id": "https://openalex.org/W1", "doi": "https://doi.org/10.1000/A"},
                             {"id": "https://openalex.org/W2", "doi": None}]}
 
     out = resolve_ids_to_dois(["W1", "W2"], get, mailto="e@x", batch=50)
-    assert out == {"W1": "10.1/a"}   # W2 sem DOI é omitido
+    assert out == {"W1": "10.1000/a"}   # W2 sem DOI é omitido; registrant >=4 dígitos
     assert len(calls) == 1            # um único lote
 ```
 
