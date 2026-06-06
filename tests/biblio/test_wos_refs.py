@@ -1,4 +1,4 @@
-from scripts.biblio.wos_refs import parse_wos_bib, _extract_field
+from scripts.biblio.wos_refs import parse_wos_bib, parse_wos_ref_labels, _extract_field
 
 ENTRY = """@article{ WOS:000123,
 Author = {Silva, J},
@@ -33,3 +33,11 @@ def test_entry_without_doi_skipped(tmp_path):
     p = tmp_path / "wos.bib"
     p.write_text("@article{X,\nTitle = {No DOI},\nYear = {2020},\n}", encoding="utf-8")
     assert parse_wos_bib([p]) == {}
+
+
+def test_parse_wos_ref_labels(tmp_path):
+    p = tmp_path / "w.bib"
+    p.write_text(ENTRY, encoding="utf-8")
+    labels = parse_wos_ref_labels([p])
+    assert labels["10.3982/ecta19815"] == "Acemoglu D, 2022"
+    assert labels["10.1257/aer.20160696"] == "Author B, 2018"

@@ -60,3 +60,22 @@ def parse_wos_bib(paths) -> dict[str, list[str]]:
                     refs.append(d)
             out[paper_doi] = refs
     return out
+
+
+def parse_wos_ref_labels(paths) -> dict[str, str]:
+    """Mapa doi_normalizado -> "Autor, Ano" extraído das strings de
+    Cited-References da WoS (primeiros dois campos separados por vírgula).
+    Primeira ocorrência vence. Usado só para rótulos legíveis nas figuras."""
+    out: dict[str, str] = {}
+    for path in paths:
+        txt = Path(path).read_text(encoding="utf-8", errors="replace")
+        for chunk in re.split(r"\n@", txt):
+            entry = chunk if chunk.lstrip().startswith("@") else "@" + chunk
+            for r in _split_refs(_extract_field(entry, "cited-references")):
+                d = norm_doi(r)
+                if not d or d in out:
+                    continue
+                parts = [p.strip() for p in r.split(",")]
+                if len(parts) >= 2:
+                    out[d] = f"{parts[0]}, {parts[1]}"
+    return out
