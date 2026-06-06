@@ -44,7 +44,10 @@ def _corpus_indexed(extraction: Path) -> pd.DataFrame:
 
 
 def _coupling_report(graphml: Path, corpus: pd.DataFrame, out_dir: Path) -> str:
-    G = nx.read_graphml(graphml)
+    G_full = nx.read_graphml(graphml)
+    nonisolated = [n for n, d in G_full.degree() if d > 0]
+    n_isolated = G_full.number_of_nodes() - len(nonisolated)
+    G = G_full.subgraph(nonisolated).copy()
     part = louvain_clusters(G)
     n_clusters = len(set(part.values()))
     rows = []
@@ -56,7 +59,8 @@ def _coupling_report(graphml: Path, corpus: pd.DataFrame, out_dir: Path) -> str:
     pd.DataFrame(rows).to_csv(out_dir / "clusters_acoplamento.csv", index=False)
     _draw(G, part, "Acoplamento bibliográfico (cor = cluster)",
           out_dir / "coupling.png")
-    lines = [f"## Acoplamento: {n_clusters} clusters, {G.number_of_nodes()} papers\n"]
+    lines = [f"## Acoplamento: {n_clusters} clusters em {G.number_of_nodes()} papers "
+             f"conectados ({n_isolated} isolados omitidos)\n"]
     for col in ("pre_pos_chatgpt", "polarizacao"):
         if col in corpus.columns:
             ct = crosstab(part, corpus, col)

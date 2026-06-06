@@ -37,12 +37,20 @@ def resolve_ids_to_dois(ids, get, *, mailto: str, batch: int = 50) -> dict[str, 
 
 
 def make_http_get(mailto: str):
-    """`get(url)->dict` real, com retry/backoff. Só usado em produção."""
+    """`get(url)->dict` real, com retry/backoff em erros transitórios (5xx/rede);
+    4xx (ex.: 404 = DOI não indexado) sobem na hora. Só usado em produção."""
     import requests
-    from tenacity import retry, stop_after_attempt, wait_exponential
+    from tenacity import (retry, retry_if_exception, stop_after_attempt,
+                          wait_exponential)
+
+    def _transient(e: BaseException) -> bool:
+        if isinstance(e, requests.HTTPError) and e.response is not None:
+            return e.response.status_code >= 500
+        return isinstance(e, requests.RequestException)
 
     @retry(stop=stop_after_attempt(4),
-           wait=wait_exponential(multiplier=2, min=2, max=30))
+           wait=wait_exponential(multiplier=2, min=2, max=30),
+           retry=retry_if_exception(_transient))
     def get(url: str) -> dict:
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()

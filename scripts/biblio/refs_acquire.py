@@ -22,14 +22,19 @@ from scripts.biblio.wos_refs import parse_wos_bib
 
 def build_paper_refs(paper_dois, wos_map, oa_fetch, oa_resolve):
     rows: list[tuple[str, str, str]] = []
-    stats = {"papers_wos": 0, "papers_openalex": 0, "papers_sem_refs": 0}
+    stats = {"papers_wos": 0, "papers_openalex": 0, "papers_sem_refs": 0,
+             "papers_oa_erro": 0}
     for pd_ in paper_dois:
         if pd_ in wos_map:
             refs = wos_map[pd_]
             fonte = "wos"
             stats["papers_wos"] += 1
         else:
-            ids = oa_fetch(pd_)
+            try:
+                ids = oa_fetch(pd_)
+            except Exception:
+                ids = []
+                stats["papers_oa_erro"] += 1
             idmap = oa_resolve(ids)
             refs = [idmap[i] for i in ids if i in idmap]
             fonte = "openalex"
@@ -58,9 +63,14 @@ def run(extraction: Path, wos_glob_dir: Path, out_csv: Path,
     refs_cache = json.loads(cache_refs.read_text()) if cache_refs.exists() else {}
     idmap = json.loads(cache_idmap.read_text()) if cache_idmap.exists() else {}
 
+    fetched = {"n": 0}
+
     def oa_fetch(doi: str):
         if doi not in refs_cache:
             refs_cache[doi] = referenced_works(doi, get, mailto=mailto)
+            fetched["n"] += 1
+            if fetched["n"] % 25 == 0:
+                cache_refs.write_text(json.dumps(refs_cache, ensure_ascii=False))
         return refs_cache[doi]
 
     def oa_resolve(ids):
@@ -78,7 +88,8 @@ def run(extraction: Path, wos_glob_dir: Path, out_csv: Path,
     cache_idmap.write_text(json.dumps(idmap, ensure_ascii=False))
     print(f"Refs: {len(paper_dois)} papers c/ DOI | "
           f"{stats['papers_wos']} via WoS, {stats['papers_openalex']} via OpenAlex | "
-          f"{stats['papers_sem_refs']} sem refs | {len(rows)} pares paper→ref")
+          f"{stats['papers_sem_refs']} sem refs | "
+          f"{stats['papers_oa_erro']} erro OpenAlex | {len(rows)} pares paper→ref")
     print(f"  → {out_csv}")
 
 
