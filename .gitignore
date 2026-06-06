@@ -233,6 +233,9 @@ text/figures/*.pdf
 !text/figures/.gitkeep
 text/tables/*.tex
 !text/tables/.gitkeep
+# Plano 6 — artefatos bibliométricos (build outputs exploratórios, regeneráveis via `make biblio`)
+data/processed/08_*
+reports/biblio/
 .env
 .streamlit/
 __pycache__/
