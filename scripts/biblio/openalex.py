@@ -6,6 +6,8 @@ via mailto + retry). Identidade de referência sempre via DOI normalizado.
 """
 from __future__ import annotations
 
+from urllib.parse import quote
+
 from scripts.biblio.dois import norm_doi
 
 API = "https://api.openalex.org"
@@ -16,7 +18,8 @@ def _short_id(openalex_id: str) -> str:
 
 
 def referenced_works(doi: str, get, *, mailto: str) -> list[str]:
-    url = f"{API}/works/https://doi.org/{doi}?mailto={mailto}"
+    # DOIs podem conter (), <>, ; etc. — encode o segmento p/ não gerar URL malformada
+    url = f"{API}/works/https://doi.org/{quote(doi, safe='/')}?mailto={mailto}"
     obj = get(url)
     return [_short_id(w) for w in (obj.get("referenced_works") or [])]
 

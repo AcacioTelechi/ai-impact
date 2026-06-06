@@ -22,6 +22,7 @@ from scripts.biblio.wos_refs import parse_wos_bib
 
 def build_paper_refs(paper_dois, wos_map, oa_fetch, oa_resolve):
     rows: list[tuple[str, str, str]] = []
+    erro_dois: list[str] = []
     stats = {"papers_wos": 0, "papers_openalex": 0, "papers_sem_refs": 0,
              "papers_oa_erro": 0}
     for pd_ in paper_dois:
@@ -35,6 +36,7 @@ def build_paper_refs(paper_dois, wos_map, oa_fetch, oa_resolve):
             except Exception:
                 ids = []
                 stats["papers_oa_erro"] += 1
+                erro_dois.append(pd_)   # auditável: não perder em silêncio
             idmap = oa_resolve(ids)
             refs = [idmap[i] for i in ids if i in idmap]
             fonte = "openalex"
@@ -44,6 +46,7 @@ def build_paper_refs(paper_dois, wos_map, oa_fetch, oa_resolve):
             stats["papers_sem_refs"] += 1
         for r in refs:
             rows.append((pd_, r, fonte))
+    stats["oa_erro_dois"] = erro_dois
     return rows, stats
 
 
@@ -90,6 +93,9 @@ def run(extraction: Path, wos_glob_dir: Path, out_csv: Path,
           f"{stats['papers_wos']} via WoS, {stats['papers_openalex']} via OpenAlex | "
           f"{stats['papers_sem_refs']} sem refs | "
           f"{stats['papers_oa_erro']} erro OpenAlex | {len(rows)} pares paper→ref")
+    if stats["oa_erro_dois"]:
+        print(f"  DOIs sem refs no OpenAlex (404/erro): "
+              f"{', '.join(stats['oa_erro_dois'])}")
     print(f"  → {out_csv}")
 
 
