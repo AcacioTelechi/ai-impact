@@ -1,0 +1,94 @@
+\section{Resultados IV --- A estrutura intelectual do campo}\label{cap:bibliometria}
+
+Os capítulos anteriores assentam-se no conteúdo \emph{extraído} de cada estudo
+pelo modelo de linguagem. Este capítulo triangula aqueles achados por uma lente
+independente --- a estrutura de citações do corpus ---, que não depende da
+extração assistida por IA. A pergunta é dupla: sobre quais tradições
+intelectuais o campo se ergue e como o próprio corpus se divide em grupos
+temáticos. Para respondê-la, construíram-se duas redes complementares. Na
+\emph{co-citação}, dois trabalhos da literatura de base são ligados quando são
+citados em conjunto pelos estudos do corpus, de modo que os agrupamentos revelam
+as correntes que fundamentam a área. No \emph{acoplamento bibliográfico}, dois
+estudos \emph{do corpus} são ligados quando compartilham referências, de modo
+que os agrupamentos revelam sub-literaturas internas. As referências foram
+obtidas para 719 dos 817 estudos incluídos (88\%) --- 455 a partir dos próprios
+registros da \textit{Web of Science} e 330 via \textit{OpenAlex} ---, unificadas
+pelo DOI; estudos e referências sem DOI ficam de fora do pareamento. As
+comunidades foram detectadas pelo algoritmo de Louvain. Trata-se de uma análise
+\emph{exploratória e descritiva}: como no restante da revisão, o corpus é um
+censo e não uma amostra, e as redes ilustram associações, não inferência
+populacional.
+
+\subsection{Os fundamentos intelectuais (co-citação)}
+
+A rede de co-citação revela uma base teórica coesa e reconhecível, organizada em
+cinco correntes. A primeira, e a mais central, é a tradição da \emph{abordagem
+por tarefas} e da polarização do emprego, ancorada na formulação seminal de
+\textcite{autorLevyMurnane2003} sobre o conteúdo de tarefas da mudança
+tecnológica e desdobrada na evidência de polarização de
+\textcite{autorDorn2013}, \textcite{goosManningSalomons2014} e
+\textcite{goosManning2007}. A segunda é a corrente de \emph{evidência causal
+sobre robôs}, de desenho quase-experimental por região e firma
+\parencite{acemogluRestrepo2020robots, graetzMichaels2018, dauth2021}. A
+terceira reúne os \emph{fundamentos macroeconômicos e de crescimento} da
+automação --- da complementaridade capital-qualificação
+\parencite{krusell2000} e do modelo de tarefas de \textcite{zeira1998} ao
+declínio da participação do trabalho na renda \parencite{karabarbounisNeiman2014}
+e à corrida entre homem e máquina \parencite{acemogluRestrepo2018}. A quarta é a
+linha de \emph{risco e prognóstico}, que vai da estimativa de exposição
+ocupacional de \textcite{frey2017} e sua revisão por tarefas
+\parencite{arntzGregoryZierahn2017} à agenda mais otimista de
+\textcite{autor2015} e à evidência inicial sobre IA propriamente dita
+\parencite{acemogluVacancies2022, brynjolfssonMitchellRock2018}. A quinta, mais
+periférica, é a tradição de \emph{surveys sobre inovação e emprego}
+\parencite{vivarelli2014, calvinoVirgillito2017, mondolo2021}. O dado central é
+que a literatura recente sobre IA e trabalho não emergiu num vácuo: ela herda uma
+espinha teórica madura, da linhagem Autor--Acemoglu, o que confere coerência
+conceitual ao campo apesar de sua expansão acelerada.
+
+\subsection{Os grupos temáticos do corpus e o eixo pré/pós}
+
+O acoplamento bibliográfico decompõe os 652 estudos conectados em quatro
+sub-literaturas substantivas (Tabela~\ref{tab:acoplamento_clusters}). O maior
+grupo (C2, 239 estudos, marcado por \textit{artificial intelligence},
+\textit{impact} e \textit{employment}) é nitidamente o da nova literatura sobre
+IA: 67\% de seus estudos são posteriores ao ChatGPT. O segundo (C3, 173 estudos,
+marcado por \textit{automation}, \textit{job} e \textit{skill}) é o da automação
+clássica: 62\% de seus estudos são anteriores ao ChatGPT. Os outros dois ocupam
+posições intermediárias --- um voltado à evidência de robôs em nível de firma,
+com peso da China (C4), outro à automação, ao crescimento e à desigualdade (C6).
+
+\begin{table}[htbp]
+\centering
+\caption{Grupos de acoplamento bibliográfico do corpus: período e polarização.}
+\label{tab:acoplamento_clusters}
+\begin{tabular}{p{6.0cm}ccc}
+\toprule
+Grupo (termos salientes) & $n$ & \% pós-ChatGPT & \% alta-quali em risco \\
+\midrule
+C2 --- \textit{artificial intelligence, impact, employment} & 239 & 67\% & 17\% \\
+C3 --- \textit{automation, job, market, skill} & 173 & 38\% & 7\% \\
+C4 --- \textit{robots, automation, China, firm} & 112 & 57\% & 5\% \\
+C6 --- \textit{automation, growth, inequality} & 120 & 60\% & 12\% \\
+\bottomrule
+\end{tabular}
+\par{\footnotesize Acoplamento sobre os 652 estudos conectados (67 isolados
+omitidos). A coluna ``\% alta-quali em risco'' é calculada sobre os estudos do
+grupo que classificaram a polarização (excluídos os ``n/a''). Análise
+exploratória; o corpus é censo, não amostra.}
+\end{table}
+
+Esse recorte reproduz, por um caminho inteiramente independente da extração por
+IA, o achado central do Capítulo~\ref{cap:comparacao}. O grupo dominado pela
+literatura pós-ChatGPT (C2) é justamente o que exibe a \emph{maior} fração de
+estudos que situam o risco na alta qualificação (cerca de 17\% dos classificados,
+contra apenas 7\% no grupo da automação clássica). Ao mesmo tempo, o risco para a
+\emph{baixa} qualificação permanece a categoria modal mesmo em C2 (47\% dos
+classificados). Ou seja, a própria geografia de citações do campo desenha um
+deslocamento parcial do risco em direção às ocupações cognitivas qualificadas,
+sem que esse deslocamento se torne dominante --- exatamente a leitura de
+\emph{ruptura parcial} sustentada pela análise de conteúdo. A convergência de dois
+métodos distintos sobre a mesma conclusão reforça a confiança no diagnóstico.
+Cabe a ressalva, contudo, de que o acoplamento é dominado por um grande
+aglomerado geral e de que toda a leitura é exploratória: ela sugere uma
+estrutura, não a testa.
