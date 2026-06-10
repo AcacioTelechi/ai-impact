@@ -29,7 +29,7 @@ temporais e entre os períodos pré- e pós-ChatGPT.
 O relato segue as diretrizes PRISMA 2020 para a identificação, triagem,
 elegibilidade e inclusão de estudos, sumarizadas no diagrama da
 Figura~\ref{fig:prisma}. Uma característica distintiva deste desenho é o uso
-intensivo de modelos de linguagem (\textit{large language models}, LLMs) como
+intensivo de modelos de linguagem (\glspl{llm}) como
 instrumentos de triagem, arbitragem e extração. Essa escolha é metodologicamente
 consequente --- substitui, em parte, o trabalho de revisores humanos previsto no
 protocolo v1.0 --- e por isso é tratada explicitamente: cada etapa assistida por
@@ -54,8 +54,8 @@ linguagem natural, visão computacional, LLMs e IA generativa, ou robôs com
 componente de IA --- sobre o emprego, entendido em sentido amplo: nível de
 emprego, criação ou destruição de postos, exposição ocupacional ou demanda por
 trabalho. Quanto ao tipo de publicação, admitiram-se artigos em periódicos
-revisados por pares, \textit{working papers} de instituições reconhecidas (NBER,
-IZA, CEPR, BIS, OECD, IPEA, BCB, FGV) e capítulos indexados, sem restrição de
+revisados por pares, \textit{working papers} de instituições reconhecidas
+(\acrshort{nber}, \acrshort{iza}, \acrshort{cepr}, \acrshort{bis}, \acrshort{oecd}, \acrshort{ipea}, \acrshort{bcb}, \acrshort{fgv}) e capítulos indexados, sem restrição de
 foco geográfico.
 
 A exclusão obedeceu a cinco códigos: \textbf{E1}, tema fora do escopo
@@ -98,7 +98,7 @@ pela Scopus, que incorpora o \textit{SciELO Citation Index}; optou-se por não
 consultar a SciELO como base autônoma para evitar duplicação e manter um único
 \textit{pipeline} de exportação em formato BibTeX (decisão de 2026-05-16).
 
-A base OpenAlex, inicialmente prevista como fonte complementar via API, foi
+A base OpenAlex, inicialmente prevista como fonte complementar via \gls{api}, foi
 descartada em 2026-05-13 após teste empírico: seu parâmetro \texttt{search} não
 suporta operadores booleanos AND/OR no lado do servidor, apenas correspondência
 \textit{full-text} difusa, de modo que a \textit{query} retornava milhões de
@@ -122,7 +122,7 @@ versão da \textit{string}, as datas-limite, o número de registros e o
 \subsubsection*{Deduplicação}
 
 Os 3.118 registros consolidados das duas bases passaram por deduplicação em três
-passes sucessivos: correspondência exata de DOI normalizado; correspondência por
+passes sucessivos: correspondência exata de \gls{doi} normalizado; correspondência por
 chave composta (sobrenome do primeiro autor, ano e título normalizado), para
 registros sem DOI; e, por fim, similaridade de \textit{embeddings} de título
 (\textit{cosine similarity} acima de limiar) sobre os remanescentes sem DOI. Cada

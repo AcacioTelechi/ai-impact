@@ -44,6 +44,12 @@
 
 \addbibresource{refs.bib}
 
+% Glossário de siglas (carregar após hyperref)
+\usepackage[acronym, nomain, nopostdot, nonumberlist, toc]{glossaries}
+\makenoidxglossaries
+\setacronymstyle{long-short}
+\input{pre/acronimos.tex}
+
 % Comandos auxiliares
 \newcommand{\janelaUm}{2013--2017}
 \newcommand{\janelaDois}{2018--2022}
