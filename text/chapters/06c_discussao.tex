@@ -1,0 +1,307 @@
+\section{Discussão --- o que mudou, por que mudou e quanto se pode confiar}\label{cap:discussao}
+
+Os capítulos anteriores descrevem \emph{o que} mudou na literatura entre os dois
+períodos. Este capítulo pergunta \emph{por que} mudou e confronta os achados com
+o referencial teórico do Capítulo~\ref{cap:refteo}. Ele se organiza em torno de
+quatro perguntas que a comparação bruta pré/pós deixa em aberto: se o
+deslocamento do risco acompanha a \emph{data} ou o \emph{objeto} tecnológico dos
+estudos; se o sinal sobre o emprego depende do que cada desenho mede; quanto das
+mudanças é recomposição do corpus e quanto é mudança dentro de cada tipo de
+estudo; e quão sensíveis são as conclusões às escolhas metodológicas da revisão.
+As análises são, como no restante do trabalho, exploratórias.
+
+\subsection{Data ou objeto? O risco acompanha a tecnologia estudada}
+
+A comparação pré/pós agrupa os estudos pela data de publicação, mas a hipótese
+da revisão é, no fundo, uma hipótese sobre \emph{tecnologia}: a de que a IA
+generativa atinge tarefas distintas das que a automação atingia. As duas coisas
+não coincidem, pois apenas 9,2\% dos estudos publicados de 2023 em diante têm a
+IA generativa como objeto (Capítulo~\ref{cap:descritivas}). A
+Tabela~\ref{tab:polarizacao_tecnologia} separa as duas dimensões, e o resultado é
+o mais nítido de toda a revisão. Entre os estudos cujo objeto é a automação
+clássica ou a robótica, o risco para a alta qualificação é praticamente ausente
+(2,1\% e 3,4\%) e a baixa qualificação é o diagnóstico de dois terços dos
+trabalhos. Entre os estudos cujo objeto é a IA generativa, a ordem se inverte: o
+risco para a alta qualificação é a categoria \emph{modal} (48,5\%), e a baixa
+qualificação cai a 27,3\%. Os estudos que tratam a IA de modo geral ocupam
+posição intermediária (17,0\%).
+
+\begin{table}[htbp]
+\centering
+\caption{Polarização segundo a tecnologia em foco no estudo.}
+\label{tab:polarizacao_tecnologia}
+\input{tables/polarizacao_tecnologia.tex}
+\end{table}
+
+A leitura teórica é direta, e é favorável ao arcabouço de tarefas. O modelo de
+\textcite{autorLevyMurnane2003} nunca afirmou que a tecnologia ameaça a baixa
+qualificação; afirmou que ela substitui as tarefas que consegue executar, e que
+essas tarefas eram, para o computador e para o robô, as rotineiras. O que os
+índices de exposição da geração seguinte mostraram é que o conjunto de tarefas
+executáveis pela IA é outro \parencite{webb2020, felten2021, eloundou2024}. O
+corpus reproduz exatamente essa estrutura: a literatura não mudou de ideia sobre
+a automação --- nos estudos sobre automação e robôs, a baixa qualificação é o
+diagnóstico de 68,8\% dos trabalhos no pré e de 67,5\% no pós, e a alta
+qualificação, de 1,8\% e 3,1\% ---, mas passou a estudar também uma
+tecnologia cujo perfil de tarefas é diferente, e para ela o diagnóstico é
+diferente. A ruptura está no \emph{objeto}; a continuidade está na
+\emph{teoria}. Nesse sentido, a hipótese de trabalho da revisão é confirmada onde
+ela de fato se aplica, e a expressão ``ruptura parcial'' ganha conteúdo preciso:
+a ruptura é parcial porque a IA generativa ainda é o objeto de uma parcela
+pequena da literatura indexada, não porque o diagnóstico sobre ela seja
+hesitante.
+
+\begin{table}[htbp]
+\centering
+\caption{Determinantes de o estudo situar o risco na alta qualificação (logit).}
+\label{tab:logit_h1}
+{\small\input{tables/logit_h1.tex}}
+\end{table}
+
+O objeto, contudo, não esgota a explicação. A Tabela~\ref{tab:logit_h1} mostra
+que, controlado o objeto generativo, publicar de 2023 em diante ainda eleva as
+chances de situar o risco na alta qualificação (razão de chances de 4,06 na
+coluna 2 e de 3,18 com todos os controles), e a
+Tabela~\ref{tab:h1_sensibilidade} mostra que o efeito do período sobrevive à
+\emph{exclusão} de todos os estudos de IA generativa (2,7\% para 10,2\%). O
+canal é visível nos estudos de IA ``geral'': neles, a fração que aponta a alta
+qualificação passa de 1 em 32 no pré para 28 em 139 no pós. Há, portanto, um
+efeito de \emph{difusão do enquadramento}: a chegada da IA generativa alterou a
+forma como a literatura fala de IA em sentido amplo, mesmo quando o estudo não
+trata de modelos generativos. A Figura~\ref{fig:h1_tendencia} sugere ainda que
+esse movimento é gradual e anterior ao pivô: a fração cresce de forma monotônica
+desde 2021 (razão de chances de 1,46 por ano, $p < 0{,}001$; 1,38 sem os estudos
+de IA generativa), em linha com o fato de que os índices de exposição à IA
+preditiva já apontavam para a alta qualificação antes do ChatGPT
+\parencite{webb2020, felten2021}. O lançamento do ChatGPT acelera uma tendência;
+não a inaugura.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/h1_tendencia_anual.pdf}
+\caption{Fração dos estudos que situam o risco na alta qualificação, por ano de
+publicação (faixa: IC Wilson 95\%; $n$ = estudos que classificaram a polarização).}
+\label{fig:h1_tendencia}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Sensibilidade do teste da hipótese central a definições e subconjuntos.}
+\label{tab:h1_sensibilidade}
+{\small\input{tables/h1_sensibilidade.tex}}
+\end{table}
+
+A Tabela~\ref{tab:h1_sensibilidade} documenta também a fragilidade que esta
+revisão corrigiu. Na primeira versão da análise, a posição pré/pós era atribuída
+pelo modelo de linguagem extrator, que, sem instrução explícita, classificou
+como ``pré'' 115 estudos publicados entre 2023 e 2026 cujos \emph{dados} eram
+anteriores a 2022. Com aquela variável o efeito era fraco (7,5\% para 12,9\%,
+$p = 0{,}0609$); com o ano de publicação, que é o critério declarado na
+metodologia, ele é forte. O resultado é insensível à escolha do pivô (2023 ou
+2024), à exclusão dos anos de transição, à restrição a estudos revisados por
+pares ou empíricos e à exclusão dos estudos sobre a China. Perde significância
+apenas nos dois menores subconjuntos --- estudos de \textit{score} $\geq 4$ e
+estudos lidos em texto completo ---, nos quais a direção se mantém, mas o grupo
+pré tem 34 e 27 estudos classificados, respectivamente.
+
+\subsection{O sinal depende do que se mede}
+
+A Introdução conjecturou que os diagnósticos da literatura ``divergem menos por
+erro do que por medirem objetos distintos''. A
+Tabela~\ref{tab:sinal_por_tipo} submete a conjectura aos dados, e ela se
+sustenta: a associação entre o tipo de evidência e o sinal sobre o emprego ($V$
+de Cramér de 0,30) é a mais forte do corpus, superior à de qualquer dimensão com
+o período. Metade dos estudos de exposição ocupacional conclui por efeito
+negativo; mais de 40\% dos estudos de firma concluem por efeito positivo; e cerca
+de 80\% dos trabalhos teóricos e das revisões declaram o efeito ambíguo.
+
+\begin{table}[htbp]
+\centering
+\caption{Sinal sobre o emprego segundo o tipo de evidência.}
+\label{tab:sinal_por_tipo}
+\input{tables/sinal_por_tipo.tex}
+\end{table}
+
+Cada um desses padrões tem explicação no próprio arcabouço de
+\textcite{acemogluRestrepo2019}. Um índice de exposição mede a viabilidade
+técnica de executar tarefas por máquina; ele captura, por construção, o
+efeito-deslocamento e nada diz sobre reinstalação, produtividade ou demanda. A
+crítica de \textcite{arntzGregoryZierahn2017} a \textcite{frey2017} é, no fundo,
+esta. Um estudo de firma, no extremo oposto, compara firmas adotantes com não
+adotantes: as adotantes tornam-se mais produtivas, ganham mercado e contratam,
+de modo que o desenho captura o efeito-produtividade em equilíbrio parcial. Mas o
+emprego que a adotante ganha pode ser o que a concorrente perde, e o saldo
+positivo da firma não se transpõe ao setor, ponto que \textcite{bessen2018}
+formaliza pela elasticidade da demanda. Os modelos teóricos, por fim, são
+``ambíguos'' por definição: o seu resultado é justamente o de que o saldo depende
+de parâmetros. A heterogeneidade de vereditos que motivou esta revisão é, assim,
+em larga medida um artefato previsível da divisão de trabalho entre os desenhos,
+e não um desacordo substantivo. A evidência de nível agregado disponível é
+coerente com essa leitura: efeitos nulos ou pequenos sobre o emprego total
+\parencite{acemogluVacancies2022, kauhanenRouvinen2025}, compatíveis com a
+estimativa de \textcite{acemoglu2025simple} de que os ganhos macroeconômicos da
+IA na próxima década serão modestos, convivem com efeitos negativos rápidos e
+mensuráveis onde a substituição é direta e o mercado é flexível, como no trabalho
+\textit{freelance} de redação e de criação de imagens \parencite{huiReshefZhou2024}.
+
+Decorre daí uma implicação metodológica para quem lê esta literatura: a
+proporção de estudos ``negativos'' ou ``positivos'' num corpus não é um
+termômetro do efeito da IA, e sim, em boa parte, um retrato da composição de
+desenhos desse corpus.
+
+\subsection{Recomposição do corpus ou mudança de diagnóstico?}
+
+Se o sinal depende do desenho e a composição de desenhos mudou
+(Capítulo~\ref{cap:comparacao}), é preciso perguntar quanto das diferenças
+pré/pós é mera recomposição. A Tabela~\ref{tab:composicao} compara, para cada
+desfecho, a razão de chances bruta do período com a razão ajustada por tipo de
+evidência, objeto generativo, foco na China e qualidade.
+
+\begin{table}[htbp]
+\centering
+\caption{Diferenças pré/pós brutas e ajustadas pela composição do corpus.}
+\label{tab:composicao}
+{\small\input{tables/composicao_ajuste.tex}}
+\end{table}
+
+Três padrões emergem. O crescimento do sinal \emph{positivo} é, em cerca de
+metade, composição: a razão de chances cai de 5,12 para 2,49 quando se controla o
+tipo de estudo, pois a literatura recente tem quatro vezes mais estudos de firma,
+que são os que encontram efeitos positivos. O recuo do \emph{deslocamento} é
+quase todo composição (de 0,27 para 0,52, já sem significância a 5\%). Em
+contraste, a queda do sinal \emph{negativo}, a alta da complementaridade, a queda
+da demanda agregada e o encurtamento do horizonte mantêm-se após o ajuste: são
+mudanças que ocorrem \emph{dentro} de cada tipo de estudo. E o deslocamento do
+risco para a alta qualificação, embora atenuado, permanece.
+
+\begin{table}[htbp]
+\centering
+\caption{Perfis de mecanismos: participação por período e sinal associado.}
+\label{tab:perfis_mecanismos}
+\input{tables/perfis_mecanismos.tex}
+\end{table}
+
+A Tabela~\ref{tab:perfis_mecanismos} reorganiza os quatro mecanismos em perfis e
+oferece a ponte mais direta entre a teoria e os resultados. O arcabouço de
+Acemoglu e Restrepo afirma que o efeito da tecnologia sobre o emprego é o saldo
+entre uma força de deslocamento e forças compensatórias. O corpus raciocina
+exatamente assim: dos estudos que invocam \emph{apenas} o deslocamento, 67,2\%
+concluem por efeito negativo; dos que invocam \emph{apenas} forças
+compensatórias, 64,8\% concluem por efeito positivo; e dos que invocam as duas
+coisas --- três quartos do corpus ---, 73,0\% declaram o efeito ambíguo. A
+ambiguidade predominante da literatura não é indecisão: é a conclusão que se
+segue de reconhecer as duas forças sem dispor de magnitudes comparáveis para
+pesá-las, lacuna documentada na Tabela~\ref{tab:magnitude_cobertura}. O que muda
+entre os períodos é o crescimento do perfil ``só compensação'', de 3,9\% para
+14,1\% dos estudos.
+
+Dois traços dessa mudança merecem leitura crítica à luz do referencial. O
+primeiro é a assimetria entre complementaridade, que sobe quinze pontos, e
+reinstalação, que não se move. No arcabouço teórico as duas não são equivalentes:
+é a criação de \emph{novas tarefas}, e não o ganho de produtividade nas
+existentes, que sustenta a demanda por trabalho no longo prazo
+\parencite{acemogluRestrepo2019}. Uma literatura que documenta cada vez mais que
+a IA ajuda o trabalhador a fazer melhor o que já fazia, sem documentar na mesma
+proporção o surgimento de tarefas novas, descreve um cenário mais próximo da
+advertência de \textcite{acemogluRestrepo2020wrongai} e da ``armadilha de
+Turing'' de \textcite{brynjolfsson2022turing} do que do otimismo que a palavra
+``complementaridade'' sugere: ganhos de produtividade em tarefas existentes
+podem, com demanda inelástica, reduzir o emprego nessas mesmas tarefas.
+
+O segundo traço é o recuo da demanda agregada, que cai pela metade. A literatura
+torna-se mais empírica e mais microeconômica, o que é um ganho de credibilidade,
+mas abandona justamente o canal do qual depende a resposta à pergunta agregada.
+Forma-se um ponto cego: sabe-se cada vez mais sobre o que acontece na firma que
+adota e cada vez menos sobre o que acontece na economia em que ela está.
+
+Há, por fim, um resultado que o esquema de codificação desta revisão não
+consegue capturar e que a Introdução já insinuava. A evidência experimental
+mostra ganhos concentrados nos trabalhadores \emph{menos} experientes dentro de
+uma mesma ocupação \parencite{noyZhang2023, brynjolfssonLiRaymond2025}. Isso não
+é risco para a ``baixa'' nem para a ``alta'' qualificação entre ocupações: é
+\emph{compressão} do retorno à experiência dentro delas. \textcite{autor2024rebuild}
+constrói sobre essa evidência a conjectura de que a IA pode baratear a
+\emph{expertise} e reabrir tarefas qualificadas a trabalhadores de qualificação
+intermediária, revertendo parte da polarização; \textcite{agrawalGansGoldfarb2019}
+já indicavam que automatizar a predição pode tanto substituir quanto valorizar o
+julgamento humano. A dicotomia alta/baixa qualificação, herdada do debate
+SBTC--RBTC, é possivelmente estreita demais para a IA generativa, e a categoria
+``ambos'', estável em cerca de um terço do corpus, pode estar abrigando parte
+desse fenômeno. Uma futura rodada de extração deveria codificar a dimensão
+intraocupacional separadamente.
+
+\subsection{Quanto se pode confiar: validade e sensibilidade}
+
+\textbf{Comparações múltiplas.} O Capítulo~\ref{cap:comparacao} realiza nove
+testes pré/pós. A Tabela~\ref{tab:multiplos_testes} aplica a correção de Holm: à
+exceção da reinstalação, que já não era significativa, todas as associações se
+mantêm.
+
+\begin{table}[htbp]
+\centering
+\caption{Testes pré/pós com correção para comparações múltiplas.}
+\label{tab:multiplos_testes}
+\input{tables/multiplos_testes.tex}
+\end{table}
+
+\textbf{Extração a partir do resumo.} Como 86\% dos estudos foram codificados a
+partir do resumo, a Tabela~\ref{tab:validade_fonte} compara-os com os lidos em
+texto completo. Para sinal, tipo de evidência e horizonte não há diferença
+detectável. Para a polarização há: o resumo deixa a dimensão sem classificar em
+39,9\% dos casos, contra 11,4\% no texto completo, e, quando classifica,
+simplifica --- a categoria ``ambos'' corresponde a 45,5\% dos estudos lidos na
+íntegra e a 28,4\% dos lidos pelo resumo. A variável central da revisão é,
+portanto, a mais afetada pela limitação de acesso ao texto completo, e as
+proporções de ``baixa'' e de ``alta'' qualificação estão provavelmente
+superestimadas em detrimento de ``ambos''. Não há, porém, indício de que o viés
+difira entre os períodos.
+
+\begin{table}[htbp]
+\centering
+\caption{Validade da extração: estudos lidos pelo resumo vs.\ em texto completo.}
+\label{tab:validade_fonte}
+\input{tables/validade_fonte.tex}
+\end{table}
+
+\textbf{Método comum.} Todas as variáveis substantivas foram codificadas pelo
+mesmo modelo, a partir do mesmo texto e na mesma chamada. Associações entre elas
+--- como a dos perfis de mecanismos com o sinal --- podem estar infladas pela
+tendência do extrator a produzir codificações internamente coerentes. As
+associações com o ano de publicação, que é determinístico, não sofrem desse
+problema, e é nelas que se apoia o teste da hipótese central. A verificação
+humana amostral descrita na metodologia é o instrumento para dimensionar esse
+risco e permanece como a principal pendência do trabalho.
+
+\textbf{Cobertura da busca.} A rede de citações do Capítulo~\ref{cap:bibliometria}
+permite aferir a sensibilidade da busca contra um padrão externo: as referências
+mais citadas pelo próprio corpus. Das 46 referências com data elegível entre as
+60 mais citadas, apenas 15 foram recuperadas pela busca (todas elas incluídas).
+Ficaram de fora trabalhos que o próprio referencial teórico trata como
+estruturantes --- \textcite{frey2017}, \textcite{acemogluRestrepo2020robots},
+\textcite{webb2020}, \textcite{felten2021}, \textcite{eloundou2024},
+\textcite{noyZhang2023} ---, seja por usarem vocabulário ausente da
+\textit{string} (``\textit{computerisation}'', ``\textit{robots}''), seja por
+circularem em periódicos de ciência geral ou como \textit{working papers}, fora
+do alcance das bases. O corpus representa, assim, a literatura econômica
+\emph{difusa} e indexada, e não a fronteira da disciplina. Isso não invalida a
+pergunta da revisão, que é sobre o enquadramento predominante no campo, mas
+delimita o que se pode concluir: os percentuais descrevem como a literatura
+ampla absorve e reproduz os diagnósticos, e a fronteira entra na análise pelo
+referencial teórico e pela rede de co-citação. Como os trabalhos de fronteira
+ausentes sobre IA generativa apontam majoritariamente para a alta qualificação,
+o viés de cobertura opera, se tanto, \emph{contra} a hipótese central.
+
+\subsection{Síntese: três proposições}
+
+A discussão permite condensar a resposta à pergunta da revisão em três
+proposições. Primeira: o diagnóstico da literatura mudou com a IA generativa, e
+mudou na direção prevista, mas a mudança acompanha o objeto tecnológico mais do
+que o calendário --- a literatura sobre automação segue dizendo o que dizia, e a
+literatura sobre IA generativa diz outra coisa. Segunda: essa diferença não
+contradiz o arcabouço de tarefas, e sim o confirma, pois o risco segue o
+conteúdo das tarefas que cada tecnologia executa; o que envelheceu não foi a
+teoria, e sim a identificação entre ``rotineiro'' e ``automatizável''. Terceira:
+a aparente divergência de vereditos sobre o emprego reflete sobretudo o que cada
+desenho mede, e o campo caminha para saber mais sobre a firma e menos sobre o
+agregado, justamente quando a pergunta relevante para a política pública é a
+agregada.

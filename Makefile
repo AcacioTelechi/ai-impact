@@ -208,8 +208,8 @@ extract:
 validate:
 	$(PYTHON) -m scripts.extraction.validate $(DATA_PROC)/06_extraction.csv
 
-.PHONY: analysis analysis-descritivas analysis-janelas analysis-prepos
-analysis: analysis-descritivas analysis-janelas analysis-prepos
+.PHONY: analysis analysis-descritivas analysis-janelas analysis-prepos analysis-aprofundamento
+analysis: analysis-descritivas analysis-janelas analysis-prepos analysis-aprofundamento
 
 analysis-descritivas:
 	$(PYTHON) -m scripts.analysis.descritivas_corpus \
@@ -227,6 +227,12 @@ analysis-prepos:
 	$(PYTHON) -m scripts.analysis.comparacao_pre_pos \
 	    --input $(DATA_PROC)/06_extraction.csv \
 	    --output-dir $(TAB_DIR)
+
+analysis-aprofundamento:
+	$(PYTHON) -m scripts.analysis.aprofundamento \
+	    --input $(DATA_PROC)/06_extraction.csv \
+	    --tab-dir $(TAB_DIR) --fig-dir $(FIG_DIR) \
+	    --json-out reports/revisao/numeros_aprofundamento.json
 
 .PHONY: biblio biblio-refs biblio-networks biblio-report
 biblio: biblio-refs biblio-networks biblio-report

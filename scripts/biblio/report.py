@@ -17,6 +17,8 @@ import matplotlib
 import networkx as nx
 import pandas as pd
 
+from scripts.analysis.corpus import periodo_por_ano
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
@@ -36,6 +38,8 @@ def substantive(part: dict, min_size: int = 10) -> list[int]:
 def _corpus_indexed(extraction: Path) -> pd.DataFrame:
     df = pd.read_csv(extraction, encoding="utf-8", dtype=str).fillna("")
     df = df[df["elegivel"] == "incluir"].copy()
+    # período pela data de PUBLICAÇÃO (determinístico), não pela classificação do LLM
+    df["pre_pos_chatgpt"] = pd.to_numeric(df["ano"], errors="coerce").map(periodo_por_ano)
     df["paper_doi"] = [norm_doi(d) for d in df["doi"]]
     return df[df["paper_doi"] != ""].set_index("paper_doi")
 

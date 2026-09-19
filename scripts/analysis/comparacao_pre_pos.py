@@ -81,6 +81,11 @@ def _tabela_central(df: pd.DataFrame, n_pre: int, n_pos: int) -> str:
     )
 
 
+def _rc_pos_pre(f) -> float:
+    """assoc_fisher_2x2 devolve chances(pré)/chances(pós); o texto reporta pós/pré."""
+    return 1 / f.odds_ratio if f.odds_ratio else float("inf")
+
+
 def _tabela_polarizacao(df: pd.DataFrame) -> str:
     f = assoc_fisher_2x2(df, "polarizacao", foco=FOCO_H1)
     lo_pre, hi_pre = wilson95(f.k_pre, f.n_pre)
@@ -97,7 +102,7 @@ def _tabela_polarizacao(df: pd.DataFrame) -> str:
         "lcc",
         ["Polarização", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
         rows,
-        notas=[f"Fisher exato: razão de chances $={f.odds_ratio:.2f}$".replace(".", "{,}") + ", " + fmt_p(f.p)
+        notas=[f"Fisher exato: razão de chances (pós/pré) $={_rc_pos_pre(f):.2f}$".replace(".", "{,}") + ", " + fmt_p(f.p)
                + "; IC Wilson 95\\% entre colchetes.", RESSALVA],
     )
 

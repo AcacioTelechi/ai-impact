@@ -204,19 +204,20 @@ partir do corpus, não pelo modelo; ao LLM cabe decidir a elegibilidade e
 preencher os blocos substantivos. O resultado é \texttt{06\_extraction.csv}, com
 uma linha por estudo.
 
-Dos 852 estudos, 818 foram julgados elegíveis e 34 excluídos por E1–E5. A
-primeira execução real apresentou 62 estudos sem extração: 48 por esgotamento de
-crédito da API no meio do lote, 13 por PDF inválido ou protegido baixado na
-aquisição, e 1 por JSON malformado. O diagnóstico foi feito por evidência (os
-resultados do \textit{batch} ficam retidos cerca de 29 dias). Corrigiu-se, então,
-um defeito que cacheava respostas-de-erro como resultado terminal --- o cache
-passou a persistir apenas respostas efetivamente devolvidas pela API, de modo que
-\textit{requests} com erro são reprocessados em nova execução --- e passou-se a
-validar o PDF antes do envio. A reextração dos 61 estudos remanescentes depende
-de recarga de crédito e permanece pendente; enquanto não ocorrer, esses registros
-são declarados sem extração. O corpus efetivamente analisável é, portanto, de 756
-estudos: os 818 elegíveis menos os 62 sem extração bem-sucedida. É sobre esse
-$N = 756$ que se calculam os percentuais dos capítulos de resultados.
+Dos 852 estudos, 817 foram julgados elegíveis e 35 excluídos (27 por E3 e 8 por
+E5). A primeira execução real apresentou 62 estudos sem extração: 48 por
+esgotamento de crédito da API no meio do lote, 13 por PDF inválido ou protegido
+baixado na aquisição, e 1 por JSON malformado. O diagnóstico foi feito por
+evidência (os resultados do \textit{batch} ficam retidos cerca de 29 dias).
+Corrigiu-se, então, um defeito que cacheava respostas-de-erro como resultado
+terminal --- o cache passou a persistir apenas respostas efetivamente devolvidas
+pela API, de modo que \textit{requests} com erro são reprocessados em nova
+execução --- e passou-se a validar o PDF antes do envio. A reextração dos 61
+estudos recuperáveis foi concluída em 6 de junho de 2026; resta um único registro
+com resposta malformada, declarado sem extração. O corpus efetivamente
+analisável é, portanto, de 816 estudos: os 817 elegíveis menos o registro sem
+extração. É sobre esse $N = 816$ que se calculam os percentuais dos capítulos de
+resultados.
 
 \subsection{Esquema de extração de dados}
 
@@ -225,7 +226,9 @@ organizado em sete blocos. O \textbf{bloco~A} (identificação) reúne DOI, tít
 autores, ano, periódico, tipo de publicação, país-foco e período dos dados
 empíricos. O \textbf{bloco~B} (classificação temporal) atribui a janela
 (\janelaUm{}, \janelaDois{} ou \janelaTres{}), a posição pré/pós-ChatGPT (pivô em
-30 de novembro de 2022) e a tecnologia de IA em foco. O \textbf{bloco~C} (tipo de
+30 de novembro de 2022) e a tecnologia de IA em foco; a janela e a posição
+pré/pós usadas na análise são derivadas do ano de publicação, como explica a
+Seção~\ref{sec:periodo}. O \textbf{bloco~C} (tipo de
 evidência) registra o tipo de estudo, o método empírico, a unidade de análise e a
 fonte de dados. O \textbf{bloco~D} (mecanismos teóricos) marca, conforme o
 arcabouço de tarefas de Acemoglu e Restrepo, a presença de deslocamento,
@@ -238,6 +241,27 @@ revisão por pares. O \textbf{bloco~G} (notas) guarda observações livres do
 extrator e referências cruzadas. Os valores não informados são mantidos
 explicitamente como tais e ficam fora do denominador das proporções calculadas na
 síntese.
+
+\subsection{Definição operacional do período}\label{sec:periodo}
+
+A comparação central da revisão é entre estudos \emph{publicados} antes e depois
+do lançamento do ChatGPT. No esquema original, a janela e a posição pré/pós eram
+preenchidas pelo modelo extrator, com a instrução ``pivô 2022-11-30'', sem
+menção explícita à data de publicação. A auditoria dos resultados mostrou que o
+modelo interpretou o campo de forma híbrida: 115 estudos publicados entre 2023 e
+2026 foram classificados como ``pré'' porque seus \emph{dados} eram anteriores a
+2022, e alguns estudos de 2024--2025 foram alocados à janela \janelaUm{}. A
+concordância entre a classificação do modelo e o ano de publicação era de
+85,9\%. Como a definição declarada é a da publicação, as duas variáveis passaram
+a ser derivadas de forma determinística do ano de publicação, que integra o
+bloco~A: são ``pré'' os estudos publicados até 2022 e ``pós'' os publicados de
+2023 em diante; as janelas correspondem a 2013--2017, 2018--2022 e 2023--2026. A
+granularidade é anual porque as bases não fornecem o mês de publicação de forma
+confiável; os estudos publicados em dezembro de 2022 ficam, assim, no período
+pré. A classificação original do modelo é preservada e usada como análise de
+sensibilidade (Tabela~\ref{tab:h1_sensibilidade}), assim como um pivô alternativo
+em 2024, que acomoda a defasagem editorial entre a redação e a publicação de um
+artigo.
 
 \subsection{Avaliação de qualidade}
 
@@ -261,7 +285,7 @@ submetida a verificação humana, compreendendo 100\% das exclusões (cerca de 3
 cerca de 10\% das inclusões (cerca de 76), estratificadas por fonte de texto
 (\texttt{text\_source}) e faixa de confiança da extração. A amostragem é
 determinística (semente fixa, com \textit{snapshot} do quadro amostral
-preservado), de modo que a recuperação futura dos 61 estudos pendentes não altera
+preservado), de modo que a recuperação posterior dos 61 estudos então pendentes não alterou
 a amostra nem as métricas reportadas. A verificação tem dois componentes: a
 \emph{elegibilidade} é decidida de forma \textbf{cega} (o revisor não vê a decisão
 do LLM), produzindo um $\kappa$ de Cohen humano×LLM legítimo, com concordância e
@@ -276,12 +300,13 @@ preenchimento manual e são reportados quando concluídos.
 
 \subsection{Síntese e análise estatística}
 
-A síntese opera sobre o corpus analisável ($N = 756$), definido pelo filtro
+A síntese opera sobre o corpus analisável ($N = 816$), definido pelo filtro
 canônico ``elegível e com extração bem-sucedida'', e se organiza em três camadas,
 correspondentes aos três capítulos de resultados: descritivas do corpus
 (Capítulo~\ref{cap:descritivas}), síntese por janela temporal
 (Capítulo~\ref{cap:janelas}) e comparação pareada pré/pós-ChatGPT
-(Capítulo~\ref{cap:comparacao}). Todas as figuras e tabelas são geradas por
+(Capítulo~\ref{cap:comparacao}). Uma quarta camada, de aprofundamento, sustenta
+a Discussão (Capítulo~\ref{cap:discussao}). Todas as figuras e tabelas são geradas por
 \textit{scripts} a partir do CSV de extração, sem edição manual.
 
 As proporções de cada dimensão são calculadas apenas sobre os estudos que a
@@ -289,7 +314,12 @@ classificaram --- valores não informados ficam fora do denominador. As
 associações entre período (ou janela) e variáveis categóricas são testadas pelo
 $\chi^2$ de independência; em tabelas $2\times2$ com contagens pequenas, recorre-se
 ao teste exato de Fisher e à razão de chances. Proporções de interesse acompanham
-intervalo de confiança de 95\% calculado pelo método de Wilson. O pivô da
+intervalo de confiança de 95\% calculado pelo método de Wilson. A intensidade das
+associações é resumida pelo $V$ de Cramér. Na camada de aprofundamento, modelos
+logit estimam a razão de chances do período controlando a composição do corpus
+(tipo de evidência, objeto tecnológico, país-foco e qualidade), a tendência
+temporal é testada por logit sobre o ano de publicação, e a família de testes
+pré/pós recebe a correção de Holm para comparações múltiplas. O pivô da
 comparação pré/pós é 30 de novembro de 2022 (lançamento do ChatGPT). As saídas em
 LaTeX adotam vírgula decimal, conforme a convenção tipográfica de língua
 portuguesa.
@@ -330,16 +360,27 @@ texto completo; o restante foi avaliado a partir do resumo, o que pode subdimens
 nuances de método e magnitude --- limitação que reaparece na escassez de magnitudes
 normalizadas discutida no Capítulo~\ref{cap:comparacao}.
 
-\textbf{Reextração pendente.} 61 dos 62 estudos sem extração da primeira rodada
-aguardam reprocessamento; a lacuna é documentada e sanável por nova execução
-idempotente.
+\textbf{Sensibilidade da busca.} Aferida contra as referências mais citadas pelo
+próprio corpus, a busca recuperou 15 das 46 com data elegível
+(Capítulo~\ref{cap:discussao}). As \textit{strings} não incluem termos como
+``\textit{robot*}'' e ``\textit{computeri?ation}'', e as bases consultadas não
+indexam \textit{working papers}, embora os critérios de inclusão os admitam: o
+corpus final não contém nenhum. Trabalhos de fronteira publicados em periódicos
+de ciência geral ou em séries como a do NBER ficam, por isso, fora do corpus
+sistemático e entram apenas pelo referencial teórico.
+
+\textbf{Variáveis temporais atribuídas pelo extrator.} A primeira versão da
+análise usava a posição pré/pós atribuída pelo modelo de linguagem, que se
+mostrou inconsistente com a data de publicação; o defeito foi corrigido
+(Seção~\ref{sec:periodo}) e ilustra o risco de delegar ao extrator campos que
+podem ser derivados de metadados.
 
 \textbf{Verificação por revisor único.} A validação amostral é feita por um único
 revisor; mitiga-se com cegueira na elegibilidade e intervalos de Wilson, mas
 estratos pequenos podem gerar intervalos largos e a auditoria de campos, por
 mostrar o valor do LLM, pode ancorar o revisor.
 
-\textbf{Demais limitações.} O corpus pós-2022 é jovem, com predominância de
-\textit{working papers}; a base EconLit não foi acessada (suprida por busca direta
+\textbf{Demais limitações.} O corpus pós-2022 é jovem e 15\% dele corresponde a
+registros de 2026 em \textit{early access}; a base EconLit não foi acessada (suprida por busca direta
 em periódicos); e antecedentes seminais anteriores a 2013 ficam fora do corpus
 sistemático, sendo tratados no referencial teórico.
