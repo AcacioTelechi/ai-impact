@@ -33,9 +33,15 @@ def _fig_anos(df: pd.DataFrame, output: Path) -> None:
 
 
 def _fig_categorica(df: pd.DataFrame, col: str, titulo: str, output: Path,
-                    horizontal: bool = False) -> None:
+                    horizontal: bool = False, decrescente: bool = False,
+                    rotulos: dict[str, str] | None = None) -> None:
     ordem = CANON.get(col, sorted(df[col].dropna().unique().tolist()))
     counts = df[col].value_counts().reindex(ordem).fillna(0)
+    if decrescente:
+        # barh desenha de baixo para cima: ascendente põe a maior barra no topo
+        counts = counts.sort_values(ascending=horizontal, kind="stable")
+    if rotulos:
+        counts = counts.rename(index=rotulos)
     fig, ax = plt.subplots(figsize=(7, 4))
     if horizontal:
         ax.barh(counts.index, counts.values, color="seagreen")
@@ -88,9 +94,13 @@ def run(input: Path, output_dir: Path, output_table: Path) -> None:
     _fig_categorica(df, "janela", "Corpus por janela temporal",
                     output_dir / "corpus_janelas.pdf")
     _fig_categorica(df, "tipo_estudo", "Tipos de estudo no corpus",
-                    output_dir / "corpus_tipo_estudo.pdf", horizontal=True)
+                    output_dir / "corpus_tipo_estudo.pdf", horizontal=True,
+                    decrescente=True,
+                    # drift do enum: valor de unidade_analise emitido em tipo_estudo
+                    rotulos={"indivíduo": "indivíduo\n(unidade de análise)"})
     _fig_categorica(df, "tecnologia_focada", "Tecnologia de IA focada",
-                    output_dir / "corpus_tecnologia.pdf", horizontal=True)
+                    output_dir / "corpus_tecnologia.pdf", horizontal=True,
+                    decrescente=True)
     output_table.write_text(_tabela_estrutural(df, corpus.n), encoding="utf-8")
     print(f"Cap 04: 4 figuras em {output_dir} + tabela {output_table} (N={corpus.n})")
 

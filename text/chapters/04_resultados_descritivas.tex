@@ -1,27 +1,10 @@
 \section{Resultados I --- Descritivas do corpus}\label{cap:descritivas}
 
-Este capítulo caracteriza o corpus de análise antes de passar à síntese
-substantiva. Das 852 entradas que percorreram a extração estruturada, 816
-constituem o conjunto efetivamente analisável --- estudos marcados como
-elegíveis e com extração bem-sucedida. Excluem-se 35 registros inelegíveis (27
-por tipo de documento inválido, E3, e 8 por qualidade insuficiente, E5) e um
-único registro cuja resposta do modelo não pôde ser interpretada (\textit{parse
-fail}). Salvo indicação em contrário, os percentuais deste e dos
-próximos capítulos têm como base esse $N = 816$, e as proporções de cada
-dimensão são calculadas apenas sobre os estudos que a classificaram (valores
-não informados ficam fora do denominador).
+Este capítulo caracteriza o corpus de análise antes de passar à síntese substantiva. Das 852 entradas que percorreram a extração estruturada, 816 constituem o conjunto efetivamente analisável -- estudos marcados como elegíveis e com extração bem-sucedida. Excluem-se 35 registros inelegíveis (27 por tipo de documento inválido, E3, e 8 por qualidade insuficiente, E5) e um único registro cuja resposta do modelo não pôde ser interpretada (\textit{parse fail}). Salvo indicação em contrário, os percentuais deste e dos próximos capítulos têm como base esse $N = 816$, e as proporções de cada dimensão são calculadas apenas sobre os estudos que a classificaram (valores não informados ficam fora do denominador).
 
-\subsection{Volume e evolução temporal}
+% \subsection{Volume e evolução temporal}
 
-A Figura~\ref{fig:corpus_anos} mostra que o corpus se concentra fortemente no
-período recente: 636 dos 816 estudos (77,9\%) foram publicados a partir de
-2022, com pico em 2025 (252 estudos) e em 2024 (137); os 123 registros de 2026
-correspondem a publicações em \textit{early access}. A produção anterior a 2018
-é residual (o estudo mais antigo do corpus é de 2015). Esse perfil é, em si, um
-primeiro achado: o interesse econômico pela relação entre inteligência
-artificial e emprego acelera acentuadamente após a difusão dos modelos
-generativos, refletindo tanto o aumento de submissões quanto a janela de busca
-estendida a meados de 2026.
+A Figura~\ref{fig:corpus_anos} mostra que o corpus se concentra fortemente no período recente: 636 dos 816 estudos (77,9\%) foram publicados a partir de 2022, com pico em 2025 (252 estudos) e em 2024 (137); os 123 registros de 2026 correspondem a publicações em \textit{early access}. A produção anterior a 2018 é residual (o estudo mais antigo do corpus é de 2015). Esse perfil é, em si, um primeiro achado: o interesse econômico pela relação entre inteligênciaartificial e emprego acelera acentuadamente após a difusão dos modelos generativos, refletindo tanto o aumento de submissões quanto a janela de busca estendida a meados de 2026.
 
 \begin{figure}[htbp]
 \centering
@@ -30,19 +13,9 @@ estendida a meados de 2026.
 \label{fig:corpus_anos}
 \end{figure}
 
-\subsection{Distribuição por janela temporal}
+% \subsection{Distribuição por janela temporal}
 
-Agrupando os estudos nas três janelas de interesse
-(Figura~\ref{fig:corpus_janelas}), observam-se 15 estudos na janela da
-automação (\janelaUm{}), 225 na janela de \textit{machine learning} e
-\textit{deep learning} (\janelaDois{}) e 576 na janela da IA generativa
-(\janelaTres{}). A janela e a posição pré/pós-ChatGPT são atribuídas de forma
-determinística pelo ano de publicação (Seção~\ref{sec:periodo}): são
-pós-ChatGPT os estudos publicados de 2023 em diante. Esta última janela
-concentra 70,6\% do corpus, o que condiciona a
-leitura comparativa dos capítulos seguintes: o peso da evidência recente é
-grande, e a comparação pré/pós-ChatGPT deve ser interpretada à luz desse
-desbalanceamento amostral.
+Agrupando os estudos nas três janelas de interesse (Figura~\ref{fig:corpus_janelas}), observam-se 15 estudos na janela da automação (\janelaUm{}), 225 na janela de \textit{machine learning} e \textit{deep learning} (\janelaDois{}) e 576 na janela da IA generativa (\janelaTres{}). A janela e a posição pré/pós-ChatGPT são atribuídas de forma determinística pelo ano de publicação (Seção~\ref{sec:periodo}): são pós-ChatGPT os estudos publicados de 2023 em diante. Esta última janela concentra 70,6\% do corpus, o que condiciona a leitura comparativa dos capítulos seguintes: o peso da evidência recente é grande, e a comparação pré/pós-ChatGPT deve ser interpretada à luz desse desbalanceamento amostral.
 
 \begin{figure}[htbp]
 \centering
@@ -51,41 +24,20 @@ desbalanceamento amostral.
 \label{fig:corpus_janelas}
 \end{figure}
 
-\subsection{Tipos de estudo}
+% \subsection{Tipos de estudo}
 
-Quanto ao tipo de evidência (Figura~\ref{fig:corpus_tipos}), predominam os
-estudos de evidência macro/setorial (218) e as revisões e \textit{surveys}
-(188), seguidos por trabalhos teóricos e de modelagem (148), estudos de
-exposição ocupacional (131) e análises de firma ou de plataformas de
-\textit{freelancers} (125); seis estudos foram rotulados pelo extrator como de
-``indivíduo'', categoria não prevista no esquema e tratada, nas análises
-multivariadas, junto à evidência de firma. A heterogeneidade de desenhos --- de exercícios de
-exposição baseados em medidas como o índice de Felten \parencite{felten2021} a
-estudos de plataformas de trabalho \textit{online} --- justifica a opção metodológica por uma síntese
-narrativo-estruturada, e não meta-analítica.
+Quanto ao tipo de evidência (Figura~\ref{fig:corpus_tipos}), predominam os estudos de evidência macro/setorial (218) e as revisões e \textit{surveys} (188), seguidos por trabalhos teóricos e de modelagem (148), estudos de exposição ocupacional (131) e análises de firma ou de plataformas de \textit{freelancers} (125). Uma sexta barra, ``indivíduo'', reúne seis estudos e merece esclarecimento, pois não corresponde a um tipo de estudo previsto no esquema de extração: trata-se de um valor do campo vizinho, a unidade de análise, que o extrator empregou quando nenhuma das cinco categorias descrevia bem o desenho. Os seis trabalhos têm em comum o uso de microdados de trabalhadores ou de domicílios -- registros administrativos e \textit{surveys} longitudinais -- para acompanhar trajetórias individuais, e não ocupações, setores ou firmas. São eles: o estudo de \textcite{yakymovych2025} sobre as consequências da perda de emprego para trabalhadores de ocupações rotineiras, com dados administrativos suecos que pareiam empregadores e empregados; o de \textcite{gallenKim2025}, que relaciona automação e dinâmica heterogênea de rendimentos em um painel de indivíduos; os de \textcite{sunGao2025} e de \textcite{nieXue2026}, que examinam, com pesquisas domiciliares chinesas, os efeitos da automação inteligente sobre o bem-estar subjetivo e a satisfação no trabalho e da penetração da IA sobre a qualidade do emprego; o de \textcite{wangEtAl2024mobility}, sobre IA e mobilidade ocupacional intergeracional; e o de \textcite{semtnerDzatorNadolny2025}, sobre habilidades socioemocionais e mobilidade no emprego. Optou-se por manter o grupo visível, em vez de redistribuí-lo, porque ele identifica um desenho que o esquema não antecipou -- a evidência no nível do trabalhador, frequentemente voltada a desfechos que vão além do emprego, como renda, bem-estar e mobilidade. Por ser pequeno, o grupo é tratado, nas análises multivariadas, junto à evidência de firma, a categoria microeconômica mais próxima. A heterogeneidade de desenhos -- de exercícios de exposição baseados em medidas como o índice de Felten \parencite{felten2021} a estudos de plataformas de trabalho \textit{online} -- justifica a opção metodológica por uma síntese narrativo-estruturada, e não meta-analítica.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/corpus_tipo_estudo.pdf}
-\caption{Tipos de estudo no corpus.}
+\caption{Tipos de estudo no corpus. A categoria ``indivíduo'' não integra o esquema de extração: é o valor de unidade de análise atribuído pelo extrator a seis estudos com microdados de trabalhadores.}
 \label{fig:corpus_tipos}
 \end{figure}
 
-\subsection{Tecnologia de IA focada}
+% \subsection{Tecnologia de IA focada}
 
-A Figura~\ref{fig:corpus_tecnologia} distribui o corpus pela tecnologia de IA em
-foco. A maior parte dos estudos trata a IA de forma genérica (319) ou foca a
-automação clássica (253) e a combinação de robôs e IA (160). A IA generativa e
-os \textit{LLMs} aparecem explicitamente em 54 estudos, e as abordagens
-preditivas de \textit{machine learning} em 27. Vale notar que a presença ainda
-modesta da rotulagem ``IA generativa'' não contradiz a concentração temporal
-recente: muitos estudos publicados após 2022 seguem analisando a automação e a
-IA de modo amplo, e apenas uma fração nomeia diretamente os modelos generativos
-como objeto. Essa constatação tem consequência analítica direta: entre os 576
-estudos publicados de 2023 em diante, apenas 53 (9,2\%) têm a IA generativa como
-objeto. ``Publicado depois do ChatGPT'' e ``sobre a tecnologia do ChatGPT'' são,
-portanto, coisas distintas, e a Discussão (Capítulo~\ref{cap:discussao}) separa
-as duas dimensões.
+A Figura~\ref{fig:corpus_tecnologia} distribui o corpus pela tecnologia de IA em foco. A maior parte dos estudos trata a IA de forma genérica (319) ou foca a automação clássica (253) e a combinação de robôs e IA (160). A IA generativa e os \textit{LLMs} aparecem explicitamente em 54 estudos, as abordagens preditivas de \textit{machine learning} em 27 e o \textit{deep learning}, como foco específico, em apenas 3. Vale notar que a presença ainda modesta da rotulagem ``IA generativa'' não contradiz a concentração temporal recente: muitos estudos publicados após 2022 seguem analisando a automação e a IA de modo amplo, e apenas uma fração nomeia diretamente os modelos generativos como objeto. Essa constatação tem consequência analítica direta: entre os 576 estudos publicados de 2023 em diante, apenas 53 (9,2\%) têm a IA generativa como objeto. ``Publicado depois do ChatGPT'' e ``sobre a tecnologia do ChatGPT'' são, portanto, coisas distintas, e a Discussão (Capítulo~\ref{cap:discussao}) separa as duas dimensões.
 
 \begin{figure}[htbp]
 \centering
@@ -94,25 +46,9 @@ as duas dimensões.
 \label{fig:corpus_tecnologia}
 \end{figure}
 
-\subsection{Atributos estruturais}
+% \subsection{Atributos estruturais}
 
-A Tabela~\ref{tab:descritivas_estrutural} resume atributos estruturais do
-corpus. A maior parte são artigos de periódico (77,3\%) e 86,2\% são revisados
-por pares, o que sustenta a qualidade editorial mínima do conjunto. Quanto à
-estratégia empírica, predomina a análise descritiva (44,5\%), seguida de
-regressões por \gls{mqo} (14,8\%), modelos teóricos (9,8\%), modelos estruturais
-(9,7\%) e variáveis instrumentais (9,1\%); desenhos quasi-experimentais mais
-exigentes em identificação causal (diferenças-em-diferenças, \gls{rdd}, estudo de
-evento) somam menos de 5\%. Geograficamente, quase metade dos estudos é
-multipaís (46,9\%), com a China (14,2\%) e os Estados Unidos à frente entre os
-países isolados. A presença chinesa é um fenômeno recente: os estudos com foco na
-China passam de 3,3\% do corpus pré-ChatGPT para 18,8\% do pós, de modo que a
-expansão da literatura é também um deslocamento geográfico de quem a produz e de
-onde ela olha. Nenhum \textit{working paper} integra o corpus, pois as bases
-consultadas indexam periódicos e capítulos; a implicação para a cobertura é
-discutida na Seção~\ref{sec:limitacoes}. Esse predomínio do descritivo sobre o identificado deve ser
-mantido em vista na leitura dos achados de magnitude
-(Seção~\ref{cap:comparacao}) e reaparece na análise de robustez por qualidade.
+A Tabela~\ref{tab:descritivas_estrutural} resume atributos estruturais do corpus. A maior parte são artigos de periódico (77,3\%) e 86,2\% são revisados por pares, o que sustenta a qualidade editorial mínima do conjunto. Quanto à estratégia empírica, predomina a análise descritiva (44,5\%), seguida de regressões por \gls{mqo} (14,8\%), modelos teóricos (9,8\%), modelos estruturais (9,7\%) e variáveis instrumentais (9,1\%); desenhos quasi-experimentais mais exigentes em identificação causal (diferenças-em-diferenças, \gls{rdd}, estudo de evento) somam menos de 5\%. Geograficamente, quase metade dos estudos são referentes a múltiplos países (46,9\%), com a China (14,2\%) e os Estados Unidos à frente entre os países isolados. A presença chinesa é um fenômeno recente: os estudos com foco na China passam de 3,3\% do corpus pré-ChatGPT para 18,8\% do pós, de modo que a expansão da literatura é também um deslocamento geográfico de quem a produz e de onde ela olha. Nenhum \textit{working paper} integra o corpus, pois as bases consultadas indexam periódicos e capítulos; a implicação para a cobertura é discutida na Seção~\ref{sec:limitacoes}. Esse predomínio do descritivo sobre o identificado deve ser mantido em vista na leitura dos achados de magnitude (Seção~\ref{cap:comparacao}) e reaparece na análise de robustez por qualidade.
 
 \begin{table}[htbp]
 \centering

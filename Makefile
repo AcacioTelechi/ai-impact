@@ -67,7 +67,9 @@ import-scielo:
 search-summary:
 	$(PYTHON) -m scripts.search.summary \
 	    --searches-dir $(DATA_RAW) \
-	    --output-table $(TAB_DIR)/searches_summary.tex
+	    --output-table $(TAB_DIR)/searches_summary.tex \
+	    --dedup-decisions $(DATA_PROC)/02_dedup_decisions.csv \
+	    --extraction $(DATA_PROC)/06_extraction.csv
 
 .PHONY: search-all
 search-all: import-wos import-scopus search-summary

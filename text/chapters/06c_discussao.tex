@@ -3,9 +3,11 @@
 Os capítulos anteriores descrevem \emph{o que} mudou na literatura entre os dois
 períodos. Este capítulo pergunta \emph{por que} mudou e confronta os achados com
 o referencial teórico do Capítulo~\ref{cap:refteo}. Ele se organiza em torno de
-quatro perguntas que a comparação bruta pré/pós deixa em aberto: se o
+cinco perguntas que a comparação bruta pré/pós deixa em aberto: se o
 deslocamento do risco acompanha a \emph{data} ou o \emph{objeto} tecnológico dos
-estudos; se o sinal sobre o emprego depende do que cada desenho mede; quanto das
+estudos; quais das mudanças observadas resistem ao confronto com um grupo de
+comparação, formado pelos estudos de robótica e automação; se o sinal sobre o
+emprego depende do que cada desenho mede; quanto das
 mudanças é recomposição do corpus e quanto é mudança dentro de cada tipo de
 estudo; e quão sensíveis são as conclusões às escolhas metodológicas da revisão.
 As análises são, como no restante do trabalho, exploratórias.
@@ -103,6 +105,84 @@ pares ou empíricos e à exclusão dos estudos sobre a China. Perde significânc
 apenas nos dois menores subconjuntos --- estudos de \textit{score} $\geq 4$ e
 estudos lidos em texto completo ---, nos quais a direção se mantém, mas o grupo
 pré tem 34 e 27 estudos classificados, respectivamente.
+
+\subsection{A robótica como grupo de comparação}
+
+Se o deslocamento do risco decorre do objeto tecnológico, e não de uma mudança
+geral de humor do campo, ele \emph{não} deve aparecer nos estudos cujo objeto não
+mudou. Os 413 estudos sobre robótica e automação oferecem esse teste: cobrem os
+dois períodos (160 no pré, 253 no pós) e tratam de uma tecnologia cujo perfil de
+tarefas é o mesmo antes e depois do ChatGPT. A Tabela~\ref{tab:placebo} repete,
+dentro desse grupo, a comparação pré/pós do Capítulo~\ref{cap:comparacao}, e a
+confronta com os estudos que tratam a IA de modo geral.
+
+\begin{table}[htbp]
+\centering
+\caption{Teste placebo: comparação pré/pós dentro de cada objeto tecnológico.}
+\label{tab:placebo}
+{\small\input{tables/placebo_tecnologia.tex}}
+\end{table}
+
+O teste separa com nitidez dois tipos de mudança. A primeira é
+\emph{específica do objeto}. Na robótica, a fração de estudos que situam o risco
+na alta qualificação não se move (1,8\% e 3,1\%, $p = 0{,}7150$), ao passo que
+nos estudos de IA em geral ela passa de 3,1\% para 20,1\%. O mesmo vale, de forma
+mais atenuada, para a complementaridade, que cresce pouco e sem significância na
+robótica e de modo claro na IA em geral. O placebo é, portanto, aprovado
+justamente na variável que carrega a hipótese central: o deslocamento do risco
+não é um traço da época, e sim da tecnologia de que se fala.
+
+A segunda é \emph{de época} e atinge o campo inteiro. O encurtamento do horizonte
+(de 57,2\% para 27,8\% de estudos de longo prazo ou projeção), o recuo da demanda
+agregada (23,6\% para 13,0\%) e o crescimento do sinal positivo (3,8\% para
+13,5\%) ocorrem dentro da literatura de robótica com intensidade semelhante à
+observada na de IA. Essas mudanças não podem ser atribuídas à IA generativa.
+Refletem o amadurecimento empírico do campo: a disponibilidade de dados de firma
+e de adoção permitiu substituir projeções e modelos por estimativas de médio
+prazo, com as consequências sobre o sinal discutidas na próxima seção. A leitura
+do Capítulo~\ref{cap:comparacao} deve, por isso, ser qualificada: das rupturas ali
+listadas, apenas o deslocamento do risco e, em parte, a alta da complementaridade
+estão associados à chegada da IA generativa; as demais são tendências seculares
+da literatura que coincidem no tempo com ela.
+
+\begin{table}[htbp]
+\centering
+\caption{Literatura de robótica vs.\ literatura de IA generativa (publicados de 2023 em diante).}
+\label{tab:robos_genai}
+{\small\input{tables/robos_vs_genai.tex}}
+\end{table}
+
+A Tabela~\ref{tab:robos_genai} confronta diretamente as duas literaturas,
+restringindo ambas aos estudos publicados de 2023 em diante para igualar o
+calendário. Três resultados se destacam. Primeiro, a diferença de diagnóstico
+sobre \emph{quem} está em risco é a maior associação encontrada em toda a revisão
+($V$ de Cramér de 0,55 sobre a distribuição completa): 67,4\% dos estudos de
+robótica apontam a baixa qualificação e 48,5\% dos de IA generativa apontam a
+alta. Segundo, as duas literaturas \emph{não} diferem quanto ao sinal sobre o
+emprego nem quanto à centralidade do deslocamento, invocado por nove em cada dez
+estudos de ambas: a IA generativa muda a resposta à pergunta ``quem?'', não à
+pergunta ``quanto?''. Terceiro, e mais importante para a interpretação, as duas
+literaturas têm maturidade empírica muito desigual. A de robótica é dominada por
+evidência macro/setorial, mais de um terço de seus estudos usa método com
+identificação causal e 40,0\% alcançam \textit{score} de qualidade igual ou
+superior a 4. A de IA generativa é composta quase pela metade de revisões, tem
+12,0\% de estudos com identificação causal e 11,3\% de \textit{score} elevado, e
+praticamente ignora os efeitos de demanda agregada (1,9\%).
+
+Essa desigualdade impõe uma qualificação decisiva ao achado central. Os 16
+estudos de IA generativa que situam o risco na alta qualificação são seis
+exercícios de exposição ocupacional, seis revisões e quatro modelos teóricos;
+nenhum é evidência de firma ou macro/setorial. O diagnóstico de risco para o
+trabalho cognitivo qualificado é, no estado atual do corpus, um diagnóstico de
+\emph{exposição} e de \emph{expectativa}, não de efeitos realizados. A literatura
+de robótica percorreu esse mesmo caminho: começou com os índices de
+suscetibilidade de \textcite{frey2017}, que previam perdas amplas, e só anos depois
+produziu as estimativas causais de \textcite{acemogluRestrepo2020robots},
+\textcite{graetzMichaels2018} e \textcite{dauth2021}, que encontraram efeitos
+mais localizados e, em parte, compensados. É razoável esperar que a literatura
+de IA generativa siga trajetória semelhante, e a comparação sugere cautela
+simétrica: nem a ausência atual de efeitos agregados nem a exposição elevada das
+ocupações qualificadas são, ainda, evidência sobre o saldo de longo prazo.
 
 \subsection{O sinal depende do que se mede}
 
@@ -297,7 +377,11 @@ A discussão permite condensar a resposta à pergunta da revisão em três
 proposições. Primeira: o diagnóstico da literatura mudou com a IA generativa, e
 mudou na direção prevista, mas a mudança acompanha o objeto tecnológico mais do
 que o calendário --- a literatura sobre automação segue dizendo o que dizia, e a
-literatura sobre IA generativa diz outra coisa. Segunda: essa diferença não
+literatura sobre IA generativa diz outra coisa. O teste com a robótica como grupo
+de comparação confirma essa leitura e acrescenta duas ressalvas: o encurtamento
+do horizonte, o recuo da demanda agregada e o sinal mais positivo são tendências
+de época, comuns a todo o campo; e o novo diagnóstico apoia-se, por ora, em
+medidas de exposição e em revisões, não em efeitos observados. Segunda: essa diferença não
 contradiz o arcabouço de tarefas, e sim o confirma, pois o risco segue o
 conteúdo das tarefas que cada tecnologia executa; o que envelheceu não foi a
 teoria, e sim a identificação entre ``rotineiro'' e ``automatizável''. Terceira:

@@ -39,6 +39,7 @@ def _df(n_por_celula: int = 6) -> pd.DataFrame:
                     "score_qualidade": 4.0 if i % 3 == 0 else 3.0,
                     "text_source": "pdf" if i % 4 == 0 else "abstract",
                     "revisado_por_pares": "sim" if i % 6 else "não",
+                    "metodo_empirico": ["IV", "descritivo", "OLS"][i % 3],
                 })
     return ap.preparar(pd.DataFrame(rows))
 
@@ -78,9 +79,21 @@ def test_run_gera_artefatos_em_virgula_decimal(tmp_path):
     d.to_csv(src, index=False, encoding="utf-8")
     nums = ap.run(src, tmp_path / "tab", tmp_path / "fig", tmp_path / "n.json")
     esperadas = {"h1_sensibilidade", "polarizacao_tecnologia", "logit_h1", "sinal_por_tipo",
-                 "composicao_ajuste", "perfis_mecanismos", "multiplos_testes", "validade_fonte"}
+                 "composicao_ajuste", "perfis_mecanismos", "multiplos_testes", "validade_fonte",
+                 "placebo_tecnologia", "robos_vs_genai"}
     assert {p.stem for p in (tmp_path / "tab").glob("*.tex")} == esperadas
     assert (tmp_path / "fig" / "h1_tendencia_anual.pdf").stat().st_size > 0
     assert json.loads((tmp_path / "n.json").read_text("utf-8"))["n"] == nums["n"] == len(d)
     tex = (tmp_path / "tab" / "h1_sensibilidade.tex").read_text("utf-8")
     assert r"\toprule" in tex and "2{,}" in tex or "{,}" in tex
+
+
+def test_placebo_compara_pre_pos_dentro_do_objeto():
+    d = _df()
+    res = ap.placebo_tecnologia(d)
+    assert [r["rotulo"] for r in res][0] == "Risco na alta qualificação"
+    rob = res[0]["Robótica e automação"]
+    # no sintético, 'automação' é k ímpar e não-genai: existe nos dois períodos
+    assert rob["n_pre"] > 0 and rob["n_pos"] > 0
+    tex = ap.tabela_placebo(res)
+    assert r"\multicolumn{3}{c}{Robótica e automação}" in tex and r"\cmidrule" in tex

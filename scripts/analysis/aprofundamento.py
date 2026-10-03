@@ -342,6 +342,78 @@ def tabela_validade_fonte(d: pd.DataFrame) -> str:
                RESSALVA])
 
 
+# ---------------------------------------------------------------- 5. robótica como comparação
+ROBOS = ("robôs+IA", "automação")
+CAUSAL = ("IV", "DiD", "RDD", "evento-estudo")
+
+
+def placebo_tecnologia(d: pd.DataFrame) -> list[dict]:
+    """Pré/pós DENTRO de cada objeto. Se a mudança é do objeto (IA generativa), a
+    robótica/automação não deve mudar (placebo); se muda, é efeito de época."""
+    grupos = [("Robótica e automação", d["tecnologia_focada"].isin(ROBOS)),
+              ("IA em geral", d["tecnologia_focada"] == "geral")]
+    out = []
+    for rot, col, alvo in DESFECHOS:
+        alvos = alvo if isinstance(alvo, tuple) else (alvo,)
+        linha = {"rotulo": rot}
+        for g, mask in grupos:
+            s = d[mask & _ok(d[col])]
+            linha[g] = fisher_pre_pos(s, s[col].isin(alvos))
+        out.append(linha)
+    return out
+
+
+def tabela_placebo(res: list[dict]) -> str:
+    def cel(r):
+        return [fmt_pct(r["k_pre"] / r["n_pre"]), fmt_pct(r["k_pos"] / r["n_pos"]), fmt_p(r["p"])]
+    rows = [[r["rotulo"]] + cel(r["Robótica e automação"]) + cel(r["IA em geral"]) for r in res]
+    tex = tabela_booktabs("p{3.9cm}cccccc",
+                          ["Desfecho", "Pré", "Pós", "Fisher", "Pré", "Pós", "Fisher"], rows,
+                          notas=["Colunas 2--4: estudos cujo objeto é robótica ou automação "
+                                 "(placebo). Colunas 5--7: estudos que tratam a IA de modo geral. "
+                                 "Os estudos de IA generativa não comportam o teste, pois só um é "
+                                 "anterior a 2023.", RESSALVA])
+    cab = ("\\toprule\n & \\multicolumn{3}{c}{Robótica e automação} & "
+           "\\multicolumn{3}{c}{IA em geral} \\\\\n\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}")
+    return tex.replace("\\toprule", cab, 1)
+
+def robos_vs_genai(d: pd.DataFrame) -> list[tuple[str, float, float, float]]:
+    """Confronto direto, só entre publicados em 2023+ (iguala o calendário)."""
+    pos = d[d["pos"] == 1]
+    r, g = pos[pos["tecnologia_focada"] == "robôs+IA"], pos[pos["genai"] == 1]
+    itens = [("Risco na alta qualificação", "polarizacao", (ALTA,)),
+             ("Risco na baixa qualificação", "polarizacao", ("baixa-quali em risco",)),
+             ("Sinal negativo", "sinal_efeito", ("negativo",)),
+             ("Sinal positivo", "sinal_efeito", ("positivo",)),
+             ("Invoca deslocamento", "mec_deslocamento", ("sim",)),
+             ("Invoca reinstalação", "mec_reinstalacao", ("sim",)),
+             ("Invoca complementaridade", "mec_complementaridade", ("sim",)),
+             ("Invoca demanda agregada", "mec_demanda_agregada", ("sim",)),
+             ("Horizonte de curto prazo", "horizonte", ("curto prazo",)),
+             ("Tipo: \\textit{survey}/revisão", "tipo_estudo", ("survey/revisão",)),
+             ("Tipo: evidência macro/setorial", "tipo_estudo", ("evidência macro/setorial",)),
+             ("Método com identificação causal", "metodo_empirico", CAUSAL),
+             ("\\textit{Score} de qualidade $\\geq 4$", None, None)]
+    out = []
+    for rot, col, alvos in itens:
+        if col is None:
+            yr, yg = r["q4"] == 1, g["q4"] == 1
+        else:
+            yr, yg = r[_ok(r[col])][col].isin(alvos), g[_ok(g[col])][col].isin(alvos)
+        _, p = fisher_exact([[int(yg.sum()), int((~yg).sum())], [int(yr.sum()), int((~yr).sum())]])
+        out.append((rot, float(yr.mean()), float(yg.mean()), float(p)))
+    return out, len(r), len(g)
+
+
+def tabela_robos_vs_genai(res, n_r: int, n_g: int) -> str:
+    rows = [[rot, fmt_pct(a), fmt_pct(b), fmt_p(p)] for rot, a, b, p in res]
+    return tabela_booktabs(
+        "lccc", ["Característica", f"Robôs+IA ($n={n_r}$)", f"IA generativa ($n={n_g}$)", "Fisher"],
+        rows, notas=["Apenas estudos publicados de 2023 em diante. Proporções sobre os estudos que "
+                     "classificaram cada dimensão. Identificação causal: IV, DiD, RDD ou estudo de "
+                     "evento.", RESSALVA])
+
+
 def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None) -> dict:
     d = preparar(load_corpus(input).df)
     tab_dir.mkdir(parents=True, exist_ok=True)
@@ -362,10 +434,15 @@ def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None)
     (tab_dir / "perfis_mecanismos.tex").write_text(tex, "utf-8")
     (tab_dir / "multiplos_testes.tex").write_text(tabela_multiplos(familia_testes(d)), "utf-8")
     (tab_dir / "validade_fonte.tex").write_text(tabela_validade_fonte(d), "utf-8")
+    nums["placebo"] = placebo_tecnologia(d)
+    (tab_dir / "placebo_tecnologia.tex").write_text(tabela_placebo(nums["placebo"]), "utf-8")
+    res, n_r, n_g = robos_vs_genai(d)
+    nums["robos_vs_genai"] = res
+    (tab_dir / "robos_vs_genai.tex").write_text(tabela_robos_vs_genai(res, n_r, n_g), "utf-8")
     if json_out:
         json_out.parent.mkdir(parents=True, exist_ok=True)
         json_out.write_text(json.dumps(nums, ensure_ascii=False, indent=1), "utf-8")
-    print(f"Aprofundamento: 8 tabelas em {tab_dir}, 1 figura em {fig_dir}")
+    print(f"Aprofundamento: 10 tabelas em {tab_dir}, 1 figura em {fig_dir}")
     return nums
 
 

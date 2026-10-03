@@ -29,8 +29,46 @@ def test_summary_aggregates_all_meta_json(tmp_path: Path) -> None:
     run(searches_dir=sdir, output_table=out)
     text = out.read_text()
     assert "\\begin{tabular}" in text
-    assert "2453" in text
+    assert "2.104" in text  # após dedup interna; separador de milhar pt-BR
     assert "openalex" in text
-    assert "wos" in text
-    # Total row (2453 + 184 + 1820 = 4457)
-    assert "4457" in text or "Total" in text
+    assert "Web of Science" in text
+    # coluna Total (2104 + 162 + 1820 = 4086)
+    assert "4.086" in text and "Total" in text
+    # sem dedup/extração, só a linha de volume
+    assert "Incluídos na síntese" not in text
+
+
+def test_summary_enriquecida_com_csv_dedup_e_extracao(tmp_path: Path) -> None:
+    import pandas as pd
+
+    sdir = tmp_path / "searches"
+    sdir.mkdir()
+    dados = {
+        "scopus": [("10.1/a", "A", "2013", "en"), ("10.1/b", "B", "2020", "en"),
+                   ("", "Sem DOI", "2021", "es")],
+        "wos": [("10.1/B", "B", "2020", "en"), ("10.1/c", "C", "2015", "en")],
+    }
+    for base, regs in dados.items():
+        (sdir / f"{base}_2026-05-15.meta.json").write_text(
+            json.dumps(_meta(base, None, len(regs), len(regs))))
+        pd.DataFrame(regs, columns=["doi", "title", "year", "language"]).assign(
+            abstract="x").to_csv(sdir / f"{base}_2026-05-15.csv", index=False)
+    dedup = tmp_path / "dedup.csv"
+    pd.DataFrame([{"removed_doi": "10.1/b", "kept_doi": "10.1/b"}]).to_csv(dedup, index=False)
+    ext = tmp_path / "ext.csv"
+    pd.DataFrame([
+        {"doi": "10.1/b", "titulo": "B", "elegivel": "incluir", "nota_extracao": "ok"},
+        {"doi": "10.1/c", "titulo": "C", "elegivel": "incluir", "nota_extracao": "ok"},
+        {"doi": "", "titulo": "sem doi", "elegivel": "incluir", "nota_extracao": "ok"},
+        {"doi": "10.1/a", "titulo": "A", "elegivel": "excluir", "nota_extracao": "ok"},
+    ]).to_csv(ext, index=False)
+    out = tmp_path / "summary.tex"
+    run(searches_dir=sdir, output_table=out, dedup_decisions=dedup, extraction=ext)
+    linhas = {l.split(" & ")[0]: [c.strip(" \\") for c in l.split(" & ")[1:]]
+              for l in out.read_text().splitlines() if " & " in l}
+    assert linhas["Registros recuperados"] == ["3", "2", "5"]
+    assert linhas["Presentes em mais de uma base"] == ["1", "1", "1"]
+    assert linhas["Registros únicos após deduplicação"][-1] == "4"
+    # B está nas duas (DOI casa sem diferenciar caixa); "Sem DOI" casa pelo título
+    assert linhas["Incluídos na síntese"] == ["2", "2", "3"]
+    assert linhas["\\quad dos quais exclusivos da base"] == ["1", "1", "2"]
