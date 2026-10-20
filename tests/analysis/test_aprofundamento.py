@@ -60,6 +60,18 @@ def test_h1_especificacoes_exclui_na_e_cobre_sensibilidades():
     assert principal["k_pos"] > principal["k_pre"]
     assert specs["Classificação original do LLM"]["n_pre"] > principal["n_pre"]
     assert specs["Excluindo estudos de IA generativa/LLMs"]["n_pos"] < principal["n_pos"]
+    estrita = specs["Definição estrita: alta-quali e sinal não positivo"]
+    assert estrita["n_pos"] == principal["n_pos"]  # mesmo denominador, alvo mais estreito
+    assert estrita["k_pos"] <= principal["k_pos"] and estrita["k_pre"] <= principal["k_pre"]
+
+
+def test_polarizacao_sinal_conta_alta_quali_com_sinal_positivo():
+    d = _df()
+    tex, nums = ap.tabela_polarizacao_sinal(d)
+    pol = d[d["polarizacao"] == "alta-quali em risco"]
+    assert nums["alta_n"] == len(pol)
+    assert nums["alta_positivo"] == int((pol["sinal_efeito"] == "positivo").sum())
+    assert "objeto IA generativa/LLMs" in tex and r"\midrule" in tex
 
 
 def test_perfis_e_familia_de_testes():
@@ -78,7 +90,7 @@ def test_run_gera_artefatos_em_virgula_decimal(tmp_path):
     src = tmp_path / "06_extraction.csv"
     d.to_csv(src, index=False, encoding="utf-8")
     nums = ap.run(src, tmp_path / "tab", tmp_path / "fig", tmp_path / "n.json")
-    esperadas = {"h1_sensibilidade", "polarizacao_tecnologia", "logit_h1", "sinal_por_tipo",
+    esperadas = {"h1_sensibilidade", "polarizacao_sinal", "polarizacao_tecnologia", "logit_h1", "sinal_por_tipo",
                  "composicao_ajuste", "perfis_mecanismos", "multiplos_testes", "validade_fonte",
                  "placebo_tecnologia", "robos_vs_genai"}
     assert {p.stem for p in (tmp_path / "tab").glob("*.tex")} == esperadas

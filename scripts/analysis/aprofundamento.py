@@ -79,8 +79,12 @@ def fisher_pre_pos(sub: pd.DataFrame, alvo: pd.Series, col: str = "pre_pos_chatg
 def h1_especificacoes(d: pd.DataFrame) -> list[tuple[str, dict]]:
     pol = d[_ok(d["polarizacao"])].copy()
     alvo = pol["polarizacao"] == ALTA
+    # Definição estrita: a categoria "alta-quali em risco" foi usada pelo extrator
+    # também para estudos em que a alta qualificação é o grupo BENEFICIADO (sinal
+    # positivo: skill upgrading). "Em risco" exige sinal não positivo.
+    estrito = alvo & (pol["sinal_efeito"] != "positivo")
 
-    def f(mask=None, col="pre_pos_chatgpt"):
+    def f(mask=None, col="pre_pos_chatgpt", alvo=alvo):
         sub = pol if mask is None else pol[mask]
         return fisher_pre_pos(sub, alvo.loc[sub.index], col)
 
@@ -95,6 +99,8 @@ def h1_especificacoes(d: pd.DataFrame) -> list[tuple[str, dict]]:
         ("Apenas estudos empíricos", f(pol["tipo_estudo"].isin(EMPIRICOS))),
         ("Excluindo estudos sobre a China", f(pol["china"] == 0)),
         ("Excluindo estudos de IA generativa/LLMs", f(pol["genai"] == 0)),
+        ("Definição estrita: alta-quali e sinal não positivo", f(alvo=estrito)),
+        ("Definição estrita, excluindo IA generativa/LLMs", f(pol["genai"] == 0, alvo=estrito)),
         (r"Apenas \textit{score} de qualidade $\geq 4$", f(pol["q4"] == 1)),
         ("Apenas lidos em texto completo", f(pol["pdf"] == 1)),
     ]
@@ -114,6 +120,36 @@ def tabela_h1_sensibilidade(specs) -> str:
         "p{6.6cm}cccc", ["Especificação", "Pré", "Pós", "RC", "Fisher"], rows,
         notas=["Fração de estudos que situam o risco na alta qualificação, entre os que "
                "classificaram a polarização. RC = razão de chances (pós/pré).", RESSALVA])
+
+
+def tabela_polarizacao_sinal(d: pd.DataFrame) -> tuple[str, dict]:
+    """Polarização × sinal: mostra que 'alta-quali em risco' inclui estudos de sinal positivo."""
+    s = d[_ok(d["polarizacao"]) & _ok(d["sinal_efeito"])]
+    sinais = CANON["sinal_efeito"]
+
+    def linha(rot: str, sub: pd.DataFrame) -> list[str]:
+        vc = sub["sinal_efeito"].value_counts()
+        return [rot, str(len(sub))] + [str(int(vc.get(c, 0))) for c in sinais]
+
+    rows = [linha(escape(c), s[s["polarizacao"] == c]) for c in CANON["polarizacao"]]
+    alta = s[s["polarizacao"] == ALTA]
+    rows.append(["\\midrule\\emph{Alta-quali em risco, por subgrupo}"] + [""] * (len(sinais) + 1))
+    rows += [linha("\\quad objeto IA generativa/LLMs", alta[alta["genai"] == 1]),
+             linha("\\quad demais objetos, publicados em 2023+", alta[(alta["genai"] == 0) & (alta["pos"] == 1)]),
+             linha("\\quad demais objetos, publicados até 2022", alta[(alta["genai"] == 0) & (alta["pos"] == 0)])]
+    nums = {"alta_n": int(len(alta)),
+            "alta_positivo": int((alta["sinal_efeito"] == "positivo").sum()),
+            "alta_pos_naogenai_n": int(((alta["genai"] == 0) & (alta["pos"] == 1)).sum()),
+            "alta_pos_naogenai_positivo": int(((alta["genai"] == 0) & (alta["pos"] == 1)
+                                              & (alta["sinal_efeito"] == "positivo")).sum())}
+    tex = tabela_booktabs(
+        "lrcccc", ["Polarização", "$n$", "Negativo", "Positivo", "Nulo", "Ambíguo"], rows,
+        notas=["Contagens sobre os estudos que classificaram polarização e sinal. Um estudo "
+               "codificado como ``alta-quali em risco'' com sinal positivo situa a alta "
+               "qualificação como o grupo \\emph{atingido} pela tecnologia, não como o grupo "
+               "que perde: tipicamente evidência de firma sobre \\textit{skill upgrading}.",
+               RESSALVA])
+    return tex, nums
 
 
 # ---------------------------------------------------------------- 2. objeto tecnológico
@@ -422,6 +458,8 @@ def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None)
     specs = h1_especificacoes(d)
     nums["h1"] = {r: v for r, v in specs}
     (tab_dir / "h1_sensibilidade.tex").write_text(tabela_h1_sensibilidade(specs), "utf-8")
+    tex, nums["polarizacao_sinal"] = tabela_polarizacao_sinal(d)
+    (tab_dir / "polarizacao_sinal.tex").write_text(tex, "utf-8")
     tex, nums["tecnologia"] = tabela_polarizacao_tecnologia(d)
     (tab_dir / "polarizacao_tecnologia.tex").write_text(tex, "utf-8")
     (tab_dir / "logit_h1.tex").write_text(tabela_logit(logit_h1(d)), "utf-8")
@@ -442,7 +480,7 @@ def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None)
     if json_out:
         json_out.parent.mkdir(parents=True, exist_ok=True)
         json_out.write_text(json.dumps(nums, ensure_ascii=False, indent=1), "utf-8")
-    print(f"Aprofundamento: 10 tabelas em {tab_dir}, 1 figura em {fig_dir}")
+    print(f"Aprofundamento: 11 tabelas em {tab_dir}, 1 figura em {fig_dir}")
     return nums
 
 

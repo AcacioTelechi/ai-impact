@@ -67,6 +67,22 @@
    "or": 4.0625,
    "p": 0.0034596632197994494
   },
+  "Definição estrita: alta-quali e sinal não positivo": {
+   "k_pre": 3,
+   "n_pre": 147,
+   "k_pos": 32,
+   "n_pos": 376,
+   "or": 4.465116279069767,
+   "p": 0.005944586510505449
+  },
+  "Definição estrita, excluindo IA generativa/LLMs": {
+   "k_pre": 3,
+   "n_pre": 147,
+   "k_pos": 17,
+   "n_pos": 343,
+   "or": 2.503067484662577,
+   "p": 0.21088200950785302
+  },
   "Apenas \\textit{score} de qualidade $\\geq 4$": {
    "k_pre": 2,
    "n_pre": 34,
@@ -83,6 +99,12 @@
    "or": 2.716417910447761,
    "p": 0.6782558724350055
   }
+ },
+ "polarizacao_sinal": {
+  "alta_n": 55,
+  "alta_positivo": 20,
+  "alta_pos_naogenai_n": 35,
+  "alta_pos_naogenai_positivo": 18
  },
  "tecnologia": {
   "or_genai": 10.883861236802414,
