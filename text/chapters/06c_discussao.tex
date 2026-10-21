@@ -144,10 +144,10 @@ o análogo tecnológico mais próximo; incluir a automação clássica não alte
 nenhum dos resultados (entre seus 105 estudos publicados de 2023 em diante,
 1,9\% apontam a alta qualificação e 67,6\%, a baixa). Três resultados se
 destacam. Primeiro, a diferença de diagnóstico sobre \emph{quem} está em risco é
-a maior associação encontrada em toda a revisão ($V$ de Cramér de 0,55 sobre a
-distribuição completa; é, note-se, uma comparação entre os dois extremos do
-corpus, e as associações medidas sobre o corpus inteiro ficam entre 0,14 e
-0,30): 67,4\% dos estudos de
+acentuada ($V$ de Cramér de 0,55 sobre a distribuição completa; é, note-se, uma
+comparação entre os dois extremos do corpus, e as associações de cada dimensão
+com o período, medidas sobre o corpus inteiro, não passam de 0,29): 67,4\% dos
+estudos de
 robótica apontam a baixa qualificação e 48,5\% dos de IA generativa apontam a
 alta. Segundo, as duas literaturas \emph{não} diferem quanto ao sinal sobre o
 emprego nem quanto à centralidade do deslocamento, invocado por nove em cada dez
@@ -186,14 +186,7 @@ ocupações qualificadas são, ainda, evidência sobre o saldo de longo prazo.
 
 \subsection{O sinal depende do que se mede}
 
-A Introdução conjecturou que os diagnósticos da literatura ``divergem menos por
-erro do que por medirem objetos distintos''. A
-Tabela~\ref{tab:sinal_por_tipo} submete a conjectura aos dados, e ela se
-sustenta: a associação entre o tipo de evidência e o sinal sobre o emprego ($V$
-de Cramér de 0,30) é a mais forte do corpus, superior à de qualquer dimensão com
-o período. Metade dos estudos de exposição ocupacional conclui por efeito
-negativo; mais de 40\% dos estudos de firma concluem por efeito positivo; e cerca
-de 80\% dos trabalhos teóricos e das revisões declaram o efeito ambíguo.
+A Introdução conjecturou que os diagnósticos da literatura divergem "menos por erro do que por medirem objetos distintos". Embora o protocolo de codificação não identifique diretamente o desfecho mensurado por um  estudo, ele mapeia o tipo de evidência -- variável que, em grande medida, determina o resultado: um índice de exposição afere a suscetibilidade técnica; um estudo de firma analisa a produtividade e o emprego da empresa adotante; e um modelo teórico deriva saldos condicionais a parâmetros. A Tabela~\ref{tab:sinal_por_tipo} cruza o tipo de evidência com o sinal apurado sobre o emprego, confirmando a hipótese inicial. A associação entre as variáveis ($V$ de Cramér de 0,30)\footnote{O $V$ de Cramér foi empregado para mensurar a força da associação entre variáveis estritamente nominais — neste caso, cruzando o tipo de evidência metodológica e o sinal do efeito estimado sobre o emprego. Optou-se por essa métrica para testar empiricamente se a variação dos vereditos na literatura está sistematicamente associada à escolha do desenho de pesquisa.} revela-se mais forte do que a observada em qualquer dimensão temporal e mantém-se estável ao longo do tempo — com $V$ de 0,28 para os estudos anteriores a 2023 e de 0,30 para os posteriores. Sob essa ótica, metade das pesquisas baseadas em exposição ocupacional aponta para efeitos negativos; mais de 40\% dos trabalhos em nível de firma identificam impactos positivos; e cerca de 80\% dos modelos teóricos e revisões registram um efeito ambíguo.
 
 \begin{table}[htbp]
 \centering
@@ -202,32 +195,15 @@ de 80\% dos trabalhos teóricos e das revisões declaram o efeito ambíguo.
 \input{tables/sinal_por_tipo.tex}
 \end{table}
 
-Cada um desses padrões tem explicação no próprio arcabouço de
-\textcite{acemogluRestrepo2019}. Um índice de exposição mede a viabilidade
-técnica de executar tarefas por máquina; ele captura, por construção, o
-efeito-deslocamento e nada diz sobre reinstalação, produtividade ou demanda. A
-crítica de \textcite{arntzGregoryZierahn2017} a \textcite{frey2017} é, no fundo,
-esta. Um estudo de firma, no extremo oposto, compara firmas adotantes com não
-adotantes: as adotantes tornam-se mais produtivas, ganham mercado e contratam,
-de modo que o desenho captura o efeito-produtividade em equilíbrio parcial. Mas o
-emprego que a adotante ganha pode ser o que a concorrente perde, e o saldo
-positivo da firma não se transpõe ao setor, ponto que \textcite{bessen2018}
-formaliza pela elasticidade da demanda. Os modelos teóricos, por fim, são
-``ambíguos'' por definição: o seu resultado é justamente o de que o saldo depende
-de parâmetros. A heterogeneidade de vereditos que motivou esta revisão é, assim,
-em larga medida um artefato previsível da divisão de trabalho entre os desenhos,
-e não um desacordo substantivo. A evidência de nível agregado disponível é
-coerente com essa leitura: efeitos nulos ou pequenos sobre o emprego total
-\parencite{acemogluVacancies2022, kauhanenRouvinen2025}, compatíveis com a
-estimativa de \textcite{acemoglu2025simple} de que os ganhos macroeconômicos da
-IA na próxima década serão modestos, convivem com efeitos negativos rápidos e
-mensuráveis onde a substituição é direta e o mercado é flexível, como no trabalho
-\textit{freelance} de redação e de criação de imagens \parencite{huiReshefZhou2024}.
+Cada um desses padrões reflete a própria lógica do arcabouço de \textcite{acemogluRestrepo2019}. Por construção, o índice de exposição mensura apenas a viabilidade técnica da automação de tarefas por máquinas, capturando o efeito-deslocamento sem considerar ganhos de produtividade, recomposição de demanda ou a criação de novas tarefas. A crítica de \textcite{arntzGregoryZierahn2017} a \textcite{frey2017} expõe a fragilidade dessa abordagem ao demonstrar que a heterogeneidade de tarefas dentro das ocupações reduz a parcela de empregos em risco de 47\% para 9\%. Contudo, a limitação conceitual aqui é ainda mais fundamental: mesmo uma medida perfeita de exposição tende a quantificar apenas o deslocamento potencial, e não o efeito líquido real.
 
-Decorre daí uma implicação metodológica para quem lê esta literatura: a
-proporção de estudos ``negativos'' ou ``positivos'' num corpus não é um
-termômetro do efeito da IA, e sim, em boa parte, um retrato da composição de
-desenhos desse corpus.
+No extremo oposto, os estudos focados em nível de firma comparam empresas adotantes e não adotantes. Nesses casos, as adotantes ganham produtividade, ampliam sua fatia de mercado e expandem a contratação, capturando o efeito-produtividade sob um arranjo de equilíbrio parcial. Entretanto, os ganhos de emprego de uma firma podem ocorrer em detrimento de suas concorrentes, impedindo que o saldo positivo em nível micro seja diretamente transposto para o setor -- limitação formalizada por \textcite{bessen2018} por meio da elasticidade da demanda. Cabe notar também a forte concentração geográfica desse desenho: 57 dos 131 estudos de firma no corpus analisam a China -- predominantemente painéis de empresas listadas com adoção identificada via relatórios anuais. Desses estudos chineses, 56,1\% encontram um efeito positivo (representando 32 das 56 pesquisas com sinal positivo nesse grupo), em contraste com 32,4\% nos demais países.
+
+Por fim, os modelos teóricos caracterizam-se pela ambiguidade intrínseca, visto que suas conclusões dependem estritamente da parametrização adotada. Essa categoria engloba também as pesquisas que não especificam a direção do impacto sobre o emprego\footnote{Ressalta-se que apenas 5 dos 816 estudos do corpus foram codificados como "não informado".}. A heterogeneidade de vereditos deriva, portanto, em parte das especificidades de cada estratégia metodológica. Contudo, a escolha do desenho de pesquisa explica apenas uma parcela modesta dessa variação\footnote{O ajuste do modelo alcança um pseudo-$R^2$ de 0,07 para a probabilidade de sinal negativo e de 0,21 para o sinal positivo.}. A própria literatura macro e setorial -- a mais numerosa da amostra -- revela forte dispersão interna: 55,3\% dos resultados são ambíguos, 25,3\% negativos, 15,2\% positivos e 4,1\% nulos.
+
+Essa convivência de achados no nível agregado corrobora a leitura fundamentada no desenho metodológico. De um lado, os estudos agregados mais citados encontram impactos nulos ou marginais sobre o emprego total \parencite{acemogluVacancies2022, kauhanenRouvinen2025}, resultado alinhado à projeção de \textcite{acemoglu2025simple} de que os ganhos macroeconômicos da IA na próxima década serão modestos. De outro, efeitos negativos rápidos e mensuráveis manifestam-se em segmentos nos quais a substituição de tarefas é direta e a relação de trabalho é flexível, como o mercado \textit{freelance} de redação e criação de imagens \parencite{huiReshefZhou2024}.
+
+À primeira vista, a implicação metodológica parece evidente: a prevalência de resultados positivos ou negativos em um texto reflete mais a composição dos desenhos de pesquisa do que propriamente o efeito real da IA. Essa relação, contudo, é parcial. Conforme detalhado na próxima subseção, cerca de metade do aumento no sinal positivo entre os períodos persiste mesmo após o controle pelo tipo de evidência, observando-se um deslocamento das conclusões dentro dos próprios desenhos: nos estudos macro e setoriais, a fatia de resultados positivos subiu de 4,9\% para 19,2\%; nos de firma, avançou de 27,3\% para 44,2\%; e, nos modelos de exposição, a frequência de sinais negativos recuou de 62,2\% para 42,9\%.
 
 \subsection{Recomposição do corpus ou mudança de diagnóstico?}
 
