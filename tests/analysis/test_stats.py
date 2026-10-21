@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 
 from scripts.analysis.stats import (
-    RESSALVA,
     assoc_chi2,
     assoc_fisher_2x2,
     prop_por_periodo,
@@ -67,11 +66,6 @@ def test_wilson95_valor_conhecido():
     low, high = wilson95(5, 10)
     assert low == pytest.approx(0.2366, abs=1e-3)
     assert high == pytest.approx(0.7634, abs=1e-3)
-
-
-def test_ressalva_menciona_nao_amostra():
-    assert "amostra" in RESSALVA.lower()
-    assert "explorat" in RESSALVA.lower()
 
 
 def test_chi2_low_expected_em_celulas_pequenas():

@@ -30,7 +30,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 from statsmodels.stats.multitest import multipletests
 
 from scripts.analysis.corpus import load_corpus
-from scripts.analysis.stats import NA_VALORES, RESSALVA, wilson95
+from scripts.analysis.stats import NA_VALORES, wilson95
 from scripts.analysis.texkit import CANON, MECANISMOS, escape, fmt_p, fmt_pct, tabela_booktabs
 
 ALTA = "alta-quali em risco"
@@ -119,7 +119,7 @@ def tabela_h1_sensibilidade(specs) -> str:
     return tabela_booktabs(
         "p{6.6cm}cccc", ["Especificação", "Pré", "Pós", "RC", "Fisher"], rows,
         notas=["Fração de estudos que situam o risco na alta qualificação, entre os que "
-               "classificaram a polarização. RC = razão de chances (pós/pré).", RESSALVA])
+               "classificaram a polarização. RC = razão de chances (pós/pré)."])
 
 
 def tabela_polarizacao_sinal(d: pd.DataFrame) -> tuple[str, dict]:
@@ -147,8 +147,7 @@ def tabela_polarizacao_sinal(d: pd.DataFrame) -> tuple[str, dict]:
         notas=["Contagens sobre os estudos que classificaram polarização e sinal. Um estudo "
                "codificado como ``alta-quali em risco'' com sinal positivo situa a alta "
                "qualificação como o grupo \\emph{atingido} pela tecnologia, não como o grupo "
-               "que perde: tipicamente evidência de firma sobre \\textit{skill upgrading}.",
-               RESSALVA])
+               "que perde: tipicamente evidência de firma sobre \\textit{skill upgrading}."])
     return tex, nums
 
 
@@ -172,7 +171,7 @@ def tabela_polarizacao_tecnologia(d: pd.DataFrame) -> tuple[str, dict]:
         rows,
         notas=[f"Percentuais na linha, sobre os estudos que classificaram a polarização "
                f"(categorias com $n<5$ omitidas). IA generativa vs.\\ demais, alta-quali em "
-               f"risco: RC $={_num(odds)}$, Fisher " + fmt_p(p) + ".", RESSALVA])
+               f"risco: RC $={_num(odds)}$, Fisher " + fmt_p(p) + "."])
     return tex, {"or_genai": float(odds), "p_genai": float(p)}
 
 
@@ -210,7 +209,7 @@ def tabela_logit(modelos) -> str:
         "p{5.2cm}ccc", ["", "(1)", "(2)", "(3)"], rows,
         notas=["Logit; variável dependente: o estudo situa o risco na alta qualificação. "
                "Razões de chances com IC 95\\% entre colchetes; * $p<0{,}05$. Categoria de "
-               "referência do tipo: evidência macro/setorial.", RESSALVA])
+               "referência do tipo: evidência macro/setorial."])
 
 
 def figura_tendencia(d: pd.DataFrame, out: Path) -> dict:
@@ -265,7 +264,7 @@ def tabela_sinal_por_tipo(d: pd.DataFrame) -> tuple[str, dict]:
         "lrcccc", ["Tipo de evidência", "$n$", "Negativo", "Positivo", "Nulo", "Ambíguo"], rows,
         notas=[f"Percentuais na linha. $\\chi^2={_num(chi2)}$, " + fmt_p(p)
                + f", $V$ de Cramér $={_num(v)}$. `Indivíduo' ($n=6$) agregado a "
-               "firma/\\textit{freelancer}.", RESSALVA])
+               "firma/\\textit{freelancer}."])
     return tex, {"chi2": chi2, "p": p, "v": v}
 
 
@@ -307,7 +306,7 @@ def tabela_composicao(res: list[dict]) -> str:
         notas=["RC do indicador ``publicado em 2023+'' em logit sem controles (bruta) e com "
                "controles para tipo de evidência, objeto IA generativa, país-foco China e "
                "\\textit{score} $\\geq 4$ (ajustada). Uma RC que se aproxima de 1 após o ajuste "
-               "indica mudança de composição do corpus, e não mudança dentro dos tipos.", RESSALVA])
+               "indica mudança de composição do corpus, e não mudança dentro dos tipos."])
 
 
 def perfis_mecanismos(d: pd.DataFrame) -> tuple[str, dict]:
@@ -332,7 +331,7 @@ def perfis_mecanismos(d: pd.DataFrame) -> tuple[str, dict]:
         "lccccc", ["Perfil de mecanismos", "Pré", "Pós", "Negativo", "Positivo", "Ambíguo"], rows,
         notas=[f"Colunas Pré/Pós: participação do perfil no período ($\\chi^2={_num(chi2)}$, "
                + fmt_p(p) + "). Demais colunas: sinal sobre o emprego dentro de cada perfil. "
-               "`Compensação' = reinstalação, complementaridade ou demanda agregada.", RESSALVA])
+               "`Compensação' = reinstalação, complementaridade ou demanda agregada."])
     return tex, {"chi2": chi2, "p": p}
 
 
@@ -359,7 +358,7 @@ def tabela_multiplos(fam) -> str:
     return tabela_booktabs(
         "lccc", ["Teste pré/pós", "$p$ bruto", "$p$ Holm", "$<0{,}05$"], rows,
         notas=["Correção de Holm sobre a família dos nove testes pré/pós do "
-               "Capítulo~\\ref{cap:comparacao}.", RESSALVA])
+               "Capítulo~\\ref{cap:comparacao}."])
 
 
 def tabela_validade_fonte(d: pd.DataFrame) -> str:
@@ -374,8 +373,7 @@ def tabela_validade_fonte(d: pd.DataFrame) -> str:
     return tabela_booktabs(
         "lcccc", ["Dimensão", "n/a (resumo)", "n/a (texto compl.)", "$V$", "$\\chi^2$"], rows,
         notas=["Compara os estudos extraídos do resumo com os lidos em texto completo: taxa de "
-               "não classificação e associação entre a fonte e a distribuição das categorias.",
-               RESSALVA])
+               "não classificação e associação entre a fonte e a distribuição das categorias."])
 
 
 # ---------------------------------------------------------------- 5. robótica como comparação
@@ -396,6 +394,12 @@ def placebo_tecnologia(d: pd.DataFrame) -> list[dict]:
             s = d[mask & _ok(d[col])]
             linha[g] = fisher_pre_pos(s, s[col].isin(alvos))
         out.append(linha)
+        if col == "polarizacao":  # definição estrita: alta-quali E sinal não positivo
+            linha = {"rotulo": "Risco na alta qualificação (definição estrita)"}
+            for g, mask in grupos:
+                s = d[mask & _ok(d[col])]
+                linha[g] = fisher_pre_pos(s, (s[col] == ALTA) & (s["sinal_efeito"] != "positivo"))
+            out.append(linha)
     return out
 
 
@@ -407,13 +411,14 @@ def tabela_placebo(res: list[dict]) -> str:
                           ["Desfecho", "Pré", "Pós", "Fisher", "Pré", "Pós", "Fisher"], rows,
                           notas=["Colunas 2--4: estudos cujo objeto é robótica ou automação "
                                  "(placebo). Colunas 5--7: estudos que tratam a IA de modo geral. "
+                                 "Definição estrita: alta qualificação em risco e sinal não positivo. "
                                  "Os estudos de IA generativa não comportam o teste, pois só um é "
-                                 "anterior a 2023.", RESSALVA])
+                                 "anterior a 2023."])
     cab = ("\\toprule\n & \\multicolumn{3}{c}{Robótica e automação} & "
            "\\multicolumn{3}{c}{IA em geral} \\\\\n\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}")
     return tex.replace("\\toprule", cab, 1)
 
-def robos_vs_genai(d: pd.DataFrame) -> list[tuple[str, float, float, float]]:
+def robos_vs_genai(d: pd.DataFrame) -> tuple[list[tuple], int, int]:
     """Confronto direto, só entre publicados em 2023+ (iguala o calendário)."""
     pos = d[d["pos"] == 1]
     r, g = pos[pos["tecnologia_focada"] == "robôs+IA"], pos[pos["genai"] == 1]
@@ -429,25 +434,31 @@ def robos_vs_genai(d: pd.DataFrame) -> list[tuple[str, float, float, float]]:
              ("Tipo: \\textit{survey}/revisão", "tipo_estudo", ("survey/revisão",)),
              ("Tipo: evidência macro/setorial", "tipo_estudo", ("evidência macro/setorial",)),
              ("Método com identificação causal", "metodo_empirico", CAUSAL),
-             ("\\textit{Score} de qualidade $\\geq 4$", None, None)]
+             ("\\textit{Score} de qualidade $\\geq 4$", None, None),
+             ("Entre os empíricos: identificação causal", "metodo_empirico", CAUSAL, True),
+             ("Entre os empíricos: \\textit{score} $\\geq 4$", None, None, True)]
     out = []
-    for rot, col, alvos in itens:
+    for rot, col, alvos, *emp in itens:
+        rr, gg = (r[r["tipo"].isin(EMPIRICOS)], g[g["tipo"].isin(EMPIRICOS)]) if emp else (r, g)
         if col is None:
-            yr, yg = r["q4"] == 1, g["q4"] == 1
+            yr, yg = rr["q4"] == 1, gg["q4"] == 1
         else:
-            yr, yg = r[_ok(r[col])][col].isin(alvos), g[_ok(g[col])][col].isin(alvos)
+            yr, yg = rr[_ok(rr[col])][col].isin(alvos), gg[_ok(gg[col])][col].isin(alvos)
         _, p = fisher_exact([[int(yg.sum()), int((~yg).sum())], [int(yr.sum()), int((~yr).sum())]])
-        out.append((rot, float(yr.mean()), float(yg.mean()), float(p)))
+        out.append((rot, int(yr.sum()), int(len(yr)), int(yg.sum()), int(len(yg)), float(p)))
     return out, len(r), len(g)
 
 
 def tabela_robos_vs_genai(res, n_r: int, n_g: int) -> str:
-    rows = [[rot, fmt_pct(a), fmt_pct(b), fmt_p(p)] for rot, a, b, p in res]
+    def cel(k: int, n: int) -> str:
+        return f"{fmt_pct(k / n)} ({k}/{n})" if n else "---"
+    rows = [[rot, cel(kr, nr), cel(kg, ng), fmt_p(p)] for rot, kr, nr, kg, ng, p in res]
     return tabela_booktabs(
         "lccc", ["Característica", f"Robôs+IA ($n={n_r}$)", f"IA generativa ($n={n_g}$)", "Fisher"],
         rows, notas=["Apenas estudos publicados de 2023 em diante. Proporções sobre os estudos que "
-                     "classificaram cada dimensão. Identificação causal: IV, DiD, RDD ou estudo de "
-                     "evento.", RESSALVA])
+                     "classificaram cada dimensão, com numerador e denominador entre parênteses. "
+                     "Identificação causal: IV, DiD, RDD ou estudo de evento. `Empíricos': exposição "
+                     "ocupacional, evidência macro/setorial, firma/\\textit{freelancer} e indivíduo."])
 
 
 def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None) -> dict:

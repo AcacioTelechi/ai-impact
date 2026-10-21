@@ -37,10 +37,9 @@ def _no_comment_lines(tex):
         assert not linha.lstrip().startswith("%"), f"linha vira comentário LaTeX: {linha!r}"
 
 
-def test_tabela_central_tem_p_e_ressalva(tmp_path):
+def test_tabela_central_tem_p(tmp_path):
     tex = (_run(tmp_path) / "comparacao_pre_pos.tex").read_text(encoding="utf-8")
     assert "$p" in tex                  # algum p-valor
-    assert "amostra" in tex.lower()     # ressalva injetada
     _no_comment_lines(tex)
     # χ² em vírgula pt-BR (não ponto) dentro de math mode
     assert not re.search(r"\\chi\^2=\d+\.\d", tex)

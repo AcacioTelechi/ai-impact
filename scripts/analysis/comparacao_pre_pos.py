@@ -13,7 +13,6 @@ import pandas as pd
 
 from scripts.analysis.corpus import load_corpus
 from scripts.analysis.stats import (
-    RESSALVA,
     assoc_chi2,
     assoc_fisher_2x2,
     prop_por_periodo,
@@ -77,7 +76,7 @@ def _tabela_central(df: pd.DataFrame, n_pre: int, n_pos: int) -> str:
         "p{8.4cm}cc",
         ["Dimensão / categoria", f"Pré (n={n_pre})", f"Pós (n={n_pos})"],
         rows,
-        notas=[RESSALVA, "Proporções calculadas sobre os estudos que classificaram cada dimensão (n/a fora do denominador); o denominador varia por linha."],
+        notas=["Proporções calculadas sobre os estudos que classificaram cada dimensão (n/a fora do denominador); o denominador varia por linha."],
     )
 
 
@@ -103,7 +102,7 @@ def _tabela_polarizacao(df: pd.DataFrame) -> str:
         ["Polarização", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
         rows,
         notas=[f"Fisher exato: razão de chances (pós/pré) $={_rc_pos_pre(f):.2f}$".replace(".", "{,}") + ", " + fmt_p(f.p)
-               + "; IC Wilson 95\\% entre colchetes.", RESSALVA],
+               + "; IC Wilson 95\\% entre colchetes."],
     )
 
 
@@ -124,8 +123,7 @@ def _tabela_robustez(df: pd.DataFrame) -> str:
         rows,
         notas=[f"Subconjunto de robustez: estudos com score de qualidade $\\geq 4$. "
                f"$n$ é o número com polarização classificada nesse subconjunto (n/a fora). "
-               f"Fisher exato: " + fmt_p(f.p) + ". Células pequenas; leitura cautelosa.",
-               RESSALVA],
+               f"Fisher exato: " + fmt_p(f.p) + ". Células pequenas; leitura cautelosa."],
     )
 
 

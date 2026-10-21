@@ -268,7 +268,7 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'scripts.analysis.stats
 """Proporções e testes de associação (puros, sem I/O) — Plano 5.
 
 Convenção central: `n/a` e vazio NUNCA entram no denominador das proporções.
-Testes de associação são exploratórios (corpus é censo, não amostra) — ver RESSALVA.
+Testes de associação são exploratórios (corpus é censo, não amostra)
 """
 from __future__ import annotations
 
@@ -279,10 +279,6 @@ import pandas as pd
 from scipy.stats import chi2_contingency, fisher_exact
 
 NA_VALORES = {"n/a", "", "nan"}
-RESSALVA = (
-    "O corpus é o censo dos estudos incluídos, não uma amostra aleatória; "
-    "os testes de associação devem ser lidos como exploratórios."
-)
 
 
 def _norm(serie: pd.Series) -> pd.Series:
