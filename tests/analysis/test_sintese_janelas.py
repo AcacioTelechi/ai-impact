@@ -8,7 +8,7 @@ def _csv(tmp_path):
     spec = [
         ("2013-2017", "automação", "exposição ocupacional", "negativo", "baixa-quali em risco", "sim", "não"),
         ("2013-2017", "automação", "exposição ocupacional", "negativo", "baixa-quali em risco", "sim", "não"),
-        ("2022-2026", "IA generativa/LLMs", "firma/freelancer", "ambíguo", "alta-quali em risco", "não", "sim"),
+        ("2023-2026", "IA generativa/LLMs", "firma/freelancer", "ambíguo", "alta-quali em risco", "não", "sim"),
     ]
     for jan, tec, tipo, sinal, pol, desl, compl in spec:
         rows.append({"elegivel": "incluir", "nota_extracao": "ok", "janela": jan,
@@ -26,7 +26,7 @@ def test_tabela_tem_3_janelas_e_N(tmp_path):
     out_fig = tmp_path / "mecanismos_janela.pdf"
     run(_csv(tmp_path), out_tab, out_fig)
     tex = out_tab.read_text(encoding="utf-8")
-    assert "2013-2017" in tex and "2018-2022" in tex and "2022-2026" in tex
+    assert "2013-2017" in tex and "2018-2022" in tex and "2023-2026" in tex
     assert "n=2" in tex  # janela 1 tem 2 estudos
     # mecanismos devem RENDERIZAR (não começar a linha com %, que é comentário LaTeX)
     assert "Deslocamento" in tex and "Complementaridade" in tex

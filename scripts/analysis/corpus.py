@@ -49,7 +49,7 @@ def janela_por_ano(ano: float) -> str:
         return ""
     if ano <= 2017:
         return "2013-2017"
-    return "2018-2022" if ano < ANO_PIVO else "2022-2026"
+    return "2018-2022" if ano < ANO_PIVO else "2023-2026"
 
 
 @dataclass(frozen=True)

@@ -41,4 +41,4 @@ def test_tabela_booktabs_estrutura_e_notas():
 def test_canon_tem_dimensoes_chave():
     for dim in ("polarizacao", "sinal_efeito", "janela", "tecnologia_focada"):
         assert dim in CANON and len(CANON[dim]) >= 2
-    assert CANON["janela"] == ["2013-2017", "2018-2022", "2022-2026"]
+    assert CANON["janela"] == ["2013-2017", "2018-2022", "2023-2026"]

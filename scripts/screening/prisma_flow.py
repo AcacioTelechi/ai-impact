@@ -46,9 +46,9 @@ _BODY = r"""\begin{tikzpicture}[
 """
 
 _NOTA_INTERINA = (
-    r"\node (nota) [below=of inc, draw=red!60, fill=red!5, font=\footnotesize, "
-    r"align=center] {Reextração pendente: %(pendentes_reextract)d "
-    r"(cobertura full-text efetiva %(cobertura_str)s\%%)};"
+    r"\node (expf)[right=2cm of inc] {Sem extração possível\\(N = %(pendentes_reextract)d)};"
+    "\n"
+    r"\draw[arr] (elig)-- (expf);"
     "\n"
 )
 

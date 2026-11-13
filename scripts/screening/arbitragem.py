@@ -104,19 +104,19 @@ def kappa_table(arbitrado: pd.DataFrame, output_table: Path) -> None:
     k_s, k_h = cohen_kappa(arb, son), cohen_kappa(arb, hai)
     ag_s = int(sum(a == b for a, b in zip(arb, son)))
     ag_h = int(sum(a == b for a, b in zip(arb, hai)))
-    k_s_str = f"{k_s:.3f}" if math.isfinite(k_s) else "n/a"
-    k_h_str = f"{k_h:.3f}" if math.isfinite(k_h) else "n/a"
+    k_s_str = f"{k_s:.3f}".replace(".", ",") if math.isfinite(k_s) else "n/a"
+    k_h_str = f"{k_h:.3f}".replace(".", ",") if math.isfinite(k_h) else "n/a"
+    falhas = f"; {n_falha} falhas técnicas forçadas a incluir e excluídas do $\\kappa$" if n_falha else ""
     tex = (
         "\\begin{table}[ht]\n\\centering\n"
         "\\caption{Concordância do árbitro (Opus 4.7) com os triadores nos "
-        f"casos efetivamente arbitrados (n={n}; {n_falha} falhas técnicas "
-        "excluídas do $\\kappa$ e forçadas a incluir; rótulo binário: "
-        "excluir vs. manter [incluir/duvida])}\n"
+        f"casos efetivamente arbitrados (n = {n}{falhas}; rótulo binário: "
+        "excluir vs.\\ manter)}\n"
         "\\label{tab:arbitragem-kappa}\n"
         "\\begin{tabular}{lcc}\n\\toprule\n"
         "Par & Concordância & $\\kappa$ de Cohen \\\\\n\\midrule\n"
-        f"Árbitro × Sonnet 4.6 & {ag_s}/{n} = {ag_s / n * 100:.1f}\\% & {k_s_str} \\\\\n"
-        f"Árbitro × Haiku 4.5 & {ag_h}/{n} = {ag_h / n * 100:.1f}\\% & {k_h_str} \\\\\n"
+        f"Árbitro × Sonnet 4.6 & {ag_s}/{n} = {ag_s / n * 100:.1f}".replace(".", ",") + f"\\% & {k_s_str} \\\\\n"
+        f"Árbitro × Haiku 4.5 & {ag_h}/{n} = {ag_h / n * 100:.1f}".replace(".", ",") + f"\\% & {k_h_str} \\\\\n"
         "\\bottomrule\n\\end{tabular}\n\\end{table}\n"
     )
     output_table.write_text(tex, encoding="utf-8")

@@ -45,8 +45,8 @@ def run(input: Path, output_table: Path) -> None:
     tex = (
         "\\begin{table}[ht]\n\\centering\n"
         "\\caption{Concordância inter-modelo no screening "
-        f"($\\kappa$ de Cohen = {k:.3f}; "
-        f"concordância = {agree}/{n} = {agree / n * 100:.1f}\\%)}}\n"
+        f"($\\kappa$ de Cohen = {k:.3f}; ".replace(".", ",") +
+        f"concordância = {agree}/{n} = {agree / n * 100:.1f}".replace(".", ",") + "\\%)}\n"
         "\\label{tab:kappa-screening}\n"
         "\\begin{tabular}{lccc}\n\\toprule\n"
         " & \\multicolumn{3}{c}{Haiku 4.5} \\\\\n"

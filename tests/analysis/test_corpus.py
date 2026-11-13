@@ -74,6 +74,6 @@ def test_periodo_deterministico_pelo_ano(tmp_path):
     pd.DataFrame(rows).to_csv(p, index=False, encoding="utf-8")
     df = load_corpus(p).df
     assert list(df["pre_pos_chatgpt"]) == ["pre", "pre", "pos"]
-    assert list(df["janela"]) == ["2013-2017", "2018-2022", "2022-2026"]
+    assert list(df["janela"]) == ["2013-2017", "2018-2022", "2023-2026"]
     assert list(df["pre_pos_chatgpt_llm"]) == ["pre", "pos", "pre"]
     assert list(df["janela_llm"]) == ["2013-2017", "2022-2026", "2013-2017"]

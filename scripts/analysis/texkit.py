@@ -29,7 +29,7 @@ CANON: dict[str, list[str]] = {
         "robôs+IA",
         "geral",
     ],
-    "janela": ["2013-2017", "2018-2022", "2022-2026"],
+    "janela": ["2013-2017", "2018-2022", "2023-2026"],
     "tipo_pub": ["journal", "working paper", "book chapter"],
     "revisado_por_pares": ["sim", "não"],
 }

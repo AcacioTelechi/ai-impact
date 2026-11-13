@@ -9,7 +9,7 @@ def _csv(tmp_path):
     for ano, jan, tipo, tec, pub, rev, met, pais in [
         (2015, "2013-2017", "exposição ocupacional", "automação", "journal", "sim", "OLS", "EUA"),
         (2020, "2018-2022", "teórico/modelo", "deep learning", "journal", "sim", "modelo teórico", "EUA"),
-        (2024, "2022-2026", "firma/freelancer", "IA generativa/LLMs", "working paper", "não", "DiD", "Brasil"),
+        (2024, "2023-2026", "firma/freelancer", "IA generativa/LLMs", "working paper", "não", "DiD", "Brasil"),
     ]:
         rows.append({"elegivel": "incluir", "nota_extracao": "ok", "ano": ano,
                      "janela": jan, "tipo_estudo": tipo, "tecnologia_focada": tec,
@@ -21,7 +21,7 @@ def _csv(tmp_path):
                  "tipo_pub": "journal", "revisado_por_pares": "sim", "metodo_empirico": "descritivo",
                  "pais_estudo": "EUA", "score_qualidade": "1", "magnitude_normalizada": ""})
     rows.append({"elegivel": "incluir", "nota_extracao": "parse_fail", "ano": 2024,
-                 "janela": "2022-2026", "tipo_estudo": "", "tecnologia_focada": "",
+                 "janela": "2023-2026", "tipo_estudo": "", "tecnologia_focada": "",
                  "tipo_pub": "", "revisado_por_pares": "", "metodo_empirico": "",
                  "pais_estudo": "", "score_qualidade": "", "magnitude_normalizada": ""})
     p = tmp_path / "06_extraction.csv"
