@@ -4,6 +4,14 @@
  "n_pos": 576,
  "h1": {
   "Principal: ano de publicação (pós = 2023+)": {
+   "k_pre": 3,
+   "n_pre": 147,
+   "k_pos": 32,
+   "n_pos": 376,
+   "or": 4.465116279069767,
+   "p": 0.005944586510505449
+  },
+  "Definição ampla: alta qualificação atingida, qualquer sinal": {
    "k_pre": 4,
    "n_pre": 147,
    "k_pos": 51,
@@ -12,70 +20,54 @@
    "p": 0.00010448484842303935
   },
   "Classificação original do LLM": {
-   "k_pre": 17,
+   "k_pre": 8,
    "n_pre": 228,
-   "k_pos": 38,
+   "k_pos": 27,
    "n_pos": 295,
-   "or": 1.8352025635156786,
-   "p": 0.06087138233401085
+   "or": 2.7705223880597014,
+   "p": 0.012657376222366852
   },
   "Pivô alternativo: pós = 2024+ (defasagem editorial)": {
-   "k_pre": 8,
+   "k_pre": 7,
    "n_pre": 191,
-   "k_pos": 47,
+   "k_pos": 28,
    "n_pos": 332,
-   "or": 3.7723684210526316,
-   "p": 0.00030188005413350793
+   "or": 2.4210526315789473,
+   "p": 0.04445542379460636
   },
   "Excluindo a transição 2022--2023": {
    "k_pre": 1,
    "n_pre": 106,
-   "k_pos": 47,
+   "k_pos": 28,
    "n_pos": 332,
-   "or": 17.31578947368421,
-   "p": 2.1088161035744898e-05
+   "or": 9.671052631578947,
+   "p": 0.005659013114484844
   },
   "Apenas revisados por pares": {
-   "k_pre": 4,
+   "k_pre": 3,
    "n_pre": 130,
-   "k_pos": 47,
+   "k_pos": 28,
    "n_pos": 338,
-   "or": 5.087628865979381,
-   "p": 0.00039809659808659546
+   "or": 3.8236559139784947,
+   "p": 0.02107776898567177
   },
   "Apenas estudos empíricos": {
-   "k_pre": 3,
+   "k_pre": 2,
    "n_pre": 81,
-   "k_pos": 37,
+   "k_pos": 18,
    "n_pos": 250,
-   "or": 4.516431924882629,
-   "p": 0.0057510298052359295
+   "or": 3.064655172413793,
+   "p": 0.17824066300744656
   },
   "Excluindo estudos sobre a China": {
    "k_pre": 3,
    "n_pre": 140,
-   "k_pos": 38,
+   "k_pos": 28,
    "n_pos": 290,
-   "or": 6.886243386243386,
-   "p": 0.0001537053925206491
+   "or": 4.880407124681934,
+   "p": 0.004515515512021428
   },
   "Excluindo estudos de IA generativa/LLMs": {
-   "k_pre": 4,
-   "n_pre": 147,
-   "k_pos": 35,
-   "n_pos": 343,
-   "or": 4.0625,
-   "p": 0.0034596632197994494
-  },
-  "Definição estrita: alta-quali e sinal não positivo": {
-   "k_pre": 3,
-   "n_pre": 147,
-   "k_pos": 32,
-   "n_pos": 376,
-   "or": 4.465116279069767,
-   "p": 0.005944586510505449
-  },
-  "Definição estrita, excluindo IA generativa/LLMs": {
    "k_pre": 3,
    "n_pre": 147,
    "k_pos": 17,
@@ -84,20 +76,28 @@
    "p": 0.21088200950785302
   },
   "Apenas \\textit{score} de qualidade $\\geq 4$": {
-   "k_pre": 2,
+   "k_pre": 1,
    "n_pre": 34,
-   "k_pos": 11,
+   "k_pos": 5,
    "n_pos": 88,
-   "or": 2.2857142857142856,
-   "p": 0.5128365917633905
+   "or": 1.9879518072289157,
+   "p": 1.0
   },
   "Apenas lidos em texto completo": {
    "k_pre": 1,
    "n_pre": 27,
-   "k_pos": 7,
+   "k_pos": 4,
    "n_pos": 74,
-   "or": 2.716417910447761,
-   "p": 0.6782558724350055
+   "or": 1.4857142857142858,
+   "p": 1.0
+  },
+  "Corpus + rastreamento de citações": {
+   "k_pre": 4,
+   "n_pre": 163,
+   "k_pos": 32,
+   "n_pos": 376,
+   "or": 3.697674418604651,
+   "p": 0.008152984951088169
   }
  },
  "polarizacao_sinal": {
@@ -107,14 +107,49 @@
   "alta_pos_naogenai_positivo": 18
  },
  "tecnologia": {
-  "or_genai": 10.883861236802414,
-  "p_genai": 8.00764847188033e-09
+  "or_genai": 19.583333333333332,
+  "p_genai": 4.52946000280127e-11,
+  "genai_k": 15,
+  "genai_n": 33,
+  "genai_ic": [
+   0.29842938513876116,
+   0.6201406146378254
+  ],
+  "genai_n_total": 54,
+  "genai_dist": {
+   "alta-quali beneficiada": 1,
+   "alta-quali em risco": 15,
+   "ambos": 8,
+   "ambos beneficiados": 0,
+   "baixa-quali beneficiada": 2,
+   "baixa-quali em risco": 7,
+   "neutro": 0
+  },
+  "genai_alta_tipo": {
+   "survey/revisão": 6,
+   "exposição ocupacional": 5,
+   "teórico/modelo": 4
+  },
+  "genai_alta_fonte": {
+   "abstract": 14,
+   "pdf": 1
+  },
+  "genai_alta_sinal": {
+   "ambíguo": 8,
+   "negativo": 7
+  }
  },
  "tendencia": {
-  "or_ano": 1.4641496497460031,
-  "p_ano": 0.00012773976542282953,
-  "or_ano_sem_genai": 1.3839156931692138,
-  "p_ano_sem_genai": 0.0022608282399825146,
+  "or_ano": 1.3927470205660213,
+  "p_ano": 0.00435604168630648,
+  "or_ano_sem_genai": 1.2414940693872552,
+  "p_ano_sem_genai": 0.0885770024935471,
+  "ano_e_pos": {
+   "or_ano": 1.3519942501165263,
+   "p_ano": 0.11221914276743011,
+   "or_pos": 1.2148192710602708,
+   "p_pos": 0.844416484107076
+  },
   "por_ano": {
    "2018": [
     0,
@@ -133,7 +168,7 @@
     32
    ],
    "2022": [
-    3,
+    2,
     41
    ],
    "2023": [
@@ -141,15 +176,15 @@
     44
    ],
    "2024": [
-    11,
+    5,
     93
    ],
    "2025": [
-    22,
+    14,
     160
    ],
    "2026": [
-    14,
+    9,
     79
    ]
   }
@@ -163,12 +198,12 @@
   {
    "rotulo": "Risco na alta qualificação",
    "n": 523,
-   "pre": 0.027210884353741496,
-   "pos": 0.1356382978723404,
-   "or_b": 5.609999999999985,
-   "p_b": 0.001110312234985372,
-   "or_a": 3.1521261762662593,
-   "p_a": 0.038765157503257826
+   "pre": 0.02040816326530612,
+   "pos": 0.0851063829787234,
+   "or_b": 4.465116279069782,
+   "p_b": 0.01447383064011219,
+   "or_a": 2.6913237110182937,
+   "p_a": 0.1263337179421451
   },
   {
    "rotulo": "Sinal negativo",
@@ -239,25 +274,6 @@
   {
    "rotulo": "Risco na alta qualificação",
    "Robótica e automação": {
-    "k_pre": 2,
-    "n_pre": 112,
-    "k_pos": 6,
-    "n_pos": 194,
-    "or": 1.7553191489361701,
-    "p": 0.714986395939736
-   },
-   "IA em geral": {
-    "k_pre": 1,
-    "n_pre": 32,
-    "k_pos": 28,
-    "n_pos": 139,
-    "or": 7.81981981981982,
-    "p": 0.01839647326431403
-   }
-  },
-  {
-   "rotulo": "Risco na alta qualificação (definição estrita)",
-   "Robótica e automação": {
     "k_pre": 1,
     "n_pre": 112,
     "k_pos": 5,
@@ -272,6 +288,25 @@
     "n_pos": 139,
     "or": 2.9291338582677167,
     "p": 0.46617691170642706
+   }
+  },
+  {
+   "rotulo": "Alta qualificação atingida (definição ampla)",
+   "Robótica e automação": {
+    "k_pre": 2,
+    "n_pre": 112,
+    "k_pos": 6,
+    "n_pos": 194,
+    "or": 1.7553191489361701,
+    "p": 0.714986395939736
+   },
+   "IA em geral": {
+    "k_pre": 1,
+    "n_pre": 32,
+    "k_pos": 28,
+    "n_pos": 139,
+    "or": 7.81981981981982,
+    "p": 0.01839647326431403
    }
   },
   {
@@ -389,22 +424,73 @@
    }
   }
  ],
+ "interacoes_placebo": {
+  "Risco na alta qualificação": 0.998687915431506,
+  "Sinal negativo": 0.8131466020531284,
+  "Sinal positivo": 0.5739776604970315,
+  "Invoca deslocamento": 0.484648469221158,
+  "Invoca complementaridade": 0.1932114528397364,
+  "Invoca demanda agregada": 0.9793194363632799,
+  "Horizonte de longo prazo/projeção": 0.9927325288271878
+ },
+ "extras": {
+  "n_classificados": 523,
+  "n_total": 816,
+  "risco_por_periodo": {
+   "pos": {
+    "alta-quali beneficiada": 19,
+    "alta-quali em risco": 32,
+    "ambos": 110,
+    "ambos beneficiados": 8,
+    "baixa-quali beneficiada": 35,
+    "baixa-quali em risco": 167,
+    "neutro": 5
+   },
+   "pre": {
+    "alta-quali beneficiada": 1,
+    "alta-quali em risco": 3,
+    "ambos": 48,
+    "ambos beneficiados": 0,
+    "baixa-quali beneficiada": 2,
+    "baixa-quali em risco": 91,
+    "neutro": 2
+   }
+  },
+  "robotica_baixa_risco": {
+   "pre": [
+    76,
+    112
+   ],
+   "pos": [
+    109,
+    194
+   ]
+  },
+  "v_robos_genai": 0.5597387214066964,
+  "automacao_pos": {
+   "n": 105,
+   "alta": 2,
+   "baixa": 65
+  },
+  "ambos_pdf": 0.45544554455445546,
+  "ambos_abstract": 0.2843601895734597
+ },
  "robos_vs_genai": [
   [
    "Risco na alta qualificação",
-   4,
+   3,
    89,
-   16,
+   15,
    33,
-   7.071856819661848e-08
+   8.176824076371466e-08
   ],
   [
    "Risco na baixa qualificação",
-   60,
+   44,
    89,
-   9,
+   7,
    33,
-   8.80269414870038e-05
+   0.006784495398050719
   ],
   [
    "Sinal negativo",

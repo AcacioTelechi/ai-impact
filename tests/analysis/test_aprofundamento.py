@@ -60,9 +60,28 @@ def test_h1_especificacoes_exclui_na_e_cobre_sensibilidades():
     assert principal["k_pos"] > principal["k_pre"]
     assert specs["Classificação original do LLM"]["n_pre"] > principal["n_pre"]
     assert specs["Excluindo estudos de IA generativa/LLMs"]["n_pos"] < principal["n_pos"]
-    estrita = specs["Definição estrita: alta-quali e sinal não positivo"]
-    assert estrita["n_pos"] == principal["n_pos"]  # mesmo denominador, alvo mais estreito
-    assert estrita["k_pos"] <= principal["k_pos"] and estrita["k_pre"] <= principal["k_pre"]
+    # principal = definição estrita (sinal não positivo); a ampla só pode ter mais eventos
+    ampla = specs["Definição ampla: alta qualificação atingida, qualquer sinal"]
+    assert ampla["n_pos"] == principal["n_pos"]  # mesmo denominador, alvo mais largo
+    assert ampla["k_pos"] >= principal["k_pos"] and ampla["k_pre"] >= principal["k_pre"]
+    assert "Corpus + rastreamento de citações" not in specs  # só com o estrato de snowballing
+
+
+def test_h1_com_estrato_de_snowballing_soma_ao_corpus():
+    d = _df()
+    snow = d[d["ano"] == 2019].head(10)
+    specs = dict(ap.h1_especificacoes(d, snow))
+    principal = specs["Principal: ano de publicação (pós = 2023+)"]
+    uniao = specs["Corpus + rastreamento de citações"]
+    assert uniao["n_pre"] > principal["n_pre"] and uniao["n_pos"] == principal["n_pos"]
+
+
+def test_grupo_risco_separa_perda_de_ganho():
+    from scripts.analysis.corpus import grupo_risco
+    assert grupo_risco("alta-quali em risco", "negativo") == "alta-quali em risco"
+    assert grupo_risco("alta-quali em risco", "positivo") == "alta-quali beneficiada"
+    assert grupo_risco("ambos", "positivo") == "ambos beneficiados"
+    assert grupo_risco("neutro", "positivo") == "neutro" and grupo_risco("n/a", "positivo") == "n/a"
 
 
 def test_polarizacao_sinal_conta_alta_quali_com_sinal_positivo():

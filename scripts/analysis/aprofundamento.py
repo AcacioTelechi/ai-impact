@@ -29,7 +29,7 @@ import statsmodels.formula.api as smf
 from scipy.stats import chi2_contingency, fisher_exact
 from statsmodels.stats.multitest import multipletests
 
-from scripts.analysis.corpus import load_corpus
+from scripts.analysis.corpus import grupo_risco, load_corpus
 from scripts.analysis.stats import NA_VALORES, wilson95
 from scripts.analysis.texkit import CANON, MECANISMOS, escape, fmt_p, fmt_pct, tabela_booktabs
 
@@ -50,6 +50,8 @@ def preparar(df: pd.DataFrame) -> pd.DataFrame:
     """Acrescenta as covariáveis binárias usadas nos modelos (não muta o original)."""
     d = df.copy()
     d["ano"] = pd.to_numeric(d["ano"], errors="coerce")
+    if "grupo_risco" not in d.columns:  # load_corpus já deriva; cobre df montado à mão
+        d["grupo_risco"] = [grupo_risco(p_, s_) for p_, s_ in zip(d["polarizacao"], d["sinal_efeito"])]
     d["pos"] = (d["pre_pos_chatgpt"] == "pos").astype(int)
     d["genai"] = (d["tecnologia_focada"] == GENAI).astype(int)
     d["china"] = d["pais_estudo"].str.contains("China", case=False).astype(int)
@@ -76,13 +78,17 @@ def fisher_pre_pos(sub: pd.DataFrame, alvo: pd.Series, col: str = "pre_pos_chatg
 
 
 # ---------------------------------------------------------------- 1. sensibilidade H1
-def h1_especificacoes(d: pd.DataFrame) -> list[tuple[str, dict]]:
+def h1_especificacoes(d: pd.DataFrame, snow: pd.DataFrame | None = None) -> list[tuple[str, dict]]:
+    """Teste central em definições e subconjuntos alternativos.
+
+    Alvo principal (estrito): ``grupo_risco == ALTA`` — alta qualificação atingida E
+    sinal não positivo. A definição ampla (grupo atingido com qualquer sinal, isto é,
+    o campo ``polarizacao`` tal como codificado) fica como sensibilidade. ``snow`` é o
+    estrato opcional de rastreamento de citações (snowballing), somado ao corpus.
+    """
     pol = d[_ok(d["polarizacao"])].copy()
-    alvo = pol["polarizacao"] == ALTA
-    # Definição estrita: a categoria "alta-quali em risco" foi usada pelo extrator
-    # também para estudos em que a alta qualificação é o grupo BENEFICIADO (sinal
-    # positivo: skill upgrading). "Em risco" exige sinal não positivo.
-    estrito = alvo & (pol["sinal_efeito"] != "positivo")
+    alvo = pol["grupo_risco"] == ALTA
+    amplo = pol["polarizacao"] == ALTA
 
     def f(mask=None, col="pre_pos_chatgpt", alvo=alvo):
         sub = pol if mask is None else pol[mask]
@@ -92,6 +98,7 @@ def h1_especificacoes(d: pd.DataFrame) -> list[tuple[str, dict]]:
     donut = (pol["ano"] <= 2021) | (pol["ano"] >= 2024)
     specs = [
         ("Principal: ano de publicação (pós = 2023+)", f()),
+        ("Definição ampla: alta qualificação atingida, qualquer sinal", f(alvo=amplo)),
         ("Classificação original do LLM", f(col="pre_pos_chatgpt_llm")),
         ("Pivô alternativo: pós = 2024+ (defasagem editorial)", f(col="p2024")),
         ("Excluindo a transição 2022--2023", f(donut)),
@@ -99,11 +106,13 @@ def h1_especificacoes(d: pd.DataFrame) -> list[tuple[str, dict]]:
         ("Apenas estudos empíricos", f(pol["tipo_estudo"].isin(EMPIRICOS))),
         ("Excluindo estudos sobre a China", f(pol["china"] == 0)),
         ("Excluindo estudos de IA generativa/LLMs", f(pol["genai"] == 0)),
-        ("Definição estrita: alta-quali e sinal não positivo", f(alvo=estrito)),
-        ("Definição estrita, excluindo IA generativa/LLMs", f(pol["genai"] == 0, alvo=estrito)),
         (r"Apenas \textit{score} de qualidade $\geq 4$", f(pol["q4"] == 1)),
         ("Apenas lidos em texto completo", f(pol["pdf"] == 1)),
     ]
+    if snow is not None and len(snow):
+        uni = pd.concat([pol, snow[_ok(snow["polarizacao"])]], ignore_index=True)
+        specs.append(("Corpus + rastreamento de citações",
+                      fisher_pre_pos(uni, uni["grupo_risco"] == ALTA)))
     return specs
 
 
@@ -118,8 +127,9 @@ def tabela_h1_sensibilidade(specs) -> str:
         ])
     return tabela_booktabs(
         "p{6.6cm}cccc", ["Especificação", "Pré", "Pós", "RC", "Fisher"], rows,
-        notas=["Fração de estudos que situam o risco na alta qualificação, entre os que "
-               "classificaram a polarização. RC = razão de chances (pós/pré)."])
+        notas=["Fração de estudos que situam o risco na alta qualificação (grupo atingido com "
+               "sinal não positivo sobre o emprego), entre os que classificaram o grupo atingido. "
+               "RC = razão de chances (pós/pré)."])
 
 
 def tabela_polarizacao_sinal(d: pd.DataFrame) -> tuple[str, dict]:
@@ -133,7 +143,7 @@ def tabela_polarizacao_sinal(d: pd.DataFrame) -> tuple[str, dict]:
 
     rows = [linha(escape(c), s[s["polarizacao"] == c]) for c in CANON["polarizacao"]]
     alta = s[s["polarizacao"] == ALTA]
-    rows.append(["\\midrule\\emph{Alta-quali em risco, por subgrupo}"] + [""] * (len(sinais) + 1))
+    rows.append(["\\midrule\\emph{Alta-quali, por subgrupo}"] + [""] * (len(sinais) + 1))
     rows += [linha("\\quad objeto IA generativa/LLMs", alta[alta["genai"] == 1]),
              linha("\\quad demais objetos, publicados em 2023+", alta[(alta["genai"] == 0) & (alta["pos"] == 1)]),
              linha("\\quad demais objetos, publicados até 2022", alta[(alta["genai"] == 0) & (alta["pos"] == 0)])]
@@ -143,41 +153,54 @@ def tabela_polarizacao_sinal(d: pd.DataFrame) -> tuple[str, dict]:
             "alta_pos_naogenai_positivo": int(((alta["genai"] == 0) & (alta["pos"] == 1)
                                               & (alta["sinal_efeito"] == "positivo")).sum())}
     tex = tabela_booktabs(
-        "lrcccc", ["Polarização", "$n$", "Negativo", "Positivo", "Nulo", "Ambíguo"], rows,
-        notas=["Contagens sobre os estudos que classificaram polarização e sinal. Um estudo "
-               "codificado como ``alta-quali em risco'' com sinal positivo situa a alta "
-               "qualificação como o grupo \\emph{atingido} pela tecnologia, não como o grupo "
-               "que perde: tipicamente evidência de firma sobre \\textit{skill upgrading}."])
+        "lrcccc", ["Grupo atingido (rótulo original)", "$n$", "Negativo", "Positivo", "Nulo", "Ambíguo"], rows,
+        notas=["Contagens sobre os estudos que classificaram grupo atingido e sinal, com os "
+               "rótulos originais do extrator. Um estudo rotulado ``em risco'' com sinal positivo "
+               "situa o grupo como \\emph{atingido} pela tecnologia, não como o grupo que perde; "
+               "na análise, esses estudos são recodificados como ``grupo beneficiado''."])
     return tex, nums
 
 
 # ---------------------------------------------------------------- 2. objeto tecnológico
 def tabela_polarizacao_tecnologia(d: pd.DataFrame) -> tuple[str, dict]:
     pol = d[_ok(d["polarizacao"]) & _ok(d["tecnologia_focada"])]
-    tab = pd.crosstab(pol["tecnologia_focada"], pol["polarizacao"])
+    tab = pd.crosstab(pol["tecnologia_focada"], pol["grupo_risco"])
+    risco = CANON["grupo_risco"][:4]
+    benef = [c for c in CANON["grupo_risco"][4:] if c in tab.columns]
     rows = []
     for tec in CANON["tecnologia_focada"]:
         if tec not in tab.index or tab.loc[tec].sum() < 5:
             continue
         n = int(tab.loc[tec].sum())
-        rows.append([escape(tec), str(n)] + [
-            fmt_pct(tab.loc[tec].get(c, 0) / n) for c in CANON["polarizacao"]])
+        rows.append([escape(tec), str(n)]
+                    + [fmt_pct(tab.loc[tec].get(c, 0) / n) for c in risco]
+                    + [fmt_pct(tab.loc[tec][benef].sum() / n)])
     g = pol["tecnologia_focada"] == GENAI
-    a = pol["polarizacao"] == ALTA
+    a = pol["grupo_risco"] == ALTA
     odds, p = fisher_exact([[int((g & a).sum()), int((g & ~a).sum())],
                             [int((~g & a).sum()), int((~g & ~a).sum())]])
+    k, n = int((g & a).sum()), int(g.sum())
+    lo, hi = wilson95(k, n)
     tex = tabela_booktabs(
-        "lrcccc", ["Tecnologia em foco", "$n$", "Baixa-quali", "Alta-quali", "Ambos", "Neutro"],
+        "lrccccc", ["Tecnologia em foco", "$n$", "Baixa em risco", "Alta em risco", "Ambos",
+                    "Neutro", "Beneficiado"],
         rows,
-        notas=[f"Percentuais na linha, sobre os estudos que classificaram a polarização "
-               f"(categorias com $n<5$ omitidas). IA generativa vs.\\ demais, alta-quali em "
-               f"risco: RC $={_num(odds)}$, Fisher " + fmt_p(p) + "."])
-    return tex, {"or_genai": float(odds), "p_genai": float(p)}
+        notas=[f"Percentuais na linha, sobre os estudos que classificaram o grupo atingido "
+               f"(categorias com $n<5$ omitidas). ``Em risco'': sinal não positivo; "
+               f"``Beneficiado'': grupo atingido com sinal positivo. IA generativa vs.\\ demais, "
+               f"alta qualificação em risco: RC $={_num(odds)}$, Fisher " + fmt_p(p) + "."])
+    return tex, {"or_genai": float(odds), "p_genai": float(p), "genai_k": k, "genai_n": n,
+                 "genai_ic": [lo, hi],
+                 "genai_n_total": int((d["tecnologia_focada"] == GENAI).sum()),
+                 "genai_dist": {str(c): int(v) for c, v in tab.loc[GENAI].items()} if GENAI in tab.index else {},
+                 "genai_alta_tipo": pol[g & a]["tipo_estudo"].value_counts().to_dict(),
+                 "genai_alta_fonte": pol[g & a]["text_source"].value_counts().to_dict(),
+                 "genai_alta_sinal": pol[g & a]["sinal_efeito"].value_counts().to_dict()}
 
 
 def logit_h1(d: pd.DataFrame):
     pol = d[_ok(d["polarizacao"]) & _ok(d["tipo"])].copy()
-    pol["alta"] = (pol["polarizacao"] == ALTA).astype(int)
+    pol["alta"] = (pol["grupo_risco"] == ALTA).astype(int)
     formulas = ["alta ~ pos", "alta ~ pos + genai",
                 "alta ~ pos + genai + C(tipo) + china + q4 + pdf"]
     with warnings.catch_warnings():
@@ -207,14 +230,15 @@ def tabela_logit(modelos) -> str:
     rows.append(["Pseudo-$R^2$ (McFadden)"] + [_num(m.prsquared, 3) for m in modelos])
     return tabela_booktabs(
         "p{5.2cm}ccc", ["", "(1)", "(2)", "(3)"], rows,
-        notas=["Logit; variável dependente: o estudo situa o risco na alta qualificação. "
+        notas=["Logit; variável dependente: o estudo situa o risco na alta qualificação "
+               "(grupo atingido com sinal não positivo). "
                "Razões de chances com IC 95\\% entre colchetes; * $p<0{,}05$. Categoria de "
                "referência do tipo: evidência macro/setorial."])
 
 
 def figura_tendencia(d: pd.DataFrame, out: Path) -> dict:
     pol = d[_ok(d["polarizacao"])].copy()
-    pol["alta"] = (pol["polarizacao"] == ALTA).astype(int)
+    pol["alta"] = (pol["grupo_risco"] == ALTA).astype(int)
     g = pol[pol["ano"] >= 2018].groupby("ano")["alta"].agg(["sum", "count"])
     pct = g["sum"] / g["count"] * 100
     ci = np.array([wilson95(int(k), int(n)) for k, n in zip(g["sum"], g["count"])]) * 100
@@ -222,6 +246,7 @@ def figura_tendencia(d: pd.DataFrame, out: Path) -> dict:
         warnings.simplefilter("ignore")
         m = smf.logit("alta ~ ano", pol).fit(disp=0)
         m2 = smf.logit("alta ~ ano", pol[pol["genai"] == 0]).fit(disp=0)
+        m3 = smf.logit("alta ~ ano + pos", pol).fit(disp=0)
     cor, tinta, grade = "#2a5d9f", "#333333", "#dddddd"
     fig, ax = plt.subplots(figsize=(6.4, 3.4))
     ax.axvspan(2022.5, g.index.max() + 0.5, color="#f1f1f1", zorder=0)
@@ -246,6 +271,8 @@ def figura_tendencia(d: pd.DataFrame, out: Path) -> dict:
     return {"or_ano": float(np.exp(m.params["ano"])), "p_ano": float(m.pvalues["ano"]),
             "or_ano_sem_genai": float(np.exp(m2.params["ano"])),
             "p_ano_sem_genai": float(m2.pvalues["ano"]),
+            "ano_e_pos": {"or_ano": float(np.exp(m3.params["ano"])), "p_ano": float(m3.pvalues["ano"]),
+                          "or_pos": float(np.exp(m3.params["pos"])), "p_pos": float(m3.pvalues["pos"])},
             "por_ano": {int(a): [int(k), int(n)] for a, k, n in zip(g.index, g["sum"], g["count"])}}
 
 
@@ -270,7 +297,7 @@ def tabela_sinal_por_tipo(d: pd.DataFrame) -> tuple[str, dict]:
 
 # ---------------------------------------------------------------- 4. composição
 DESFECHOS = [
-    ("Risco na alta qualificação", "polarizacao", ALTA),
+    ("Risco na alta qualificação", "grupo_risco", ALTA),
     ("Sinal negativo", "sinal_efeito", "negativo"),
     ("Sinal positivo", "sinal_efeito", "positivo"),
     ("Invoca deslocamento", "mec_deslocamento", "sim"),
@@ -337,14 +364,14 @@ def perfis_mecanismos(d: pd.DataFrame) -> tuple[str, dict]:
 
 def familia_testes(d: pd.DataFrame) -> list[tuple[str, float]]:
     fam = []
-    for rot, col in [("Polarização (distribuição completa)", "polarizacao"),
+    for rot, col in [("Grupo atingido e direção (distribuição completa)", "grupo_risco"),
                      ("Sinal sobre o emprego", "sinal_efeito"),
                      ("Tipo de evidência", "tipo_estudo"), ("Horizonte", "horizonte")]:
         s = d[_ok(d[col])]
         fam.append((rot, cramers_v(pd.crosstab(s[col], s["pre_pos_chatgpt"]))[1]))
     pol = d[_ok(d["polarizacao"])]
     fam.append(("Risco na alta qualificação (H1)",
-                fisher_pre_pos(pol, pol["polarizacao"] == ALTA)["p"]))
+                fisher_pre_pos(pol, pol["grupo_risco"] == ALTA)["p"]))
     for col, rot in MECANISMOS.items():
         s = d[_ok(d[col])]
         fam.append((rot, fisher_pre_pos(s, s[col] == "sim")["p"]))
@@ -394,12 +421,49 @@ def placebo_tecnologia(d: pd.DataFrame) -> list[dict]:
             s = d[mask & _ok(d[col])]
             linha[g] = fisher_pre_pos(s, s[col].isin(alvos))
         out.append(linha)
-        if col == "polarizacao":  # definição estrita: alta-quali E sinal não positivo
-            linha = {"rotulo": "Risco na alta qualificação (definição estrita)"}
+        if col == "grupo_risco":  # definição ampla: grupo atingido, qualquer sinal
+            linha = {"rotulo": "Alta qualificação atingida (definição ampla)"}
             for g, mask in grupos:
                 s = d[mask & _ok(d[col])]
-                linha[g] = fisher_pre_pos(s, (s[col] == ALTA) & (s["sinal_efeito"] != "positivo"))
+                linha[g] = fisher_pre_pos(s, s["polarizacao"] == ALTA)
             out.append(linha)
+    return out
+
+
+def interacoes_placebo(d: pd.DataFrame) -> dict:
+    """p da interação período × grupo (robótica/automação vs. IA em geral), por desfecho."""
+    s0 = d[d["tecnologia_focada"].isin(ROBOS + ("geral",))].copy()
+    s0["geral"] = (s0["tecnologia_focada"] == "geral").astype(int)
+    out = {}
+    for rot, col, alvo in DESFECHOS:
+        alvos = alvo if isinstance(alvo, tuple) else (alvo,)
+        s = s0[_ok(s0[col])].copy()
+        s["y"] = s[col].isin(alvos).astype(int)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                out[rot] = float(smf.logit("y ~ pos * geral", s).fit(disp=0).pvalues["pos:geral"])
+            except Exception:  # separação perfeita em células vazias
+                out[rot] = float("nan")
+    return out
+
+
+def extras(d: pd.DataFrame) -> dict:
+    """Números citados no texto que não saem de nenhuma tabela."""
+    pol = d[_ok(d["polarizacao"])]
+    rob = pol[pol["tecnologia_focada"].isin(ROBOS)]
+    out = {"n_classificados": int(len(pol)), "n_total": int(len(d)),
+           "risco_por_periodo": pd.crosstab(pol["grupo_risco"], pol["pre_pos_chatgpt"]).to_dict(),
+           "robotica_baixa_risco": {p_: [int((rob[rob.pre_pos_chatgpt == p_]["grupo_risco"] == "baixa-quali em risco").sum()),
+                                         int((rob.pre_pos_chatgpt == p_).sum())] for p_ in ("pre", "pos")}}
+    pos = pol[pol["pos"] == 1]
+    rg = pos[(pos["tecnologia_focada"] == "robôs+IA") | (pos["genai"] == 1)]
+    out["v_robos_genai"] = cramers_v(pd.crosstab(rg["grupo_risco"], rg["genai"]))[2]
+    aut = pos[pos["tecnologia_focada"] == "automação"]
+    out["automacao_pos"] = {"n": int(len(aut)), "alta": int((aut["grupo_risco"] == ALTA).sum()),
+                            "baixa": int((aut["grupo_risco"] == "baixa-quali em risco").sum())}
+    for nome, sub in (("pdf", pol[pol["pdf"] == 1]), ("abstract", pol[pol["pdf"] == 0])):
+        out["ambos_" + nome] = float((sub["polarizacao"] == "ambos").mean())
     return out
 
 
@@ -411,7 +475,7 @@ def tabela_placebo(res: list[dict]) -> str:
                           ["Desfecho", "Pré", "Pós", "Fisher", "Pré", "Pós", "Fisher"], rows,
                           notas=["Colunas 2--4: estudos cujo objeto é robótica ou automação "
                                  "(placebo). Colunas 5--7: estudos que tratam a IA de modo geral. "
-                                 "Definição estrita: alta qualificação em risco e sinal não positivo. "
+                                 "Risco: grupo atingido com sinal não positivo; definição ampla: qualquer sinal. "
                                  "Os estudos de IA generativa não comportam o teste, pois só um é "
                                  "anterior a 2023."])
     cab = ("\\toprule\n & \\multicolumn{3}{c}{Robótica e automação} & "
@@ -422,8 +486,8 @@ def robos_vs_genai(d: pd.DataFrame) -> tuple[list[tuple], int, int]:
     """Confronto direto, só entre publicados em 2023+ (iguala o calendário)."""
     pos = d[d["pos"] == 1]
     r, g = pos[pos["tecnologia_focada"] == "robôs+IA"], pos[pos["genai"] == 1]
-    itens = [("Risco na alta qualificação", "polarizacao", (ALTA,)),
-             ("Risco na baixa qualificação", "polarizacao", ("baixa-quali em risco",)),
+    itens = [("Risco na alta qualificação", "grupo_risco", (ALTA,)),
+             ("Risco na baixa qualificação", "grupo_risco", ("baixa-quali em risco",)),
              ("Sinal negativo", "sinal_efeito", ("negativo",)),
              ("Sinal positivo", "sinal_efeito", ("positivo",)),
              ("Invoca deslocamento", "mec_deslocamento", ("sim",)),
@@ -461,14 +525,40 @@ def tabela_robos_vs_genai(res, n_r: int, n_g: int) -> str:
                      "ocupacional, evidência macro/setorial, firma/\\textit{freelancer} e indivíduo."])
 
 
-def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None) -> dict:
+def nota_snowball(snow_raw: pd.DataFrame, snow: pd.DataFrame, spec: dict) -> str:
+    """Frase (LaTeX) com o resultado do estrato de rastreamento de citações."""
+    n, n_inc = len(snow_raw), len(snow)
+    pol = snow[_ok(snow["polarizacao"])]
+    k = int((pol["grupo_risco"] == ALTA).sum())
+    sem_resumo = int((snow_raw["tem_resumo"].astype(str) != "True").sum()) if "tem_resumo" in snow_raw else 0
+    n_pre = int((snow["pos"] == 0).sum())
+    periodo = ("todas publicadas até 2022" if n_pre == n_inc
+               else f"{n_pre} publicadas até 2022 e {n_inc - n_pre} de 2023 em diante")
+    return (f"Das {n} referências avaliadas ({sem_resumo} delas sem resumo disponível, julgadas pelo "
+            f"título), {n_inc} foram consideradas elegíveis, {periodo}; {len(pol)} "
+            f"classificam o grupo atingido e {k} {'situa' if k == 1 else 'situam'} o risco na alta "
+            f"qualificação. Somadas ao "
+            f"corpus, a fração passa de {fmt_pct(spec['k_pre'] / spec['n_pre'])} no pré para "
+            f"{fmt_pct(spec['k_pos'] / spec['n_pos'])} no pós (RC $={_num(spec['or'])}$, "
+            + fmt_p(spec["p"]) + ").\n")
+
+
+def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None,
+        snowball: Path | None = None) -> dict:
     d = preparar(load_corpus(input).df)
+    snow = snow_raw = None
+    if snowball is not None and snowball.exists():
+        snow_raw = pd.read_csv(snowball, encoding="utf-8", dtype=str)
+        snow = preparar(load_corpus(snowball).df)
     tab_dir.mkdir(parents=True, exist_ok=True)
     fig_dir.mkdir(parents=True, exist_ok=True)
     nums: dict = {"n": len(d), "n_pre": int((d.pos == 0).sum()), "n_pos": int((d.pos == 1).sum())}
-    specs = h1_especificacoes(d)
+    specs = h1_especificacoes(d, snow)
     nums["h1"] = {r: v for r, v in specs}
     (tab_dir / "h1_sensibilidade.tex").write_text(tabela_h1_sensibilidade(specs), "utf-8")
+    if snow is not None:  # só existe depois de `make snowball`
+        (tab_dir / "snowball_nota.tex").write_text(
+            nota_snowball(snow_raw, snow, dict(specs)["Corpus + rastreamento de citações"]), "utf-8")
     tex, nums["polarizacao_sinal"] = tabela_polarizacao_sinal(d)
     (tab_dir / "polarizacao_sinal.tex").write_text(tex, "utf-8")
     tex, nums["tecnologia"] = tabela_polarizacao_tecnologia(d)
@@ -484,6 +574,8 @@ def run(input: Path, tab_dir: Path, fig_dir: Path, json_out: Path | None = None)
     (tab_dir / "multiplos_testes.tex").write_text(tabela_multiplos(familia_testes(d)), "utf-8")
     (tab_dir / "validade_fonte.tex").write_text(tabela_validade_fonte(d), "utf-8")
     nums["placebo"] = placebo_tecnologia(d)
+    nums["interacoes_placebo"] = interacoes_placebo(d)
+    nums["extras"] = extras(d)
     (tab_dir / "placebo_tecnologia.tex").write_text(tabela_placebo(nums["placebo"]), "utf-8")
     res, n_r, n_g = robos_vs_genai(d)
     nums["robos_vs_genai"] = res
@@ -501,8 +593,10 @@ def _cli(argv: list[str]) -> int:
     p.add_argument("--tab-dir", type=Path, required=True)
     p.add_argument("--fig-dir", type=Path, required=True)
     p.add_argument("--json-out", type=Path, default=None)
+    p.add_argument("--snowball", type=Path, default=None,
+                   help="09_snowball_extraction.csv (opcional; estrato de sensibilidade)")
     a = p.parse_args(argv)
-    run(a.input, a.tab_dir, a.fig_dir, a.json_out)
+    run(a.input, a.tab_dir, a.fig_dir, a.json_out, a.snowball)
     return 0
 
 

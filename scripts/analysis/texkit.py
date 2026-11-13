@@ -7,6 +7,8 @@ from __future__ import annotations
 
 CANON: dict[str, list[str]] = {
     "polarizacao": ["baixa-quali em risco", "alta-quali em risco", "ambos", "neutro"],
+    "grupo_risco": ["baixa-quali em risco", "alta-quali em risco", "ambos", "neutro",
+                    "baixa-quali beneficiada", "alta-quali beneficiada", "ambos beneficiados"],
     "sinal_efeito": ["negativo", "positivo", "nulo", "ambíguo"],
     "tipo_estudo": [
         "exposição ocupacional",

@@ -234,7 +234,19 @@ analysis-aprofundamento:
 	$(PYTHON) -m scripts.analysis.aprofundamento \
 	    --input $(DATA_PROC)/06_extraction.csv \
 	    --tab-dir $(TAB_DIR) --fig-dir $(FIG_DIR) \
-	    --json-out reports/revisao/numeros_aprofundamento.json
+	    --json-out reports/revisao/numeros_aprofundamento.json \
+	    --snowball $(DATA_PROC)/09_snowball_extraction.csv
+
+# Rastreamento de citações (snowballing retroativo) das referências mais citadas
+# pelo corpus e não recuperadas pela busca. Requer ANTHROPIC_API_KEY válida.
+# O estrato entra só como sensibilidade (make analysis-aprofundamento o detecta).
+.PHONY: snowball
+snowball:
+	$(PYTHON) -m scripts.extraction.snowball_extract \
+	    --cobertura reports/revisao/top_referencias_cobertura.csv \
+	    --candidatos $(DATA_PROC)/09_snowball_candidatos.csv \
+	    --output $(DATA_PROC)/09_snowball_extraction.csv \
+	    --cache $(DATA_PROC)/09_cache_snowball.json
 
 .PHONY: biblio biblio-refs biblio-networks biblio-report
 biblio: biblio-refs biblio-networks biblio-report

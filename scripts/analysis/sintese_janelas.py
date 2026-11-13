@@ -72,7 +72,7 @@ def _tabela(df: pd.DataFrame) -> str:
     rows.append(["Tecnologia dominante"] + [escape(_modal(df, j, "tecnologia_focada")) for j in JANELAS])
     rows.append(["Tipo de estudo modal"] + [escape(_modal(df, j, "tipo_estudo")) for j in JANELAS])
     rows.append(["Sinal predominante"] + [escape(_modal(df, j, "sinal_efeito")) for j in JANELAS])
-    rows.append(["Polarização predominante"] + [escape(_modal(df, j, "polarizacao")) for j in JANELAS])
+    rows.append(["Grupo em risco predominante"] + [escape(_modal(df, j, "grupo_risco")) for j in JANELAS])
     for mec, rotulo in MECANISMOS.items():
         pj = _pct_mec_por_janela(df, mec)
         rows.append([f"{rotulo} (\\%)"] + [fmt_pct(pj[j]) for j in JANELAS])

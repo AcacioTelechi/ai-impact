@@ -29,9 +29,9 @@ from scripts.analysis.texkit import (
 )
 
 FOCO_H1 = "alta-quali em risco"
-DIMS_MULTI = ("polarizacao", "sinal_efeito", "tipo_estudo", "horizonte")
+DIMS_MULTI = ("grupo_risco", "sinal_efeito", "tipo_estudo", "horizonte")
 DIM_LABEL = {
-    "polarizacao": "Polarização (quem está em risco)",
+    "grupo_risco": "Grupo de qualificação atingido e direção do efeito",
     "sinal_efeito": "Sinal sobre o emprego",
     "tipo_estudo": "Tipo de evidência",
     "horizonte": "Horizonte",
@@ -86,7 +86,7 @@ def _rc_pos_pre(f) -> float:
 
 
 def _tabela_polarizacao(df: pd.DataFrame) -> str:
-    f = assoc_fisher_2x2(df, "polarizacao", foco=FOCO_H1)
+    f = assoc_fisher_2x2(df, "grupo_risco", foco=FOCO_H1)
     lo_pre, hi_pre = wilson95(f.k_pre, f.n_pre)
     lo_pos, hi_pos = wilson95(f.k_pos, f.n_pos)
     rows = [
@@ -99,16 +99,16 @@ def _tabela_polarizacao(df: pd.DataFrame) -> str:
     ]
     return tabela_booktabs(
         "lcc",
-        ["Polarização", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
+        ["Grupo em risco", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
         rows,
         notas=[f"Fisher exato: razão de chances (pós/pré) $={_rc_pos_pre(f):.2f}$".replace(".", "{,}") + ", " + fmt_p(f.p)
-               + "; IC Wilson 95\\% entre colchetes."],
+               + "; IC Wilson 95\\% entre colchetes. ``Em risco'' exige sinal não positivo sobre o emprego."],
     )
 
 
 def _tabela_robustez(df: pd.DataFrame) -> str:
     alta = df[df["score_qualidade"] >= 4]
-    f = assoc_fisher_2x2(alta, "polarizacao", foco=FOCO_H1)
+    f = assoc_fisher_2x2(alta, "grupo_risco", foco=FOCO_H1)
     rows = [
         ["Alta-quali em risco",
          fmt_pct(f.k_pre / f.n_pre if f.n_pre else 0),
@@ -119,10 +119,10 @@ def _tabela_robustez(df: pd.DataFrame) -> str:
     ]
     return tabela_booktabs(
         "lcc",
-        ["Polarização (score$\\geq$4)", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
+        ["Grupo em risco (score$\\geq$4)", f"Pré (n={f.n_pre})", f"Pós (n={f.n_pos})"],
         rows,
         notas=[f"Subconjunto de robustez: estudos com score de qualidade $\\geq 4$. "
-               f"$n$ é o número com polarização classificada nesse subconjunto (n/a fora). "
+               f"$n$ é o número com grupo atingido classificado nesse subconjunto (n/a fora). "
                f"Fisher exato: " + fmt_p(f.p) + ". Células pequenas; leitura cautelosa."],
     )
 

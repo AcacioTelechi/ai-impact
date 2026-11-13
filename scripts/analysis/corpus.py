@@ -35,6 +35,26 @@ _NUMERICAS = ("score_qualidade", "magnitude_normalizada")
 # para o mesmo horizonte. Colapsa nas formas com "prazo" (ver CANON em texkit).
 _HORIZONTE_NORM = {"médio": "médio prazo", "longo": "longo prazo"}
 
+# RECODIFICAÇÃO DO GRUPO EM RISCO (revisão 2026-11). O campo ``polarizacao`` registra
+# o grupo de qualificação ATINGIDO pela tecnologia, sem distinguir perda de ganho: o
+# extrator usou "alta-quali em risco" também para estudos de sinal positivo (skill
+# upgrading). ``grupo_risco`` separa as duas coisas de forma determinística, cruzando
+# ``polarizacao`` com ``sinal_efeito``: um grupo só está "em risco" quando o sinal do
+# efeito sobre o emprego NÃO é positivo; com sinal positivo, o grupo é "beneficiado".
+_BENEFICIADO = {
+    "alta-quali em risco": "alta-quali beneficiada",
+    "baixa-quali em risco": "baixa-quali beneficiada",
+    "ambos": "ambos beneficiados",
+}
+
+
+def grupo_risco(polarizacao: str, sinal: str) -> str:
+    pol = str(polarizacao).strip()
+    if str(sinal).strip().lower() == "positivo":
+        return _BENEFICIADO.get(pol, pol)
+    return pol
+
+
 ANO_PIVO = 2023  # primeiro ano-calendário "pós-ChatGPT" (lançamento em 2022-11-30)
 
 
@@ -74,6 +94,9 @@ def load_corpus(path: Path) -> CorpusAnalise:
             if col in df.columns:
                 df[col + "_llm"] = df[col]
             df[col] = ano.map(fn)
+    if {"polarizacao", "sinal_efeito"} <= set(df.columns):
+        df["grupo_risco"] = [grupo_risco(p, s)
+                             for p, s in zip(df["polarizacao"], df["sinal_efeito"])]
     if "horizonte" in df.columns:
         df["horizonte"] = (
             df["horizonte"].astype(str).str.strip().replace(_HORIZONTE_NORM)
