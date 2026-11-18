@@ -1,56 +1,154 @@
-% Preamble — pacotes e configurações comuns
+% Preamble — pacotes e configurações comuns.
+% Baseado em 00-pacotes.tex do modelo ufpr-abntex (https://github.com/eekBR/ufpr-abntex),
+% acrescido dos pacotes usados neste trabalho. Carregado depois de \usepackage{UFPR}.
 
+% ----------------------------------------------------------
+% Pacotes básicos (modelo UFPR)
+% ----------------------------------------------------------
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[brazilian]{babel}
-
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{geometry}
-\geometry{a4paper, margin=2.5cm}
-
-\usepackage{setspace}
-\onehalfspacing
-
+\usepackage{lastpage}
 \usepackage{indentfirst}
+\usepackage{microtype}
+\usepackage{ifthen}
+\usepackage[brazil]{babel}
+\usepackage[final]{pdfpages}    % termo de aprovação e ficha catalográfica em PDF
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{ragged2e}
 
+% ----------------------------------------------------------
+% Pacotes do trabalho
+% ----------------------------------------------------------
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{siunitx}
-\usepackage{caption}
-\usepackage{subcaption}
 \usepackage{xcolor}
-
 \usepackage{csquotes}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    citecolor=black,
-    urlcolor=blue!50!black,
-}
-
-\usepackage{tikz}
 \usetikzlibrary{shapes,arrows.meta,positioning,calc}
 
+% ----------------------------------------------------------
+% Citações e referências — ABNT (biblatex-abnt), como no modelo UFPR
+% ----------------------------------------------------------
 \usepackage[
+    style=abnt,
     backend=biber,
-    style=apa,
-    language=brazilian,
+    repeatfields=true,
+    url=true,
+    maxbibnames=99,
+    mincitenames=1,
+    maxcitenames=2,
+    hyperref=true,
+    giveninits=true,
+    uniquename=false,
+    uniquelist=false,
     natbib=true,
-    sorting=nyt,
 ]{biblatex}
 
 \addbibresource{refs.bib}
 
-% Glossário de siglas (carregar após hyperref)
-\usepackage[acronym, nomain, nopostdot, nonumberlist, toc]{glossaries}
+% NBR 10520:2023 — sobrenomes em minúsculas nas chamadas
+\renewcommand*{\mkbibnamefamily}[1]{#1}
+
+% Espaçamento simples dentro de cada referência, alinhamento à esquerda
+\renewcommand*{\bibsetup}{%
+  \renewcommand{\baselinestretch}{1.0}%
+  \RaggedRight
+  \interlinepenalty=5000\relax
+  \setlength{\parskip}{0pt}%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parsep}{0pt}%
+  \setlength{\bibitemsep}{0.5\baselineskip}%
+  \setlength{\bibparsep}{\parskip}%
+}
+
+\DefineBibliographyStrings{brazil}{%
+  urlfrom = {Dispon\'ivel em},
+}
+
+% Título REFERÊNCIAS sem numeração, presente no sumário
+\defbibheading{bay}[\bibname]{%
+  \chapter*{#1}%
+  \markboth{#1}{#1}%
+  \addcontentsline{toc}{chapter}{\bibname}%
+}
+
+% URL sem < > (NBR 6023:2018)
+\DeclareFieldFormat{url}{\bibstring{urlfrom}\addcolon\space\url{#1}}
+\DeclareFieldFormat{urldate}{\bibstring{urlseen}\addcolon\addspace #1}
+
+% ----------------------------------------------------------
+% Sumário e listas: espaçamento e caixa alta (modelo UFPR)
+% ----------------------------------------------------------
+\makeatletter
+\pretocmd{\chapter}{\addtocontents{toc}{\protect\addvspace{-12\p@}}}{}{}
+\pretocmd{\section}{\addtocontents{toc}{\protect\addvspace{-3\p@}}}{}{}
+\makeatother
+
+% Seções secundárias em caixa alta no sumário; títulos de figuras e tabelas
+% em caixa alta nas respectivas listas.
+\let\oldcontentsline\contentsline
+\def\contentsline#1#2{%
+  \ifboolexpr{ test {\ifstrequal{#1}{section}}
+            or test {\ifstrequal{#1}{figure}}
+            or test {\ifstrequal{#1}{table}} }
+    {\oldcontentsline{#1}{\MakeTextUppercase{#2}}}%
+    {\oldcontentsline{#1}{#2}}%
+}
+
+% ----------------------------------------------------------
+% Numeração de páginas: canto superior direito, fonte menor (modelo UFPR)
+% ----------------------------------------------------------
+\makepagestyle{chapfirst}
+\makeoddhead{chapfirst}{}{}{\footnotesize\thepage}
+
+\makepagestyle{simplestextual}
+\makeevenhead{simplestextual}{}{}{\footnotesize\thepage}
+\makeoddhead{simplestextual}{}{}{\footnotesize\thepage}
+\makeevenfoot{simplestextual}{}{}{}
+\makeoddfoot{simplestextual}{}{}{}
+
+% ----------------------------------------------------------
+% Ilustrações e tabelas (normas UFPR): título acima, em caixa alta, fonte 10,
+% no formato ``FIGURA 1 -- TÍTULO''; linha FONTE abaixo.
+% ----------------------------------------------------------
+\usepackage{caption}
+\DeclareCaptionTextFormat{caixaalta}{\MakeTextUppercase{#1}}
+\DeclareCaptionLabelSeparator{travessao}{ -- }
+\captionsetup{
+    font=footnotesize,
+    labelsep=travessao,
+    textformat=caixaalta,
+    justification=centering,
+    position=top,
+    skip=6pt,
+}
+
+% Linha FONTE inserida automaticamente ao final de toda figura e tabela.
+% Dentro de um float específico:
+%   \renewcommand{\textofonte}{Adaptado de \textcite{chave}}  — outra fonte
+%   \semfonte                                                — suprime a linha
+%   \notaufpr{Texto da nota}                                    — linha NOTA após a FONTE
+\newcommand{\textofonte}{O autor (\imprimirdata)}
+\newcommand{\textonota}{}
+\newcommand{\notaufpr}[1]{\renewcommand{\textonota}{#1}}
+\newcommand{\linhafonte}{\par\vspace{2mm}{\footnotesize FONTE: \textofonte.\par
+  \ifdefempty{\textonota}{}{NOTA: \textonota\par}}}
+\newcommand{\semfonte}{\let\linhafonte\relax}
+\AtEndEnvironment{figure}{\linhafonte}
+\AtEndEnvironment{table}{\linhafonte}
+
+% ----------------------------------------------------------
+% Lista de siglas (pacote glossaries; carregar após hyperref)
+% ----------------------------------------------------------
+\usepackage[acronym, nomain, nopostdot, nonumberlist]{glossaries}
 \makenoidxglossaries
 \setacronymstyle{long-short}
+\renewcommand*{\glossarysection}[2][]{\pretextualchapter{#2}}
 \input{pre/acronimos.tex}
 
+% ----------------------------------------------------------
 % Comandos auxiliares
+% ----------------------------------------------------------
 \newcommand{\janelaUm}{2013--2017}
 \newcommand{\janelaDois}{2018--2022}
 \newcommand{\janelaTres}{2023--2026}

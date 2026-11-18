@@ -1,0 +1,34 @@
+% Elementos pré-textuais, na ordem das normas da UFPR.
+% Equivale ao 00-pretextual.tex do modelo ufpr-abntex.
+
+% Sem número de página nas aberturas dos elementos pré-textuais
+\makeoddhead{chapfirst}{}{}{}
+
+\imprimircapa
+\imprimirfolhaderosto*
+
+% Ficha catalográfica e termo de aprovação: entram automaticamente quando os
+% PDFs fornecidos pela biblioteca/coordenação forem salvos em
+% metadados/FichaC.pdf e metadados/TermoA.pdf.
+\IfFileExists{metadados/FichaC.pdf}{\insereFichaCatalografica}{}
+\IfFileExists{metadados/TermoA.pdf}{\insereAprovacao}{}
+
+% \input{pre/agradecimentos.tex}
+\input{pre/resumo.tex}
+\input{pre/abstract.tex}
+
+\listoffigures*
+\cleardoublepage
+
+\listoftables*
+\cleardoublepage
+
+\input{pre/lista_siglas.tex}
+\cleardoublepage
+
+\pagestyle{empty}
+\tableofcontents*
+\thispagestyle{empty}
+
+% Restaura o número de página nas aberturas de capítulo da parte textual
+\makeoddhead{chapfirst}{}{}{\footnotesize\thepage}

@@ -1,23 +1,49 @@
-\documentclass[12pt,a4paper]{article}
+% TCC no modelo de formatação da UFPR.
+% Estrutura adaptada de ufpr-abntex (https://github.com/eekBR/ufpr-abntex),
+% customização do abnTeX2 para as normas da UFPR (LPPL 1.3).
+%
+%   UFPR.sty             estilo do modelo (cópia sem alterações)
+%   preamble.tex         pacotes e ajustes
+%   pre/dados.tex        autor, título, orientador, curso
+%   pre/pretextual.tex   capa, folha de rosto, resumos, listas, sumário
 
+\documentclass[
+    12pt,
+    openright,
+    oneside,
+    a4paper,
+    chapter=TITLE,      % seções primárias em caixa alta
+    section=TITLE,      % seções secundárias em caixa alta
+    english,            % idioma adicional (abstract)
+    brazil,             % idioma principal
+]{abntex2}
+
+\usepackage{UFPR}
 \input{preamble.tex}
-
-\title{Impactos da Inteligência Artificial no Mercado de Trabalho:\\
-       uma Revisão Sistemática da Literatura (2013--2026)}
-\author{Acacio}
-\date{\today}
+\input{pre/dados.tex}
 
 \begin{document}
 
-\input{pre/capa.tex}
-\input{pre/folha_rosto.tex}
-\input{pre/resumo.tex}
-\input{pre/abstract.tex}
-\input{pre/agradecimentos.tex}
-\input{pre/lista_siglas.tex}
+% Rótulos em caixa alta (precisam vir depois do \begin{document})
+\renewcommand{\bibname}{REFER\^ENCIAS}
+\renewcommand{\listfigurename}{LISTA DE FIGURAS}
+\renewcommand{\tablename}{TABELA}
+\renewcommand{\figurename}{FIGURA}
+\renewcommand{\figureautorefname}{FIGURA}
+\renewcommand{\tableautorefname}{TABELA}
 
-\tableofcontents
-\newpage
+\aliaspagestyle{chapter}{chapfirst}
+
+% ----------------------------------------------------------
+% ELEMENTOS PRÉ-TEXTUAIS
+% ----------------------------------------------------------
+\input{pre/pretextual.tex}
+
+% ----------------------------------------------------------
+% ELEMENTOS TEXTUAIS
+% ----------------------------------------------------------
+\textual
+\pagestyle{simplestextual}
 
 \input{chapters/01_introducao.tex}
 \input{chapters/02_referencial_teorico.tex}
@@ -30,6 +56,12 @@
 % \input{chapters/07_implicacoes_brasil.tex}
 \input{chapters/08_consideracoes_finais.tex}
 
-\printbibliography
+% ----------------------------------------------------------
+% ELEMENTOS PÓS-TEXTUAIS
+% ----------------------------------------------------------
+\postextual
+
+\addtocontents{toc}{\vspace{-6pt}}
+\printbibliography[heading=bay]
 
 \end{document}
